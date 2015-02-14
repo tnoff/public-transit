@@ -9,8 +9,8 @@ setup(
     author_email='tylernorth18@gmail.com',
     install_requires=[
         'beautifulsoup4>=4.3.2',
-        'httpretty>=0.8.4'
-        'nose>=1.3.4'
+        'httpretty>=0.8.4',
+        'nose>=1.3.4',
         'requests==2.5.1',
     ],
     scripts=[

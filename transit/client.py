@@ -35,7 +35,7 @@ class Client(object):
         for agency in soup.find_all('agency'):
             agency_list.append(Agency(agency.get('tag'),
                                       agency.get('title'),
-                                      agency.get('regionTitle')))
+                                      agency.get('regiontitle')))
         return agency_list
 
     def route_list(self, agency_tag):
@@ -48,5 +48,5 @@ class Client(object):
         for route in soup.find_all('route'):
             route_list.append(Route(route.get('tag'),
                                     title=route.get('title'),
-                                    short_title=route.get('shortTitle')))
+                                    short_title=route.get('shorttitle')))
         return route_list
