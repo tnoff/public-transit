@@ -4,9 +4,9 @@ from transit import utils
 
 class Agency(object):
     def __init__(self, tag, title, region):
-        self.tag = tag
-        self.title = title
-        self.region = region
+        self.tag = str(tag)
+        self.title = str(title)
+        self.region = str(region)
 
     def __repr__(self):
         return '%s - %s - %s' % (self.title, self.region, self.tag)
@@ -14,9 +14,9 @@ class Agency(object):
 
 class Route(object):
     def __init__(self, tag, title=None, short_title=None):
-        self.tag = tag
-        self.title = title
-        self.short_title = short_title
+        self.tag = str(tag)
+        self.title = str(title)
+        self.short_title = str(short_title)
 
     def __repr__(self):
         return '%s - %s' % (self.tag, self.title)
