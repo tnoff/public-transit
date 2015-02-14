@@ -82,11 +82,17 @@ class Direction(object):
     def add_stop(self, stop_tag):
         self.stop_tags.append(stop_tag.encode('utf-8'))
 
+    def __repr__(self):
+        return '%s - %s' % (self.tag, self.title)
+
 
 class Point(object):
     def __init__(self, latitude, longitude):
         self.latitude = float(latitude.encode('utf-8'))
         self.longitude = float(longitude.encode('utf-8'))
+
+    def __repr__(self):
+        return '%s - %s' % (self.latitude, self.longitude)
 
 
 class Client(object):
