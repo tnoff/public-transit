@@ -60,10 +60,13 @@ class Stop(object):
     def __init__(self, tag, title, short_title, latitude, longitude, stop_id):
         self.tag = tag.encode('utf-8')
         self.title = title.encode('utf-8')
-        self.short_title = short_title.encode('utf-8')
         self.latitude = float(latitude)
         self.longitude = float(longitude)
         self.stop_id = int(stop_id)
+        try:
+            self.short_title = short_title.encode('utf-8')
+        except AttributeError:
+            self.short_title = None
 
     def __repr__(self):
         return '%s - %s' % (self.tag, self.title)
