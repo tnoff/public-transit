@@ -95,6 +95,28 @@ class TestClient(unittest.TestCase):
         <route tag="N" title="N-Judah" color="003399" oppositeColor="ffffff" latMin="37.7601699" latMax="37.7932299" lonMin="-122.5092" lonMax="-122.38798">
             <stop tag="KINGd4S0" title="King St and 4th St" shortTitle="King & 4th" lat="37.776036" lon="-122.394355" stopId="1"/>
             <stop tag="KINGd2S0" title="King St and 2nd St" shortTitle="King & 2nd" lat="37.7796152" lon="-122.3898067" stopId="2"/>
+            <direction tag="out" title="Outbound to La Playa" name="Outbound" useForUI="true">
+                <stop tag="KINGd4S0"/>
+                <stop tag="KINGd2S0"/>
+                <stop tag="EMBRBRAN"/>
+                <stop tag="EMBRFOLS"/>
+                <stop tag="CVCENTF"/>
+            </direction>
+            <direction tag="in" title="Inbound to Caltrain" name="Inbound" useForUI="true">
+                <stop tag="CVCENTF"/>
+                <stop tag="EMBRFOLS"/>
+            </direction>
+            <path>
+                <point lat="37.7695171" lon="-122.4287571"/>
+                <point lat="37.7695099" lon="-122.42887"/>
+            </path>
+            <path>
+                <point lat="37.77551" lon="-122.39513"/>
+                <point lat="37.77449" lon="-122.39642"/>
+                <point lat="37.77413" lon="-122.39687"/>
+                <point lat="37.77385" lon="-122.39721"/>
+            </path>
+        </route>
         </body>
         '''
         httpretty.register_uri(httpretty.GET,
@@ -104,3 +126,11 @@ class TestClient(unittest.TestCase):
         route = self.client.route_get('sf-muni', 'N')
         self.assertEqual('N', route.tag)
         self.assertTrue(isinstance(route.latitude_min, float))
+        self.assertTrue(len(route.stops), 2)
+        self.assertTrue('KINGd4S0' in [s.tag for s in route.stops])
+        self.assertTrue(isinstance(route.stops[0].stop_id, int))
+        self.assertTrue(isinstance(route.stops[0].latitude, float))
+        self.assertTrue(len(route.directions), 1)
+        self.assertTrue(len(route.directions[0].stop_tags), 5)
+        self.assertTrue(len(route.paths), 2)
+        self.assertTrue(len(route.paths[0]), 2)

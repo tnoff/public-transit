@@ -48,9 +48,43 @@ class Route(object):
             self.longitude_max = float(longitude_max.encode('utf-8'))
         except AttributeError:
             self.longitude_max = None
+        self.stops = []
+        self.directions = []
+        self.paths = []
 
     def __repr__(self):
         return '%s - %s' % (self.tag, self.title)
+
+
+class Stop(object):
+    def __init__(self, tag, title, short_title, latitude, longitude, stop_id):
+        self.tag = tag.encode('utf-8')
+        self.title = title.encode('utf-8')
+        self.short_title = short_title.encode('utf-8')
+        self.latitude = float(latitude)
+        self.longitude = float(longitude)
+        self.stop_id = int(stop_id)
+
+    def __repr__(self):
+        return '%s - %s' % (self.tag, self.title)
+
+
+class Direction(object):
+    def __init__(self, tag, title, name):
+        self.tag = tag.encode('utf-8')
+        self.title = title.encode('utf-8')
+        self.name = name.encode('utf-8')
+        self.stop_tags = []
+
+    def add_stop(self, stop_tag):
+        self.stop_tags.append(stop_tag.encode('utf-8'))
+
+
+class Point(object):
+    def __init__(self, latitude, longitude):
+        self.latitude = float(latitude.encode('utf-8'))
+        self.longitude = float(longitude.encode('utf-8'))
+
 
 class Client(object):
     def __init__(self):
@@ -114,4 +148,30 @@ class Client(object):
                       color=r.get('color'), opposite_color=r.get('opposite_color'),
                       latitude_min=r.get('latmin'), latitude_max=r.get('latmax'),
                       longitude_min=r.get('lonmin'), longitude_max=r.get('longmax'))
+        # Get all stop data
+        # Find all stops until first direction
+        # Otherwise you list all stops per direction
+        stop = r.find('stop')
+        while True:
+            route.stops.append(Stop(stop.get('tag'), stop.get('title'),
+                                    stop.get('shorttitle'), stop.get('lat'),
+                                    stop.get('lon'), stop.get('stopid')))
+            stop = stop.next_element
+            if stop.name != 'stop':
+                break
+        # Get all direction data
+        for direction in r.find_all('direction'):
+            new_direction = Direction(direction.get('tag'),
+                                      direction.get('title'),
+                                      direction.get('name'))
+            # Get all stop tags in direction
+            for stop in direction.find_all('stop'):
+                new_direction.add_stop(stop.get('tag'))
+            route.directions.append(new_direction)
+        # Add paths to route
+        for path in r.find_all('path'):
+            path_points = []
+            for point in path.find_all('point'):
+                path_points.append(Point(point.get('lat'), point.get('lon')))
+            route.paths.append(path_points)
         return route
