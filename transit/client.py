@@ -95,6 +95,51 @@ class Point(object):
         return '%s - %s' % (self.latitude, self.longitude)
 
 
+class RoutePrediction(object):
+    def __init__(self, route_tag, agency_title, route_title, stop_title):
+        self.route_tag = route_tag.encode('utf-8')
+        self.agency_title = agency_title.encode('utf-8')
+        self.route_title = route_title.encode('utf-8')
+        self.stop_title = stop_title.encode('utf-8')
+        self.directions = []
+        self.messages = []
+
+    def __repr__(self):
+        return '%s - %s - %s' % (self.agency_title, self.stop_title, self.route_tag)
+
+
+class RouteDirection(object):
+    def __init__(self, title):
+        self.title = title.encode('utf-8')
+        self.predictions = []
+
+    def __repr__(self):
+        return '%s' % self.title
+
+class RouteStopPrediction(object):
+    def __init__(self, seconds, minutes, epochtime, trip_tag, vehicle,
+                 block, dir_tag, is_departure, affected_by_layover):
+        self.seconds = int(seconds)
+        self.minutes = int(minutes)
+        self.epochtime = int(epochtime)
+        self.trip_tag = trip_tag.encode('utf-8')
+        self.vehicle = vehicle.encode('utf-8')
+        self.block = block.encode('utf-8')
+        self.dir_tag = dir_tag.encode('utf-8')
+        self.is_departure = False
+        if is_departure.encode('utf-8') == 'true':
+            self.is_departure = True
+        self.affected_by_layover = False
+        try:
+            if affected_by_layover.encode('utf-8') == 'true':
+                self.affected_by_layover = True
+        except AttributeError:
+            pass
+
+    def __repr__(self):
+        return '%s:%s - %s' % (self.minutes, self.seconds, self.vehicle)
+
+
 class Client(object):
     def __init__(self):
         pass
@@ -184,3 +229,39 @@ class Client(object):
                 path_points.append(Point(point.get('lat'), point.get('lon')))
             route.paths.append(path_points)
         return route
+
+    def stop_prediction(self, agency_tag, stop_id, route_tag=None):
+        '''Predict arrivals at stop, for only route tag if specified'''
+        # Different url depending on route_tag
+        if route_tag:
+            url = urls.predictions['route'] % (agency_tag, stop_id, route_tag)
+        else:
+            url = urls.predictions['stop'] % (agency_tag, stop_id)
+        soup = utils.make_request(url)
+        # Add all stop predictions for routes
+        route_predictions = []
+        for route in soup.find_all('predictions'):
+            route_pred = RoutePrediction(route.get('routetag'),
+                                         route.get('agencytitle'),
+                                         route.get('routetitle'),
+                                         route.get('stoptitle'))
+            # All directions in route
+            for direction in route.find_all('direction'):
+                route_dir = RouteDirection(direction.get('title'))
+                # Find all predictions in direction
+                for pred in direction.find_all('prediction'):
+                    route_dir.predictions.append(RouteStopPrediction(\
+                                            pred.get('seconds'),
+                                            pred.get('minutes'),
+                                            pred.get('epochtime'),
+                                            pred.get('triptag'),
+                                            pred.get('vehicle'),
+                                            pred.get('block'),
+                                            pred.get('dirtag'),
+                                            pred.get('isdeparture'),
+                                            pred.get('affectedbylayover'),))
+                route_pred.directions.append(route_dir)
+            for message in route.find_all('message'):
+                route_pred.messages.append(message.get('text').encode('utf-8'))
+            route_predictions.append(route_pred)
+        return route_predictions

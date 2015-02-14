@@ -134,3 +134,38 @@ class TestClient(unittest.TestCase):
         self.assertTrue(len(route.directions[0].stop_tags), 5)
         self.assertTrue(len(route.paths), 2)
         self.assertTrue(len(route.paths[0]), 2)
+
+    @httpretty.activate
+    def test_stop_prediction_no_route(self):
+        test_body = '''
+        <body>
+        <predictions agencytitle="AC Transit" routetag="22" routetitle="22" stoptag="9902820" stoptitle="Mission Blvd &amp; Central Blvd">
+            <direction title="Counterclockwise to Hayward BART">
+                <prediction block="22001" dirtag="22_25_1" epochtime="1423954532475" isdeparture="false" minutes="35" seconds="2113" triptag="3972069" vehicle="1215"></prediction>
+            </direction>
+        </predictions>
+        <predictions agencytitle="AC Transit" routetag="99" routetitle="99" stoptag="9902820" stoptitle="Mission Blvd &amp; Central Blvd">
+            <direction title="To Bay Fair BART">
+                <prediction block="99003" dirtag="99_72_1" epochtime="1423953067107" isdeparture="false" minutes="10" seconds="647" triptag="3972452" vehicle="1420"></prediction>
+                <prediction block="99005" dirtag="99_72_1" epochtime="1423954396301" isdeparture="false" minutes="32" seconds="1976" triptag="3972453" vehicle="1412"></prediction>
+                <prediction affectedbylayover="true" block="99002" dirtag="99_72_1" epochtime="1423956641402" isdeparture="false" minutes="70" seconds="4222" triptag="3972454" vehicle="1419"></prediction>
+            </direction>
+            <message text="something went wrong, dont panic" />
+        </predictions>
+        <predictions agencytitle="AC Transit" dirtitlebecausenopredictions="To Downtown Oakland" routetag="801" routetitle="801" stoptag="9902820" stoptitle="Mission Blvd &amp; Central Blvd">
+        </predictions>
+        </body>
+        '''
+        httpretty.register_uri(httpretty.GET,
+                               'http://webservices.nextbus.com/service/publicXMLFeed?command=predictions&a=actransit&stopId=51303',
+                               body=test_body,
+                               content_type='application/xml')
+        predictions = self.client.stop_prediction('actransit', 51303)
+        self.assertEqual(len(predictions), 3)
+        self.assertEqual(len(predictions[0].directions), 1)
+        self.assertEqual(len(predictions[0].directions[0].predictions), 1)
+        self.assertTrue(isinstance(predictions[0].directions[0].predictions[0].minutes, int))
+        self.assertTrue(isinstance(predictions[0].directions[0].predictions[0].seconds, int))
+        self.assertEqual(len(predictions[2].directions), 0)
+        self.assertEqual(len(predictions[1].messages), 1)
+        self.assertEqual(len(predictions[0].messages), 0)
