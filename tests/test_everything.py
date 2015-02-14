@@ -15,7 +15,7 @@ class TestClient(unittest.TestCase):
         test_body = '''
         <body>
             <error>
-                Sheeeeeeeeeeeeeeeeeeeeeeeeeeeit -- Clay Davis
+                'God damnit mcnulty'
             </error>
         </body>
         '''
