@@ -2,11 +2,29 @@ import httpretty
 import unittest
 
 from transit import client
+from transit import utils
 
 class TestAgency(unittest.TestCase):
 
     def setUp(self):
         self.client = client.Client()
+
+    @httpretty.activate
+    def test_fails(self):
+        # Check that failures catch nicely
+        test_body = '''
+        <body>
+            <error>
+                Sheeeeeeeeeeeeeeeeeeeeeeeeeeeit -- Clay Davis
+            </error>
+        </body>
+        '''
+        test_url = 'http://carcettiformayor.org'
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=test_body,
+                               content_type='application/xml')
+        self.assertRaises(Exception, utils.make_request, test_url)
 
     @httpretty.activate
     def test_agency_list(self):
