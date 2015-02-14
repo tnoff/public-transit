@@ -103,3 +103,4 @@ class TestClient(unittest.TestCase):
                                content_type='application/xml')
         route = self.client.route_get('sf-muni', 'N')
         self.assertEqual('N', route.tag)
+        self.assertTrue(isinstance(route.latitude_min, float))

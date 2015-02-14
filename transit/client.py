@@ -33,19 +33,19 @@ class Route(object):
         except AttributeError:
             self.opposite_color = None
         try:
-            self.latitude_min = latitude_min.encode('utf-8')
+            self.latitude_min = float(latitude_min.encode('utf-8'))
         except AttributeError:
             self.latitude_min = None
         try:
-            self.latitude_max = latitude_max.encode('utf-8')
+            self.latitude_max = float(latitude_max.encode('utf-8'))
         except AttributeError:
             self.lititude_max = None
         try:
-            self.longitdue_min = longitude_min.encode('utf-8')
+            self.longitdue_min = float(longitude_min.encode('utf-8'))
         except AttributeError:
             self.longitdue_min = None
         try:
-            self.longitude_max = longitude_max.encode('utf-8')
+            self.longitude_max = float(longitude_max.encode('utf-8'))
         except AttributeError:
             self.longitude_max = None
 
