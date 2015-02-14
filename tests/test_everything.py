@@ -47,7 +47,7 @@ class TestClient(unittest.TestCase):
 
     @httpretty.activate
     def test_agency_search(self):
-        # Check can find
+        # Check against example from offical docs
         test_body = '''
         <body>
             <agency tag="actransit" title="AC Transit, CA" regionTitle="California-Northern">
@@ -86,3 +86,20 @@ class TestClient(unittest.TestCase):
         self.assertTrue('1' in [r.tag for r in route_list])
         self.assertTrue('1-California' in [r.title for r in route_list])
         self.assertTrue('1-Calif' in [r.short_title for r in route_list])
+
+    @httpretty.activate
+    def test_route_show(self):
+        # Check against example from official docs
+        test_body = '''
+        <body>
+        <route tag="N" title="N-Judah" color="003399" oppositeColor="ffffff" latMin="37.7601699" latMax="37.7932299" lonMin="-122.5092" lonMax="-122.38798">
+            <stop tag="KINGd4S0" title="King St and 4th St" shortTitle="King & 4th" lat="37.776036" lon="-122.394355" stopId="1"/>
+            <stop tag="KINGd2S0" title="King St and 2nd St" shortTitle="King & 2nd" lat="37.7796152" lon="-122.3898067" stopId="2"/>
+        </body>
+        '''
+        httpretty.register_uri(httpretty.GET,
+                               'http://webservices.nextbus.com/service/publicXMLFeed?command=routeConfig&a=sf-muni&r=N',
+                               body=test_body,
+                               content_type='application/xml')
+        route = self.client.route_get('sf-muni', 'N')
+        self.assertEqual('N', route.tag)

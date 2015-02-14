@@ -19,8 +19,11 @@ class Route(object):
         # Present Everywhere
         self.tag = tag.encode('utf-8')
         self.title = title.encode('utf-8')
-        self.short_title = short_title.encode('utf-8')
-        # Present only in route show
+        # Present only in route show or route list
+        try:
+            self.short_title = short_title.encode('utf-8')
+        except AttributeError:
+            self.short_title = None
         try:
             self.color = color.encode('utf-8')
         except AttributeError:
