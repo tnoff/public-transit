@@ -38,6 +38,20 @@ class Client(object):
                                       agency.get('regiontitle')))
         return agency_list
 
+    def agency_search(self, key, value):
+        '''Search for agency with value in key'''
+        url = urls.agency['list']
+        soup = utils.make_request(url)
+
+        # Search for agency, return list of matching
+        agency_list = []
+        for agency in soup.find_all('agency'):
+            if value.lower().replace(' ', '') in agency.get(key).lower().replace(' ', ''):
+                agency_list.append(Agency(agency.get('tag'),
+                                          agency.get('title'),
+                                          agency.get('regiontitle')))
+        return agency_list
+
     def route_list(self, agency_tag):
         '''List routes for agency'''
         url = urls.route['list'] % agency_tag
