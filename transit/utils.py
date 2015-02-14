@@ -3,7 +3,8 @@ import requests
 
 def make_request(url):
     '''Check return 200 and not error'''
-    r = requests.get(url)
+    headers = {'accept-encoding' : 'gzip, deflate'}
+    r = requests.get(url, headers=headers)
 
     if r.status_code != 200:
         raise Exception("URL:%s does not return 200" % url)
