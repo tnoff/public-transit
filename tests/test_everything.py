@@ -12,6 +12,7 @@ class TestClient(unittest.TestCase):
     @httpretty.activate
     def test_fails(self):
         # Check that failures catch nicely
+        # Failure xml format in nextbus docs
         test_body = '''
         <body>
             <error>
@@ -43,6 +44,29 @@ class TestClient(unittest.TestCase):
         self.assertTrue('actransit' in [a.tag for a in agency_list])
         self.assertTrue('AC Transit, CA' in [a.title for a in agency_list])
         self.assertTrue('California-Northern' in [a.region for a in agency_list])
+
+    @httpretty.activate
+    def test_agency_search(self):
+        # Check can find
+        test_body = '''
+        <body>
+            <agency tag="actransit" title="AC Transit, CA" regionTitle="California-Northern">
+            <agency tag="alexandria" title="Alexandria DASH, VA" shortTitle="DASH" regionTitle="Virginia">
+        </body>'''
+        httpretty.register_uri(httpretty.GET,
+                               'http://webservices.nextbus.com/service/publicXMLFeed?command=agencyList',
+                               body=test_body,
+                               content_type='application/xml')
+        agency_list = self.client.agency_search('tag', 'ac')
+        self.assertNotEqual(len(agency_list), 0)
+        agency_list = self.client.agency_search('title', 'a')
+        self.assertEqual(len(agency_list), 2)
+        agency_list = self.client.agency_search('regiontitle', 'v')
+        self.assertEqual(len(agency_list), 1)
+        agency_list = self.client.agency_search('tag', 'afnoenfo')
+        self.assertEqual(len(agency_list), 0)
+        agency_list = self.client.agency_search('afeonfqoefn', 'afeon')
+        self.assertEqual(len(agency_list), 0)
 
     @httpretty.activate
     def test_route_list(self):

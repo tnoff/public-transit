@@ -78,7 +78,8 @@ class Client(object):
         for agency in soup.find_all('agency'):
             for key in agency.attrs.keys():
                 if nice_key in key.encode('utf-8'):
-                    if nice_value in agency.get(key):
+                    search_value = agency.get(key).encode('utf-8').lower().replace(' ', '')
+                    if nice_value in search_value:
                         agency_list.append(Agency(agency.get('tag'),
                                                   agency.get('title'),
                                                   agency.get('regiontitle')))
