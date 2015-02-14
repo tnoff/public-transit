@@ -4,27 +4,47 @@ from transit import utils
 
 class Agency(object):
     def __init__(self, tag, title, region):
-        self.tag = str(tag)
-        self.title = str(title)
-        self.region = str(region)
+        self.tag = tag.encode('utf-8')
+        self.title = title.encode('utf-8')
+        self.region = region.encode('utf-8')
 
     def __repr__(self):
         return '%s - %s - %s' % (self.title, self.region, self.tag)
 
 
 class Route(object):
-    def __init__(self, tag, title=None, short_title=None,
+    def __init__(self, tag, title, short_title,
                  color=None, opposite_color=None, latitude_min=None,
                  latitude_max=None, longitude_min=None, longitude_max=None):
-        self.tag = str(tag)
-        self.title = str(title)
-        self.short_title = str(short_title)
-        self.color = str(color)
-        self.opposite_color = str(opposite_color)
-        self.latitude_min = float(latitude_min)
-        self.latitude_max = float(latitude_max)
-        self.longitdue_min = float(longitude_min)
-        self.longitude_max = float(longitude_max)
+        # Present Everywhere
+        self.tag = tag.encode('utf-8')
+        self.title = title.encode('utf-8')
+        self.short_title = short_title.encode('utf-8')
+        # Present only in route show
+        try:
+            self.color = color.encode('utf-8')
+        except AttributeError:
+            self.color = None
+        try:
+            self.opposite_color = opposite_color.encode('utf-8')
+        except AttributeError:
+            self.opposite_color = None
+        try:
+            self.latitude_min = latitude_min.encode('utf-8')
+        except AttributeError:
+            self.latitude_min = None
+        try:
+            self.latitude_max = latitude_max.encode('utf-8')
+        except AttributeError:
+            self.lititude_max = None
+        try:
+            self.longitdue_min = longitude_min.encode('utf-8')
+        except AttributeError:
+            self.longitdue_min = None
+        try:
+            self.longitude_max = longitude_max.encode('utf-8')
+        except AttributeError:
+            self.longitude_max = None
 
     def __repr__(self):
         return '%s - %s' % (self.tag, self.title)
@@ -53,11 +73,16 @@ class Client(object):
 
         # Search for agency, return list of matching
         agency_list = []
+        nice_value = value.lower().replace(' ', '')
+        nice_key = key.lower().replace(' ', '')
         for agency in soup.find_all('agency'):
-            if value.lower().replace(' ', '') in agency.get(key).lower().replace(' ', ''):
-                agency_list.append(Agency(agency.get('tag'),
-                                          agency.get('title'),
-                                          agency.get('regiontitle')))
+            for key in agency.attrs.keys():
+                if nice_key in key.encode('utf-8'):
+                    if nice_value in agency.get(key):
+                        agency_list.append(Agency(agency.get('tag'),
+                                                  agency.get('title'),
+                                                  agency.get('regiontitle')))
+                        break
         return agency_list
 
     def route_list(self, agency_tag):
@@ -75,7 +100,6 @@ class Client(object):
 
     def route_get(self, agency_tag, route_tag):
         '''Get route information'''
-        print agency_tag, route_tag
         url = urls.route['show'] % (agency_tag, route_tag)
         soup = utils.make_request(url)
 
