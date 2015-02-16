@@ -101,24 +101,17 @@ class RoutePrediction(object):
         self.agency_title = agency_title.encode('utf-8')
         self.route_title = route_title.encode('utf-8')
         self.stop_title = stop_title.encode('utf-8')
-        self.directions = []
+        self.predictions = []
         self.messages = []
 
     def __repr__(self):
         return '%s - %s - %s' % (self.agency_title, self.stop_title, self.route_tag)
 
 
-class RouteDirection(object):
-    def __init__(self, title):
-        self.title = title.encode('utf-8')
-        self.predictions = []
-
-    def __repr__(self):
-        return '%s' % self.title
-
 class RouteStopPrediction(object):
-    def __init__(self, seconds, minutes, epochtime, trip_tag, vehicle,
+    def __init__(self, direction, seconds, minutes, epochtime, trip_tag, vehicle,
                  block, dir_tag, is_departure, affected_by_layover):
+        self.direction = direction.encode('utf-8')
         self.seconds = int(seconds)
         self.minutes = int(minutes)
         self.epochtime = int(epochtime)
@@ -247,20 +240,19 @@ class Client(object):
                                          route.get('stoptitle'))
             # All directions in route
             for direction in route.find_all('direction'):
-                route_dir = RouteDirection(direction.get('title'))
                 # Find all predictions in direction
                 for pred in direction.find_all('prediction'):
-                    route_dir.predictions.append(RouteStopPrediction(\
-                                            pred.get('seconds'),
-                                            pred.get('minutes'),
-                                            pred.get('epochtime'),
-                                            pred.get('triptag'),
-                                            pred.get('vehicle'),
-                                            pred.get('block'),
-                                            pred.get('dirtag'),
-                                            pred.get('isdeparture'),
-                                            pred.get('affectedbylayover'),))
-                route_pred.directions.append(route_dir)
+                    route_pred.predictions.append(RouteStopPrediction(\
+                                    direction.get('title'),
+                                    pred.get('seconds'),
+                                    pred.get('minutes'),
+                                    pred.get('epochtime'),
+                                    pred.get('triptag'),
+                                    pred.get('vehicle'),
+                                    pred.get('block'),
+                                    pred.get('dirtag'),
+                                    pred.get('isdeparture'),
+                                    pred.get('affectedbylayover'),))
             for message in route.find_all('message'):
                 route_pred.messages.append(message.get('text').encode('utf-8'))
             route_predictions.append(route_pred)
