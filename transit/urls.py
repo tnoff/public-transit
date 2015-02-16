@@ -23,3 +23,8 @@ schedule = {
     # a : agency_tag, r : route_tag
     'show' : main_url + '?command=schedule&a=%s&r=%s'
 }
+
+vehicle = {
+    # a : agency_tag, r : route_tag, t : epoch_time_in_msec
+    'location' : main_url + '?command=vehicleLocations&a=%s&r=%s&t=%s'
+}

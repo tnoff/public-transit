@@ -19,5 +19,4 @@ Functionality Checklist
 #. Multiple Stop Predictions
 #. Agency Route Schedule -- Done
 #. Agency Route Messages
-#. Agency Route Vehicle Locations
-
+#. Agency Route Vehicle Locations -- Done

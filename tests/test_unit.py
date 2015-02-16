@@ -13,6 +13,7 @@ from tests.data import route_list as good_route_list
 from tests.data import schedule_get as good_schedule_get
 from tests.data import stop_predictions as good_stop_predictions
 from tests.data import stop_predictions_route as good_stop_predictions_route
+from tests.data import vehicle_locations as good_vehicle_locations
 
 class TestClient(unittest.TestCase):
 
@@ -150,3 +151,12 @@ class TestClient(unittest.TestCase):
         routes = self.client.schedule_get('actransit', '22')
         self.assertEqual(len(routes), 6)
         self.assertEqual(len(routes[0].schedule_stops), 414)
+
+    @httpretty.activate
+    def test_vehicle_locations(self):
+        test_url = urls.vehicle['location'] % ('sf-muni', 'N', '1144953500233')
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=good_vehicle_locations.text,
+                               content_type='application/xml')
+        self.client.vehicle_location('sf-muni', 'N', '1144953500233')
