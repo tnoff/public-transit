@@ -2,6 +2,7 @@ import httpretty
 import unittest
 
 from transit import client
+from transit.exceptions import TransitException
 from transit import utils
 from transit import urls
 
@@ -16,19 +17,12 @@ class TestClient(unittest.TestCase):
     def test_fails(self):
         # Check that failures catch nicely
         # Failure xml format in nextbus docs
-        test_body = '''
-        <body>
-            <error>
-                'God damnit mcnulty'
-            </error>
-        </body>
-        '''
-        test_url = 'http://carcettiformayor.org'
+        test_url = urls.agency['list']
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=test_body,
+                               body=test_data.error_page,
                                content_type='application/xml')
-        self.assertRaises(Exception, utils.make_request, test_url)
+        self.assertRaises(TransitException, utils.make_request, test_url)
 
     @httpretty.activate
     def test_agency_list(self):

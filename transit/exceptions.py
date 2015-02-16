@@ -1,0 +1,2 @@
+class TransitException(Exception):
+    pass
