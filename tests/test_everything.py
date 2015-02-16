@@ -3,6 +3,9 @@ import unittest
 
 from transit import client
 from transit import utils
+from transit import urls
+
+from . import test_data
 
 class TestClient(unittest.TestCase):
 
@@ -29,21 +32,23 @@ class TestClient(unittest.TestCase):
 
     @httpretty.activate
     def test_agency_list(self):
-        # Check against example from offical docs
-        test_body = '''
-        <body>
-            <agency tag="actransit" title="AC Transit, CA" regionTitle="California-Northern">
-            <agency tag="alexandria" title="Alexandria DASH, VA" shortTitle="DASH" regionTitle="Virginia">
-        </body>'''
+        test_url = urls.agency['list']
         httpretty.register_uri(httpretty.GET,
-                               'http://webservices.nextbus.com/service/publicXMLFeed?command=agencyList',
-                               body=test_body,
+                               test_url,
+                               body=test_data.agency_list,
                                content_type='application/xml')
         agency_list = self.client.agency_list()
-        self.assertEqual(len(agency_list), 2)
+        self.assertEqual(len(agency_list), 14)
+        # Test tag
         self.assertTrue('actransit' in [a.tag for a in agency_list])
-        self.assertTrue('AC Transit, CA' in [a.title for a in agency_list])
+        # Test title
+        self.assertTrue('AC Transit' in [a.title for a in agency_list])
+        # Test region title
         self.assertTrue('California-Northern' in [a.region for a in agency_list])
+        # Test negative
+        self.assertFalse('derp' in [a.tag for a in agency_list])
+        self.assertFalse('DERP' in [a.title for a in agency_list])
+        self.assertFalse('derp' in [a.region for a in agency_list])
 
     @httpretty.activate
     def test_agency_search(self):
