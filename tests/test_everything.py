@@ -98,13 +98,9 @@ class TestClient(unittest.TestCase):
             <direction tag="out" title="Outbound to La Playa" name="Outbound" useForUI="true">
                 <stop tag="KINGd4S0"/>
                 <stop tag="KINGd2S0"/>
-                <stop tag="EMBRBRAN"/>
-                <stop tag="EMBRFOLS"/>
-                <stop tag="CVCENTF"/>
             </direction>
             <direction tag="in" title="Inbound to Caltrain" name="Inbound" useForUI="true">
-                <stop tag="CVCENTF"/>
-                <stop tag="EMBRFOLS"/>
+                <stop tag="KINGd2S0"/>
             </direction>
             <path>
                 <point lat="37.7695171" lon="-122.4287571"/>
@@ -130,8 +126,8 @@ class TestClient(unittest.TestCase):
         self.assertTrue('KINGd4S0' in [s.tag for s in route.stops])
         self.assertTrue(isinstance(route.stops[0].stop_id, int))
         self.assertTrue(isinstance(route.stops[0].latitude, float))
-        self.assertTrue(len(route.directions), 1)
-        self.assertTrue(len(route.directions[0].stop_tags), 5)
+        self.assertTrue(len(route.stops[0].directions), 2)
+        self.assertTrue(len(route.stops[1].directions), 1)
         self.assertTrue(len(route.paths), 2)
         self.assertTrue(len(route.paths[0]), 2)
 

@@ -49,7 +49,6 @@ class Route(object):
         except AttributeError:
             self.longitude_max = None
         self.stops = []
-        self.directions = []
         self.paths = []
 
     def __repr__(self):
@@ -63,24 +62,11 @@ class Stop(object):
         self.latitude = float(latitude)
         self.longitude = float(longitude)
         self.stop_id = int(stop_id)
+        self.directions = []
         try:
             self.short_title = short_title.encode('utf-8')
         except AttributeError:
             self.short_title = None
-
-    def __repr__(self):
-        return '%s - %s' % (self.tag, self.title)
-
-
-class Direction(object):
-    def __init__(self, tag, title, name):
-        self.tag = tag.encode('utf-8')
-        self.title = title.encode('utf-8')
-        self.name = name.encode('utf-8')
-        self.stop_tags = []
-
-    def add_stop(self, stop_tag):
-        self.stop_tags.append(stop_tag.encode('utf-8'))
 
     def __repr__(self):
         return '%s - %s' % (self.tag, self.title)
@@ -183,13 +169,25 @@ class Client(object):
                                     short_title=route.get('shorttitle')))
         return route_list
 
+    def __next_real_sibling(self, item):
+        item = item.next_sibling
+        while True:
+            if item == '\n':
+                item = item.next_sibling
+                continue
+            if item == ' ':
+                item = item.next_sibling
+                continue
+            break
+        return item
+
     def route_get(self, agency_tag, route_tag):
         '''Get route information'''
         url = urls.route['show'] % (agency_tag, route_tag)
         soup = utils.make_request(url)
-
         # Get route data
         r = soup.find('route')
+
         route = Route(r.get('tag'), title=r.get('title'),
                       short_title=r.get('shorttile'),
                       color=r.get('color'), opposite_color=r.get('opposite_color'),
@@ -199,22 +197,26 @@ class Client(object):
         # Find all stops until first direction
         # Otherwise you list all stops per direction
         stop = r.find('stop')
+        # Stop dict : {stop_tag, index in route stop list}
+        stop_dict = dict()
+        stop_count = 0
         while True:
             route.stops.append(Stop(stop.get('tag'), stop.get('title'),
                                     stop.get('shorttitle'), stop.get('lat'),
                                     stop.get('lon'), stop.get('stopid')))
-            stop = stop.next_element
+            stop_dict[stop.get('tag').encode('utf-8')] = stop_count
+            stop_count += 1
+            stop = self.__next_real_sibling(stop)
             if stop.name != 'stop':
                 break
         # Get all direction data
         for direction in r.find_all('direction'):
-            new_direction = Direction(direction.get('tag'),
-                                      direction.get('title'),
-                                      direction.get('name'))
             # Get all stop tags in direction
+            # Find stop tag, then add direction when can
             for stop in direction.find_all('stop'):
-                new_direction.add_stop(stop.get('tag'))
-            route.directions.append(new_direction)
+                stop_index = stop_dict[stop.get('tag').encode('utf-8')]
+                route.stops[stop_index].directions.append(\
+                    direction.get('title').encode('utf-8'))
         # Add paths to route
         for path in r.find_all('path'):
             path_points = []
