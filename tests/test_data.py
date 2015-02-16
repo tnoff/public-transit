@@ -24,3 +24,22 @@ agency_list = '''
     <agency tag="da" title="Downtown Connection" regionTitle="New York"/>
 </body>
 '''
+
+route_list = '''
+<body copyright="All data copyright AC Transit 2015.">
+    <route tag="B" title="B" shorttitle="lil B"/>
+    <route tag="BSD" title="Broadway Shuttle Weekdays"/>
+    <route tag="BSN" title="Broadway Shuttle Fri/Sat Nights"/>
+    <route tag="C" title="C"/>
+    <route tag="CB" title="CB"/>
+    <route tag="E" title="E"/>
+    <route tag="F" title="F"/>
+    <route tag="FS" title="FS"/>
+    <route tag="G" title="G"/>
+    <route tag="H" title="H"/>
+    <route tag="J" title="J"/>
+    <route tag="L" title="L"/>
+    <route tag="LA" title="LA"/>
+    <route tag="LC" title="LC"/>
+</body
+'''
