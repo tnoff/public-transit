@@ -10,6 +10,7 @@ from tests.data import agency_list as good_agency_list
 from tests.data import error as good_error
 from tests.data import route_config as good_route_config
 from tests.data import route_list as good_route_list
+from tests.data import schedule_get as good_schedule_get
 from tests.data import stop_predictions as good_stop_predictions
 from tests.data import stop_predictions_route as good_stop_predictions_route
 
@@ -138,3 +139,14 @@ class TestClient(unittest.TestCase):
         self.assertTrue(isinstance(predictions[0].predictions[0].seconds, int))
         self.assertEqual(len(predictions[0].predictions), 2)
         self.assertEqual(len(predictions[0].messages), 0)
+
+    @httpretty.activate
+    def test_schedule(self):
+        test_url = urls.schedule['show'] % ('actransit', '22')
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=good_schedule_get.text,
+                               content_type='application/xml')
+        routes = self.client.schedule_get('actransit', '22')
+        self.assertEqual(len(routes), 6)
+        self.assertEqual(len(routes[0].schedule_stops), 414)

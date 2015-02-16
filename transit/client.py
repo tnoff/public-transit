@@ -13,7 +13,7 @@ class Agency(object):
 
 
 class Route(object):
-    def __init__(self, tag, title, short_title,
+    def __init__(self, tag, title, short_title=None,
                  color=None, opposite_color=None, latitude_min=None,
                  latitude_max=None, longitude_min=None, longitude_max=None):
         # Present Everywhere
@@ -119,9 +119,50 @@ class RouteStopPrediction(object):
         return '%s:%s - %s' % (self.minutes, self.seconds, self.vehicle)
 
 
+class ScheduleRoute(object):
+    def __init__(self, tag, title, schedule_class, service_class, direction):
+        self.tag = tag.encode('utf-8')
+        self.title = title.encode('utf-8')
+        self.schedule_class = schedule_class.encode('utf-8')
+        self.service_class = service_class.encode('utf-8')
+        self.direction = direction.encode('utf-8')
+        self.schedule_stops = []
+
+    def __repr__(self):
+        return '%s - %s - %s' % (self.tag, self.direction, self.service_class)
+
+
+class ScheduleStop(object):
+    def __init__(self, stop_tag, epoch_time, time, block_id):
+        self.stop_tag = stop_tag.encode('utf-8')
+        self.epoch_time = epoch_time.encode('utf-8')
+        self.time = time.encode('utf-8')
+        self.block_id = block_id.encode('utf-8')
+
+    def __repr__(self):
+        return '%s - %s' % (self.stop_tag, self.time)
+
+
 class Client(object):
     def __init__(self):
         pass
+
+    def __next_real_sibling(self, item):
+        item = item.next_sibling
+        while True:
+            ok = True
+            if item == '\n':
+                ok = False
+                item = item.next_sibling
+            elif item == ' ':
+                ok = False
+                item = item.next_sibling
+            elif item == '':
+                ok = False
+                item = item.next_sibling
+            if ok:
+                break
+        return item
 
     def agency_list(self):
         '''Get list of agencies'''
@@ -168,18 +209,6 @@ class Client(object):
                                     title=route.get('title'),
                                     short_title=route.get('shorttitle')))
         return route_list
-
-    def __next_real_sibling(self, item):
-        item = item.next_sibling
-        while True:
-            if item == '\n':
-                item = item.next_sibling
-                continue
-            if item == ' ':
-                item = item.next_sibling
-                continue
-            break
-        return item
 
     def route_get(self, agency_tag, route_tag):
         '''Get route information'''
@@ -259,3 +288,24 @@ class Client(object):
                 route_pred.messages.append(message.get('text').encode('utf-8'))
             route_predictions.append(route_pred)
         return route_predictions
+
+    def schedule_get(self, agency_tag, route_tag):
+        url = urls.schedule['show'] % (agency_tag, route_tag)
+        soup = utils.make_request(url)
+
+        route_list = []
+        for route in soup.find_all('route'):
+            sr = ScheduleRoute(route.get('tag'),
+                               route.get('title'),
+                               route.get('scheduleclass'),
+                               route.get('serviceclass'),
+                               route.get('direction'))
+            for block in route.find_all('tr'):
+                for stop in block.find_all('stop'):
+                    sr.schedule_stops.append(ScheduleStop(stop.get('tag'),
+                                                          stop.get('epochtime'),
+                                                          stop.string,
+                                                          block.get('blockid')))
+
+            route_list.append(sr)
+        return route_list

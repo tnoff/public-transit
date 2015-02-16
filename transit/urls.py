@@ -18,3 +18,8 @@ predictions = {
     # a : agency_tag, stopId : stop id, routeTag: route_tag
     'route' : main_url + '?command=predictions&a=%s&stopId=%s&routeTag=%s'
 }
+
+schedule = {
+    # a : agency_tag, r : route_tag
+    'show' : main_url + '?command=schedule&a=%s&r=%s'
+}
