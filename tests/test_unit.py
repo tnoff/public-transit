@@ -11,6 +11,7 @@ from tests.data import error as good_error
 from tests.data import route_config as good_route_config
 from tests.data import route_list as good_route_list
 from tests.data import stop_predictions as good_stop_predictions
+from tests.data import stop_predictions_route as good_stop_predictions_route
 
 class TestClient(unittest.TestCase):
 
@@ -121,3 +122,19 @@ class TestClient(unittest.TestCase):
         self.assertEqual(len(predictions[2].predictions), 0)
         self.assertEqual(len(predictions[0].messages), 1)
         self.assertEqual(len(predictions[1].messages), 0)
+
+    @httpretty.activate
+    def test_stop_prediction_with_route(self):
+        test_url = urls.predictions['route'] % ('actransit', '51303', '22')
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=good_stop_predictions_route.text,
+                               content_type='application/xml')
+        predictions = self.client.stop_prediction('actransit', 51303)
+        self.assertEqual(len(predictions), 1)
+        self.assertEqual(len(predictions[0].predictions), 2)
+        self.assertTrue('clockwise' in predictions[0].predictions[0].direction)
+        self.assertTrue(isinstance(predictions[0].predictions[0].minutes, int))
+        self.assertTrue(isinstance(predictions[0].predictions[0].seconds, int))
+        self.assertEqual(len(predictions[0].predictions), 2)
+        self.assertEqual(len(predictions[0].messages), 0)
