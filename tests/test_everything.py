@@ -6,7 +6,9 @@ from transit.exceptions import TransitException
 from transit import utils
 from transit import urls
 
-from . import test_data
+from tests.data import agency_list as good_agency_list
+from tests.data import error as good_error
+from tests.data import route_list as good_route_list
 
 class TestClient(unittest.TestCase):
 
@@ -20,7 +22,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.agency['list']
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=test_data.error_page,
+                               body=good_error.text,
                                content_type='application/xml')
         self.assertRaises(TransitException, utils.make_request, test_url)
 
@@ -29,10 +31,10 @@ class TestClient(unittest.TestCase):
         test_url = urls.agency['list']
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=test_data.agency_list,
+                               body=good_agency_list.text,
                                content_type='application/xml')
         agency_list = self.client.agency_list()
-        self.assertEqual(len(agency_list), 14)
+        self.assertEqual(len(agency_list), 64)
         # Test tag
         self.assertTrue('actransit' in [a.tag for a in agency_list])
         # Test title
@@ -49,14 +51,14 @@ class TestClient(unittest.TestCase):
         test_url = urls.agency['list']
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=test_data.agency_list,
+                               body=good_agency_list.text,
                                content_type='application/xml')
         agency_list = self.client.agency_search('tag', 'ac')
         self.assertNotEqual(len(agency_list), 0)
         agency_list = self.client.agency_search('title', 'a')
-        self.assertEqual(len(agency_list), 11)
+        self.assertEqual(len(agency_list), 59)
         agency_list = self.client.agency_search('regiontitle', 'v')
-        self.assertEqual(len(agency_list), 0)
+        self.assertEqual(len(agency_list), 6)
         agency_list = self.client.agency_search('tag', 'afnoenfo')
         self.assertEqual(len(agency_list), 0)
         agency_list = self.client.agency_search('afeonfqoefn', 'afeon')
@@ -67,14 +69,20 @@ class TestClient(unittest.TestCase):
         test_url = urls.route['list'] % 'sf-muni'
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=test_data.route_list,
+                               body=good_route_list.text,
                                content_type='application/xml')
         route_list = self.client.route_list('sf-muni')
-        self.assertEqual(len(route_list), 14)
+        self.assertEqual(len(route_list), 107)
         self.assertTrue('C' in [r.tag for r in route_list])
         self.assertTrue('C' in [r.title for r in route_list])
-        self.assertNotEqual(route_list[0].short_title, None)
-        self.assertEqual(route_list[1].short_title, None)
+        self.assertEqual(route_list[0].short_title, None)
+        # Should be at least one short title
+        found_short_title = False
+        for i in route_list:
+            if i.short_title != None:
+                found_short_title = True
+                break
+        self.assertTrue(found_short_title)
 
     @httpretty.activate
     def test_route_show(self):
