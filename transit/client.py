@@ -1,5 +1,5 @@
 # Agency interface
-from transit.agency import Agency
+from transit import agency
 from transit.route import Route, RoutePrediction, RouteStopPrediction, Point
 from transit.route import ScheduleRoute, ScheduleStop, Stop
 from transit.vehicle import VehicleLocation
@@ -24,37 +24,7 @@ def __next_real_sibling(item):
     return item
 
 def agency_list():
-    '''Get list of agencies'''
-    url = urls.agency['list']
-    soup = utils.make_request(url)
-
-    # Build agency list
-    agency_list = []
-    for agency in soup.find_all('agency'):
-        agency_list.append(Agency(agency.get('tag'),
-                                  agency.get('title'),
-                                  agency.get('regiontitle')))
-    return agency_list
-
-def agency_search(key, value):
-    '''Search for agency with value in key'''
-    url = urls.agency['list']
-    soup = utils.make_request(url)
-
-    # Search for agency, return list of matching
-    agency_list = []
-    nice_value = value.lower().replace(' ', '')
-    nice_key = key.lower().replace(' ', '')
-    for agency in soup.find_all('agency'):
-        for key in agency.attrs.keys():
-            if nice_key in key.encode('utf-8'):
-                search_value = agency.get(key).encode('utf-8').lower().replace(' ', '')
-                if nice_value in search_value:
-                    agency_list.append(Agency(agency.get('tag'),
-                                              agency.get('title'),
-                                              agency.get('regiontitle')))
-                    break
-    return agency_list
+    return agency.list_all()
 
 def route_list(agency_tag):
     '''List routes for agency'''

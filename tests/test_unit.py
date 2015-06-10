@@ -38,15 +38,6 @@ class TestClient(unittest.TestCase):
         client.agency_list()
 
     @httpretty.activate
-    def test_agency_search(self):
-        test_url = urls.agency['list']
-        httpretty.register_uri(httpretty.GET,
-                               test_url,
-                               body=good_agency_list.text,
-                               content_type='application/xml')
-        client.agency_search('tag', 'ac')
-
-    @httpretty.activate
     def test_route_list(self):
         test_url = urls.route['list'] % 'sf-muni'
         httpretty.register_uri(httpretty.GET,
