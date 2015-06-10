@@ -1,11 +1,19 @@
 from transit import urls
 from transit import utils
 
+from transit import route
+
 class Agency(object):
     def __init__(self, agency_data):
         self.tag = agency_data.get('tag').encode('utf-8')
         self.title = agency_data.get('title').encode('utf-8')
         self.region = agency_data.get('regiontitle').encode('utf-8')
+
+    def route_list(self):
+        return route.route_list(self.tag)
+
+    def route_get(self, route_tag):
+        return route.route_get(self.tag, route_tag)
 
     def __repr__(self):
         return '%s - %s - %s' % (self.title, self.region, self.tag)

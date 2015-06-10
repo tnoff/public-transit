@@ -8,7 +8,7 @@ from transit import urls
 
 from tests.data import agency_list as good_agency_list
 from tests.data import error as good_error
-from tests.data import route_config as good_route_config
+from tests.data import route_show as good_route_show
 from tests.data import route_list as good_route_list
 from tests.data import schedule_get as good_schedule_get
 from tests.data import stop_predictions as good_stop_predictions
@@ -51,7 +51,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.route['show'] % ('actransit', '22')
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_route_config.text,
+                               body=good_route_show.text,
                                content_type='application/xml')
         client.route_get('sf-muni', 'N')
 
