@@ -17,9 +17,6 @@ from tests.data import vehicle_locations as good_vehicle_locations
 
 class TestClient(unittest.TestCase):
 
-    def setUp(self):
-        self.client = client.Client()
-
     @httpretty.activate
     def test_fails(self):
         # Check that failures catch nicely
@@ -38,7 +35,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=good_agency_list.text,
                                content_type='application/xml')
-        self.client.agency_list()
+        client.agency_list()
 
     @httpretty.activate
     def test_agency_search(self):
@@ -47,7 +44,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=good_agency_list.text,
                                content_type='application/xml')
-        self.client.agency_search('tag', 'ac')
+        client.agency_search('tag', 'ac')
 
     @httpretty.activate
     def test_route_list(self):
@@ -56,7 +53,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=good_route_list.text,
                                content_type='application/xml')
-        self.client.route_list('sf-muni')
+        client.route_list('sf-muni')
 
     @httpretty.activate
     def test_route_show(self):
@@ -65,7 +62,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=good_route_config.text,
                                content_type='application/xml')
-        self.client.route_get('sf-muni', 'N')
+        client.route_get('sf-muni', 'N')
 
     @httpretty.activate
     def test_stop_prediction_no_route(self):
@@ -74,7 +71,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=good_stop_predictions.text,
                                content_type='application/xml')
-        self.client.stop_prediction('actransit', 51303)
+        client.stop_prediction('actransit', 51303)
 
     @httpretty.activate
     def test_stop_prediction_with_route(self):
@@ -83,7 +80,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=good_stop_predictions_route.text,
                                content_type='application/xml')
-        self.client.stop_prediction('actransit', 51303)
+        client.stop_prediction('actransit', 51303)
 
     @httpretty.activate
     def test_schedule(self):
@@ -92,7 +89,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=good_schedule_get.text,
                                content_type='application/xml')
-        self.client.schedule_get('actransit', '22')
+        client.schedule_get('actransit', '22')
 
     @httpretty.activate
     def test_vehicle_locations(self):
@@ -101,4 +98,4 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=good_vehicle_locations.text,
                                content_type='application/xml')
-        self.client.vehicle_location('sf-muni', 'N', '1144953500233')
+        client.vehicle_location('sf-muni', 'N', '1144953500233')
