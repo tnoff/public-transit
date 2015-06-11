@@ -4,6 +4,7 @@ from transit import utils
 
 from transit import stop
 from transit import schedule
+from transit import vehicle
 
 def route_list(agency_tag):
     '''List routes for agency'''
@@ -84,8 +85,16 @@ class Route(object):
         return schedule.schedule_get(self.agency_tag, self.route_tag)
 
     def stop_prediction(self, stop_id):
+        if not self.agency_tag:
+            raise TransitException("Cannot get schedule w/o agency tag")
         return stop.stop_prediction(self.agency_tag, stop_id,
                                     route_tag=self.route_tag)
+
+    def vehicle_location(self, epoch_time):
+        if not self.agency_tag:
+            raise TransitException("Cannot get schedule w/o agency tag")
+        return vehicle.vehicle_location(self.agency_tag, self.route_tag,
+                                        epoch_time)
 
     def __repr__(self):
         return '%s - %s' % (self.route_tag, self.title)

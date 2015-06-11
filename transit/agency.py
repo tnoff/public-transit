@@ -4,6 +4,7 @@ from transit import utils
 from transit import route
 from transit import schedule
 from transit import stop
+from transit import vehicle
 
 class Agency(object):
     def __init__(self, agency_data):
@@ -23,6 +24,9 @@ class Agency(object):
     def schedule_get(self, route_tag):
         return schedule.schedule_get(self.tag, route_tag)
 
+    def vehicle_location(self, route_tag, epoch_time):
+        return vehicle.vehicle_location(self.tag, route_tag, epoch_time)
+
     def __repr__(self):
         return '%s - %s - %s' % (self.title, self.region, self.tag)
 
@@ -31,5 +35,4 @@ def list_all():
     url = urls.agency['list']
     soup = utils.make_request(url)
 
-    # Build agency list
     return [Agency(i) for i in soup.find_all('agency')]
