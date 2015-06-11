@@ -1,6 +1,8 @@
 from transit import urls
 from transit import utils
 
+from transit.stop import Point, Stop
+
 def route_list(agency_tag):
     '''List routes for agency'''
     url = urls.route['list'] % agency_tag
@@ -87,69 +89,6 @@ class RouteDirection(object):
 
     def __repr__(self):
         return '%s - %s' % (self.title, self.tag)
-
-class Stop(object):
-    def __init__(self, stop_data):
-        self.tag = stop_data.get('tag').encode('utf-8')
-        self.title = stop_data.get('title').encode('utf-8')
-        self.latitude = float(stop_data.get('lat').encode('utf-8'))
-        self.longitude = float(stop_data.get('lon').encode('utf-8'))
-        self.stop_id = int(stop_data.get('stopid').encode('utf-8'))
-        try:
-            self.short_title = stop_data.get('shorttitle').encode('utf-8')
-        except AttributeError:
-            self.short_title = None
-
-    def __repr__(self):
-        return '%s - %s' % (self.tag, self.title)
-
-
-class Point(object):
-    def __init__(self, point_data):
-        self.latitude = float(point_data.get('lat').encode('utf-8'))
-        self.longitude = float(point_data.get('lon').encode('utf-8'))
-
-    def __repr__(self):
-        return '%s - %s' % (self.latitude, self.longitude)
-
-
-class RoutePrediction(object):
-    def __init__(self, route_tag, agency_title, route_title, stop_title):
-        self.route_tag = route_tag.encode('utf-8')
-        self.agency_title = agency_title.encode('utf-8')
-        self.route_title = route_title.encode('utf-8')
-        self.stop_title = stop_title.encode('utf-8')
-        self.predictions = []
-        self.messages = []
-
-    def __repr__(self):
-        return '%s - %s - %s' % (self.agency_title, self.stop_title, self.route_tag)
-
-
-class RouteStopPrediction(object):
-    def __init__(self, direction, seconds, minutes, epochtime, trip_tag, vehicle,
-                 block, dir_tag, is_departure, affected_by_layover):
-        self.direction = direction.encode('utf-8')
-        self.seconds = int(seconds)
-        self.minutes = int(minutes)
-        self.epochtime = int(epochtime)
-        self.trip_tag = trip_tag.encode('utf-8')
-        self.vehicle = vehicle.encode('utf-8')
-        self.block = block.encode('utf-8')
-        self.dir_tag = dir_tag.encode('utf-8')
-        self.is_departure = False
-        if is_departure.encode('utf-8') == 'true':
-            self.is_departure = True
-        self.affected_by_layover = False
-        try:
-            if affected_by_layover.encode('utf-8') == 'true':
-                self.affected_by_layover = True
-        except AttributeError:
-            pass
-
-    def __repr__(self):
-        return '%s:%s - %s' % (self.minutes, self.seconds, self.vehicle)
-
 
 class ScheduleRoute(object):
     def __init__(self, tag, title, schedule_class, service_class, direction):
