@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from transit.exceptions import TransitException
 from transit.common import urls, utils
 
@@ -7,10 +9,13 @@ class Route(object):
     def __init__(self, route_data, agency_tag=None):
         # Present Everywhere
         self.route_tag = route_data.get('tag').encode('utf-8')
-        self.title = route_data.get('title').encode('utf-8')
         # Can be entered in for sanity
         self.agency_tag = agency_tag
         # Present only in route show or route list
+        try:
+            self.title = route_data.get('title').encode('utf-8')
+        except AttributeError:
+            self.title = None
         try:
             self.short_title = route_data.get('shorttitle').encode('utf-8')
         except AttributeError:
@@ -42,6 +47,7 @@ class Route(object):
         self.stops = []
         self.paths = []
         self.directions = []
+        self.messages = []
 
     def schedule_get(self):
         if not self.agency_tag:
@@ -60,6 +66,11 @@ class Route(object):
         return vehicle.vehicle_location(self.agency_tag, self.route_tag,
                                         epoch_time)
 
+    def message_get(self):
+        if not self.agency_tag:
+            raise TransitException("Cannot get schedule w/o agency tag")
+        return message_get(self.agency_tag, self.route_tag)
+
     def __repr__(self):
         return '%s - %s' % (self.route_tag, self.title)
 
@@ -75,6 +86,41 @@ class RouteDirection(object):
 
     def __repr__(self):
         return '%s - %s' % (self.title, self.tag)
+
+class RouteMessage(object):
+    def __init__(self, message_data):
+        self.message_id = int(message_data.get('id').encode('utf-8'))
+        self.priority = message_data.get('priority').encode('utf-8')
+        try:
+            self.start_boundary_time = float(message_data.get('startboundary').enocde('utf-8'))
+        except AttributeError:
+            self.start_boundary = None
+        try:
+            self.end_boundary_time = float(message_data.get('endboundary').encode('utf-8'))
+        except AttributeError:
+            self.end_boundary = None
+        try:
+            sb = datetime.strptime(message_data.get('startboundarystr'),
+                                   "%a, %b %d %H:%M:%S %Z %Y")
+            self.start_boundary = sb
+        except (TypeError, AttributeError):
+            self.start_boundary = None
+        try:
+            eb = datetime.strptime(message_data.get('endboundarystr'),
+                                   "%a, %b %d %H:%M:%S %Z %Y")
+            self.end_boundary = eb
+        except (TypeError, AttributeError):
+            self.end_boundary = None
+        self.send_to_buses = False
+        try:
+            if message_data.get('senttobuses').encode('utf-8') == 'true':
+                self.send_to_buses = True
+        except AttributeError:
+            pass
+        self.text = [i.contents[0].encode('utf-8') for i in message_data.find_all('text')]
+
+    def __repr__(self):
+        return '%s - %s' % (self.message_id, self.text)
 
 def route_list(agency_tag):
     '''List routes for agency'''
@@ -108,3 +154,20 @@ def route_get(agency_tag, route_tag):
         path_points = [stop.Point(i) for i in path.find_all('point')]
         new_route.paths.append(path_points)
     return new_route
+
+def message_get(agency_tag, route_tags):
+    '''route_tags should be list of route_tags'''
+    url = urls.message['message']['url'] % (agency_tag)
+    # check if list, if not make one
+    if not isinstance(route_tags, list):
+        route_tags = [route_tags]
+    for tag in route_tags:
+        url += urls.message['message']['suffix'] % tag
+    soup = utils.make_request(url)
+    routes = []
+    for new_route in soup.find_all('route'):
+        r = Route(new_route)
+        for message in new_route.find_all("message"):
+            r.messages.append(RouteMessage(message))
+        routes.append(r)
+    return routes

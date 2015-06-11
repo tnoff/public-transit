@@ -17,3 +17,6 @@ def schedule_get(agency_tag, route_tag):
 
 def vehicle_location(agency_tag, route_tag, epoch_time):
     return vehicle.vehicle_location(agency_tag, route_tag, epoch_time)
+
+def message_get(agency_tag, route_tags):
+    return route.message_get(agency_tag, route_tags)

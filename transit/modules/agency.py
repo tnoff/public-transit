@@ -23,6 +23,9 @@ class Agency(object):
     def vehicle_location(self, route_tag, epoch_time):
         return vehicle.vehicle_location(self.tag, route_tag, epoch_time)
 
+    def message_get(self, route_tags):
+        return route.message_get(self.tag, route_tags)
+
     def __repr__(self):
         return '%s - %s - %s' % (self.title, self.region, self.tag)
 

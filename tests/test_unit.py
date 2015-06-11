@@ -7,6 +7,8 @@ from transit.common import urls, utils
 
 from tests.data import agency_list as good_agency_list
 from tests.data import error as good_error
+from tests.data import message_get as good_message_get
+from tests.data import message_get_multi as good_message_get_multi
 from tests.data import route_show as good_route_show
 from tests.data import route_list as good_route_list
 from tests.data import schedule_get as good_schedule_get
@@ -89,3 +91,26 @@ class TestClient(unittest.TestCase):
                                body=good_vehicle_locations.text,
                                content_type='application/xml')
         client.vehicle_location('sf-muni', 'N', '1144953500233')
+
+    @httpretty.activate
+    def test_message(self):
+        # Test with one arg
+        test_url = urls.message['message']['url'] % ('sf-muni')
+        tags = ['38']
+        for i in tags:
+            test_url += urls.message['message']['suffix'] % i
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=good_message_get.text,
+                               content_type='application/xml')
+        client.message_get('sf-muni', '38')
+        # Test with mulitple args
+        test_url = urls.message['message']['url'] % ('sf-muni')
+        tags = ['38', '47']
+        for i in tags:
+            test_url += urls.message['message']['suffix'] % i
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=good_message_get_multi.text,
+                               content_type='application/xml')
+        client.message_get('sf-muni', ['38', '47'])
