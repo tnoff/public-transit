@@ -2,6 +2,7 @@ from transit import urls
 from transit import utils
 
 from transit import route
+from transit import schedule
 from transit import stop
 
 class Agency(object):
@@ -18,6 +19,9 @@ class Agency(object):
 
     def stop_prediction(self, stop_id, route_tag=None):
         return stop.stop_prediction(self.tag, stop_id, route_tag=route_tag)
+
+    def schedule_get(self, route_tag):
+        return schedule.schedule_get(self.tag, route_tag)
 
     def __repr__(self):
         return '%s - %s - %s' % (self.title, self.region, self.tag)

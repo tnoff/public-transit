@@ -2,6 +2,7 @@
 from transit import agency
 from transit import route
 from transit import stop
+from transit import schedule
 from transit.vehicle import VehicleLocation
 
 from transit import urls
@@ -20,25 +21,7 @@ def stop_prediction(agency_tag, stop_id, route_tag=None):
     return stop.stop_prediction(agency_tag, stop_id, route_tag=route_tag)
 
 def schedule_get(agency_tag, route_tag):
-    url = urls.schedule['show'] % (agency_tag, route_tag)
-    soup = utils.make_request(url)
-
-    new_route_list = []
-    for new_route in soup.find_all('route'):
-        sr = route.ScheduleRoute(new_route.get('tag'),
-                                 new_route.get('title'),
-                                 new_route.get('scheduleclass'),
-                                 new_route.get('serviceclass'),
-                                 new_route.get('direction'))
-        for block in new_route.find_all('tr'):
-            for stop in block.find_all('stop'):
-                sr.schedule_stops.append(route.ScheduleStop(stop.get('tag'),
-                                                            stop.get('epochtime'),
-                                                            stop.string,
-                                                            block.get('blockid')))
-
-        new_route_list.append(sr)
-    return new_route_list
+    return schedule.schedule_get(agency_tag, route_tag)
 
 def vehicle_location(agency_tag, route_tag, epoch_time):
     url = urls.vehicle['location'] % (agency_tag, route_tag, epoch_time)
