@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from setuptools import setup
+import setuptools
 
-setup(
+setuptools.setup(
     name='public-transit',
     description='Public Transit Info',
     author='Tyler D. North',
@@ -15,8 +15,6 @@ setup(
     ],
     scripts=[
     ],
-    packages=[
-        'transit',
-    ],
+    packages=setuptools.find_packages(),
     version='0.0.9',
 )

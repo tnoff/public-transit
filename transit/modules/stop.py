@@ -1,28 +1,4 @@
-from transit import urls
-from transit import utils
-
-def stop_prediction(agency_tag, stop_id, route_tag=None):
-    '''Predict arrivals at stop, for only route tag if specified'''
-    # Different url depending on route_tag
-    if route_tag:
-        url = urls.predictions['route'] % (agency_tag, stop_id, route_tag)
-    else:
-        url = urls.predictions['stop'] % (agency_tag, stop_id)
-    soup = utils.make_request(url)
-    # Add all stop predictions for routes
-    route_predictions = []
-    for new_route in soup.find_all('predictions'):
-        route_pred = RoutePrediction(new_route)
-        # All directions in route
-        for direction in new_route.find_all('direction'):
-            # Find all predictions in direction
-            new_dir = RouteDirectionPrediction(direction)
-            for pred in direction.find_all('prediction'):
-                new_dir.predictions.append(RouteStopPrediction(pred))
-        for message in new_route.find_all('message'):
-            route_pred.messages.append(message.get('text').encode('utf-8'))
-        route_predictions.append(route_pred)
-    return route_predictions
+from transit.common import urls, utils
 
 class Stop(object):
     def __init__(self, stop_data):
@@ -89,3 +65,26 @@ class RouteStopPrediction(object):
             pass
     def __repr__(self):
         return '%s:%s - %s' % (self.minutes, self.seconds, self.vehicle)
+
+def stop_prediction(agency_tag, stop_id, route_tag=None):
+    '''Predict arrivals at stop, for only route tag if specified'''
+    # Different url depending on route_tag
+    if route_tag:
+        url = urls.predictions['route'] % (agency_tag, stop_id, route_tag)
+    else:
+        url = urls.predictions['stop'] % (agency_tag, stop_id)
+    soup = utils.make_request(url)
+    # Add all stop predictions for routes
+    route_predictions = []
+    for new_route in soup.find_all('predictions'):
+        route_pred = RoutePrediction(new_route)
+        # All directions in route
+        for direction in new_route.find_all('direction'):
+            # Find all predictions in direction
+            new_dir = RouteDirectionPrediction(direction)
+            for pred in direction.find_all('prediction'):
+                new_dir.predictions.append(RouteStopPrediction(pred))
+        for message in new_route.find_all('message'):
+            route_pred.messages.append(message.get('text').encode('utf-8'))
+        route_predictions.append(route_pred)
+    return route_predictions

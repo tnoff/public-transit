@@ -1,10 +1,6 @@
-from transit import urls
-from transit import utils
+from transit.common import urls, utils
 
-from transit import route
-from transit import schedule
-from transit import stop
-from transit import vehicle
+from transit.modules import route, schedule, stop, vehicle
 
 class Agency(object):
     def __init__(self, agency_data):

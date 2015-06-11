@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from transit import urls
-from transit import utils
+from transit.common import urls, utils
 
 class ScheduleRoute(object):
     def __init__(self, schedule_data):

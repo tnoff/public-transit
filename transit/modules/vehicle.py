@@ -1,5 +1,4 @@
-from transit import urls
-from transit import utils
+from transit.common import urls, utils
 
 class VehicleLocation(object):
     def __init__(self, vehicle_data):

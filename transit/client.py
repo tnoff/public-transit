@@ -1,8 +1,4 @@
-from transit import agency
-from transit import route
-from transit import stop
-from transit import schedule
-from transit import vehicle
+from transit.modules import agency, route, stop, schedule, vehicle
 
 def agency_list():
     return agency.list_all()

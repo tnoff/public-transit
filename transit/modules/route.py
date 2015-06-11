@@ -1,43 +1,7 @@
 from transit.exceptions import TransitException
-from transit import urls
-from transit import utils
+from transit.common import urls, utils
 
-from transit import stop
-from transit import schedule
-from transit import vehicle
-
-def route_list(agency_tag):
-    '''List routes for agency'''
-    url = urls.route['list'] % agency_tag
-    soup = utils.make_request(url)
-
-    # Build route list
-    return [Route(i, agency_tag=agency_tag) for i in soup.find_all('route')]
-
-def route_get(agency_tag, route_tag):
-    '''Get route information'''
-    url = urls.route['show'] % (agency_tag, route_tag)
-    soup = utils.make_request(url)
-    # Get route data
-    route_data = soup.find('route')
-    new_route = Route(route_data, agency_tag=agency_tag)
-    # Add all complete stop data
-    # Directions will have stops with just "tags"
-    # Ignore those for now
-    for new_stop in soup.find_all('stop'):
-        if not new_stop.get('stopid'):
-            continue
-        new_route.stops.append(stop.Stop(new_stop))
-    for direction in soup.find_all('direction'):
-        new_dir = RouteDirection(direction)
-        # now add all stop tags
-        for i in direction.find_all('stop'):
-            new_dir.stop_tags.append(i.encode('utf-8'))
-        new_route.directions.append(new_dir)
-    for path in soup.find_all('path'):
-        path_points = [stop.Point(i) for i in path.find_all('point')]
-        new_route.paths.append(path_points)
-    return new_route
+from transit.modules import schedule, stop, vehicle
 
 class Route(object):
     def __init__(self, route_data, agency_tag=None):
@@ -111,3 +75,36 @@ class RouteDirection(object):
 
     def __repr__(self):
         return '%s - %s' % (self.title, self.tag)
+
+def route_list(agency_tag):
+    '''List routes for agency'''
+    url = urls.route['list'] % agency_tag
+    soup = utils.make_request(url)
+
+    # Build route list
+    return [Route(i, agency_tag=agency_tag) for i in soup.find_all('route')]
+
+def route_get(agency_tag, route_tag):
+    '''Get route information'''
+    url = urls.route['show'] % (agency_tag, route_tag)
+    soup = utils.make_request(url)
+    # Get route data
+    route_data = soup.find('route')
+    new_route = Route(route_data, agency_tag=agency_tag)
+    # Add all complete stop data
+    # Directions will have stops with just "tags"
+    # Ignore those for now
+    for new_stop in soup.find_all('stop'):
+        if not new_stop.get('stopid'):
+            continue
+        new_route.stops.append(stop.Stop(new_stop))
+    for direction in soup.find_all('direction'):
+        new_dir = RouteDirection(direction)
+        # now add all stop tags
+        for i in direction.find_all('stop'):
+            new_dir.stop_tags.append(i.encode('utf-8'))
+        new_route.directions.append(new_dir)
+    for path in soup.find_all('path'):
+        path_points = [stop.Point(i) for i in path.find_all('point')]
+        new_route.paths.append(path_points)
+    return new_route

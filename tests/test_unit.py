@@ -3,8 +3,7 @@ import unittest
 
 from transit import client
 from transit.exceptions import TransitException
-from transit import utils
-from transit import urls
+from transit.common import urls, utils
 
 from tests.data import agency_list as good_agency_list
 from tests.data import error as good_error
