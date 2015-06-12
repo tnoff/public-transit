@@ -88,3 +88,25 @@ def stop_prediction(agency_tag, stop_id, route_tag=None):
             route_pred.messages.append(message.get('text').encode('utf-8'))
         route_predictions.append(route_pred)
     return route_predictions
+
+def multiple_stop_prediction(agency_tag, stop_data):
+    '''Stop Data in format {route_tag : [stoptag, stoptag, ..], ...}'''
+    url = urls.predictions['multi']['url'] % agency_tag
+    # Start creating url suffixs
+    route_tag, stop_list = stop_data.popitem()
+    for stop_tag in stop_list:
+        url += urls.predictions['multi']['suffix'] % (route_tag, stop_tag)
+    soup = utils.make_request(url)
+    route_predictions = []
+    for new_route in soup.find_all('predictions'):
+        route_pred = RoutePrediction(new_route)
+        # All directions in route
+        for direction in new_route.find_all('direction'):
+            # Find all predictions in direction
+            new_dir = RouteDirectionPrediction(direction)
+            for pred in direction.find_all('prediction'):
+                new_dir.predictions.append(RouteStopPrediction(pred))
+        for message in new_route.find_all('message'):
+            route_pred.messages.append(message.get('text').encode('utf-8'))
+        route_predictions.append(route_pred)
+    return route_predictions

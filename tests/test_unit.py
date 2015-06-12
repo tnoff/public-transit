@@ -9,6 +9,8 @@ from tests.data import agency_list as good_agency_list
 from tests.data import error as good_error
 from tests.data import message_get as good_message_get
 from tests.data import message_get_multi as good_message_get_multi
+from tests.data import multi_predict_one as good_multi_one
+from tests.data import multi_predict_two as good_multi_two
 from tests.data import route_show as good_route_show
 from tests.data import route_list as good_route_list
 from tests.data import schedule_get as good_schedule_get
@@ -114,3 +116,28 @@ class TestClient(unittest.TestCase):
                                body=good_message_get_multi.text,
                                content_type='application/xml')
         client.message_get('sf-muni', ['38', '47'])
+
+    @httpretty.activate
+    def test_multi_prediction(self):
+        # Test with one stop/route
+        test_url = urls.predictions['multi']['url'] % ('sf-muni')
+        data = {'38' : ['13568']}
+        for key in data:
+            for i in data[key]:
+                test_url += urls.predictions['multi']['suffix'] % (key, i)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=good_multi_one.text,
+                               content_type='application/xml')
+        client.multiple_stop_predictions('sf-muni', data)
+        # Test with multiple stops on same route
+        test_url = urls.predictions['multi']['url'] % ('sf-muni')
+        data = {'38' : ['13568', '13567']}
+        for key in data:
+            for i in data[key]:
+                test_url += urls.predictions['multi']['suffix'] % (key, i)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=good_multi_two.text,
+                               content_type='application/xml')
+        client.multiple_stop_predictions('sf-muni', data)

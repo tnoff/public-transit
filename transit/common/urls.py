@@ -16,7 +16,11 @@ predictions = {
     # a : agency_tag, stopId : stop id
     'stop' : main_url + '?command=predictions&a=%s&stopId=%s',
     # a : agency_tag, stopId : stop id, routeTag: route_tag
-    'route' : main_url + '?command=predictions&a=%s&stopId=%s&routeTag=%s'
+    'route' : main_url + '?command=predictions&a=%s&stopId=%s&routeTag=%s',
+    # a : agency_tag, stops=RouteTag|StopTag
+    'multi' : {'url' : main_url + '?command=predictionsForMultiStops&a=%s',
+               'suffix' : '&stops=%s|%s',},
+
 }
 
 schedule = {

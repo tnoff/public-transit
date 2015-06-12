@@ -17,6 +17,9 @@ class Agency(object):
     def stop_prediction(self, stop_id, route_tag=None):
         return stop.stop_prediction(self.tag, stop_id, route_tag=route_tag)
 
+    def multiple_stop_prediction(self, stop_data):
+        return stop.multiple_stop_prediction(self.tag, stop_data)
+
     def schedule_get(self, route_tag):
         return schedule.schedule_get(self.tag, route_tag)
 

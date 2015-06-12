@@ -12,6 +12,9 @@ def route_get(agency_tag, route_tag):
 def stop_prediction(agency_tag, stop_id, route_tag=None):
     return stop.stop_prediction(agency_tag, stop_id, route_tag=route_tag)
 
+def multiple_stop_predictions(agency_tag, stop_data):
+    return stop.multiple_stop_prediction(agency_tag, stop_data)
+
 def schedule_get(agency_tag, route_tag):
     return schedule.schedule_get(agency_tag, route_tag)
 

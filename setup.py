@@ -16,5 +16,5 @@ setuptools.setup(
     scripts=[
     ],
     packages=setuptools.find_packages(),
-    version='0.0.11',
+    version='0.1.0',
 )
