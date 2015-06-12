@@ -148,7 +148,7 @@ def route_get(agency_tag, route_tag):
         new_dir = RouteDirection(direction)
         # now add all stop tags
         for i in direction.find_all('stop'):
-            new_dir.stop_tags.append(i.encode('utf-8'))
+            new_dir.stop_tags.append(i.get('tag').encode('utf-8'))
         new_route.directions.append(new_dir)
     for path in soup.find_all('path'):
         path_points = [stop.Point(i) for i in path.find_all('point')]
