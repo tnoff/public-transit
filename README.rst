@@ -25,3 +25,27 @@ NextBus
 #. Agency Route Schedule -- Done
 #. Agency Route Messages -- Done
 #. Agency Route Vehicle Locations -- Done
+
+
+=======
+Install
+=======
+
+.. code::
+
+    git clone git@github.com:tylernorth/public-transit.git
+    pip install public-transit/
+
+=====
+Usage
+=====
+API
+.. code::
+
+    from transit import client
+    client.agency_list()
+
+CLI
+.. code::
+
+    transit agency list
