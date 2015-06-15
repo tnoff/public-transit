@@ -5,18 +5,18 @@ from transit import client
 from transit.exceptions import TransitException
 from transit.common import urls, utils
 
-from tests.data import agency_list as good_agency_list
-from tests.data import error as good_error
-from tests.data import message_get as good_message_get
-from tests.data import message_get_multi as good_message_get_multi
-from tests.data import multi_predict_one as good_multi_one
-from tests.data import multi_predict_two as good_multi_two
-from tests.data import route_show as good_route_show
-from tests.data import route_list as good_route_list
-from tests.data import schedule_get as good_schedule_get
-from tests.data import stop_predictions as good_stop_predictions
-from tests.data import stop_predictions_route as good_stop_predictions_route
-from tests.data import vehicle_locations as good_vehicle_locations
+from tests.data import agency_list as agency_list
+from tests.data import error as error
+from tests.data import message_get as message_get
+from tests.data import message_get_multi as message_get_multi
+from tests.data import multi_predict_one as multi_one
+from tests.data import multi_predict_two as multi_two
+from tests.data import route_show as route_show
+from tests.data import route_list as route_list
+from tests.data import schedule_get as schedule_get
+from tests.data import stop_predictions as stop_predictions
+from tests.data import stop_predictions_route as stop_predictions_route
+from tests.data import vehicle_locations as vehicle_locations
 
 class TestClient(unittest.TestCase):
 
@@ -27,7 +27,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.agency['list']
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_error.text,
+                               body=error.text,
                                content_type='application/xml')
         self.assertRaises(TransitException, utils.make_request, test_url)
 
@@ -36,7 +36,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.agency['list']
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_agency_list.text,
+                               body=agency_list.text,
                                content_type='application/xml')
         client.agency_list()
 
@@ -45,7 +45,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.route['list'] % 'sf-muni'
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_route_list.text,
+                               body=route_list.text,
                                content_type='application/xml')
         client.route_list('sf-muni')
 
@@ -54,7 +54,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.route['show'] % ('actransit', '22')
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_route_show.text,
+                               body=route_show.text,
                                content_type='application/xml')
         client.route_get('sf-muni', 'N')
 
@@ -63,7 +63,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.predictions['stop'] % ('actransit', '51303')
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_stop_predictions.text,
+                               body=stop_predictions.text,
                                content_type='application/xml')
         client.stop_prediction('actransit', 51303)
 
@@ -72,7 +72,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.predictions['route'] % ('actransit', '51303', '22')
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_stop_predictions_route.text,
+                               body=stop_predictions_route.text,
                                content_type='application/xml')
         client.stop_prediction('actransit', 51303)
 
@@ -81,7 +81,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.schedule['show'] % ('actransit', '22')
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_schedule_get.text,
+                               body=schedule_get.text,
                                content_type='application/xml')
         client.schedule_get('actransit', '22')
 
@@ -90,7 +90,7 @@ class TestClient(unittest.TestCase):
         test_url = urls.vehicle['location'] % ('sf-muni', 'N', '1144953500233')
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_vehicle_locations.text,
+                               body=vehicle_locations.text,
                                content_type='application/xml')
         client.vehicle_location('sf-muni', 'N', '1144953500233')
 
@@ -103,7 +103,7 @@ class TestClient(unittest.TestCase):
             test_url += urls.message['message']['suffix'] % i
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_message_get.text,
+                               body=message_get.text,
                                content_type='application/xml')
         client.message_get('sf-muni', '38')
         # Test with mulitple args
@@ -113,7 +113,7 @@ class TestClient(unittest.TestCase):
             test_url += urls.message['message']['suffix'] % i
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_message_get_multi.text,
+                               body=message_get_multi.text,
                                content_type='application/xml')
         client.message_get('sf-muni', ['38', '47'])
 
@@ -127,7 +127,7 @@ class TestClient(unittest.TestCase):
                 test_url += urls.predictions['multi']['suffix'] % (key, i)
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_multi_one.text,
+                               body=multi_one.text,
                                content_type='application/xml')
         client.multiple_stop_predictions('sf-muni', data)
         # Test with multiple stops on same route
@@ -138,6 +138,6 @@ class TestClient(unittest.TestCase):
                 test_url += urls.predictions['multi']['suffix'] % (key, i)
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=good_multi_two.text,
+                               body=multi_two.text,
                                content_type='application/xml')
         client.multiple_stop_predictions('sf-muni', data)
