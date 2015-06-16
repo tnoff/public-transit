@@ -6,18 +6,18 @@ from transit.exceptions import TransitException
 from transit.common.urls import nextbus
 from transit.common import utils
 
-from tests.data import agency_list as agency_list
-from tests.data import error as error
-from tests.data import message_get as message_get
-from tests.data import message_get_multi as message_get_multi
-from tests.data import multi_predict_one as multi_one
-from tests.data import multi_predict_two as multi_two
-from tests.data import route_show as route_show
-from tests.data import route_list as route_list
-from tests.data import schedule_get as schedule_get
-from tests.data import stop_predictions as stop_predictions
-from tests.data import stop_predictions_route as stop_predictions_route
-from tests.data import vehicle_locations as vehicle_locations
+from tests.data.nextbus import agency_list as agency_list
+from tests.data.nextbus import error as error
+from tests.data.nextbus import message_get as message_get
+from tests.data.nextbus import message_get_multi as message_get_multi
+from tests.data.nextbus import multi_predict_one as multi_one
+from tests.data.nextbus import multi_predict_two as multi_two
+from tests.data.nextbus import route_show as route_show
+from tests.data.nextbus import route_list as route_list
+from tests.data.nextbus import schedule_get as schedule_get
+from tests.data.nextbus import stop_predictions as stop_predictions
+from tests.data.nextbus import stop_predictions_route as stop_predictions_route
+from tests.data.nextbus import vehicle_locations as vehicle_locations
 
 class TestClient(unittest.TestCase):
 
