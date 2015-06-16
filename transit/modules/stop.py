@@ -107,6 +107,7 @@ def multiple_stop_prediction(agency_tag, stop_data):
             new_dir = RouteDirectionPrediction(direction)
             for pred in direction.find_all('prediction'):
                 new_dir.predictions.append(RouteStopPrediction(pred))
+            route_pred.directions.append(new_dir)
         for message in new_route.find_all('message'):
             route_pred.messages.append(message.get('text').encode('utf-8'))
         route_predictions.append(route_pred)
