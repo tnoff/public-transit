@@ -1,4 +1,5 @@
-from transit.common import urls, utils
+from transit.common.urls import nextbus
+from transit.common import utils
 
 from transit.modules import route, schedule, stop, vehicle
 
@@ -34,7 +35,6 @@ class Agency(object):
 
 def list_all():
     '''Get list of agencies'''
-    url = urls.agency['list']
+    url = nextbus.agency_list()
     soup = utils.make_request(url)
-
     return [Agency(i) for i in soup.find_all('agency')]

@@ -1,7 +1,8 @@
 from datetime import datetime
 
 from transit.exceptions import TransitException
-from transit.common import urls, utils
+from transit.common.urls import nextbus
+from transit.common import utils
 
 from transit.modules import schedule, stop, vehicle
 
@@ -124,7 +125,7 @@ class RouteMessage(object):
 
 def route_list(agency_tag):
     '''List routes for agency'''
-    url = urls.route['list'] % agency_tag
+    url = nextbus.route_list(agency_tag)
     soup = utils.make_request(url)
 
     # Build route list
@@ -132,7 +133,7 @@ def route_list(agency_tag):
 
 def route_get(agency_tag, route_tag):
     '''Get route information'''
-    url = urls.route['show'] % (agency_tag, route_tag)
+    url = nextbus.route_show(agency_tag, route_tag)
     soup = utils.make_request(url)
     # Get route data
     route_data = soup.find('route')
@@ -157,12 +158,7 @@ def route_get(agency_tag, route_tag):
 
 def message_get(agency_tag, route_tags):
     '''route_tags should be list of route_tags'''
-    url = urls.message['message']['url'] % (agency_tag)
-    # check if list, if not make one
-    if not isinstance(route_tags, list):
-        route_tags = [route_tags]
-    for tag in route_tags:
-        url += urls.message['message']['suffix'] % tag
+    url = nextbus.message_get(agency_tag, route_tags)
     soup = utils.make_request(url)
     routes = []
     for new_route in soup.find_all('route'):

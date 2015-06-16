@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from transit.common import urls, utils
+from transit.common.urls import nextbus
+from transit.common import utils
 
 class ScheduleRoute(object):
     def __init__(self, schedule_data):
@@ -37,7 +38,7 @@ class StopSchedule(object):
         return '%s - %s' % (self.stop_tag, self.time)
 
 def schedule_get(agency_tag, route_tag):
-    url = urls.schedule['show'] % (agency_tag, route_tag)
+    url = nextbus.schedule_get(agency_tag, route_tag)
     soup = utils.make_request(url)
 
     new_route_list = []

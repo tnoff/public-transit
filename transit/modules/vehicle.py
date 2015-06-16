@@ -1,4 +1,5 @@
-from transit.common import urls, utils
+from transit.common.urls import nextbus
+from transit.common import utils
 
 class VehicleLocation(object):
     def __init__(self, vehicle_data):
@@ -18,8 +19,7 @@ class VehicleLocation(object):
         return '%s:%s-%s' % (self.vehicle_id, self.latitude, self.longitude)
 
 def vehicle_location(agency_tag, route_tag, epoch_time):
-    url = urls.vehicle['location'] % (agency_tag, route_tag, epoch_time)
+    url = nextbus.vehicle_location(agency_tag, route_tag, epoch_time)
     soup = utils.make_request(url)
-
     vehicle_list = [VehicleLocation(i) for i in soup.find_all('vehicle')]
     return vehicle_list

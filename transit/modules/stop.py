@@ -1,4 +1,5 @@
-from transit.common import urls, utils
+from transit.common.urls import nextbus
+from transit.common import utils
 
 class Stop(object):
     def __init__(self, stop_data):
@@ -69,10 +70,7 @@ class RouteStopPrediction(object):
 def stop_prediction(agency_tag, stop_id, route_tag=None):
     '''Predict arrivals at stop, for only route tag if specified'''
     # Different url depending on route_tag
-    if route_tag:
-        url = urls.predictions['route'] % (agency_tag, stop_id, route_tag)
-    else:
-        url = urls.predictions['stop'] % (agency_tag, stop_id)
+    url = nextbus.stop_prediction(agency_tag, stop_id, route_tag=route_tag)
     soup = utils.make_request(url)
     # Add all stop predictions for routes
     route_predictions = []
@@ -92,11 +90,7 @@ def stop_prediction(agency_tag, stop_id, route_tag=None):
 
 def multiple_stop_prediction(agency_tag, stop_data):
     '''Stop Data in format {route_tag : [stoptag, stoptag, ..], ...}'''
-    url = urls.predictions['multi']['url'] % agency_tag
-    # Start creating url suffixs
-    route_tag, stop_list = stop_data.popitem()
-    for stop_tag in stop_list:
-        url += urls.predictions['multi']['suffix'] % (route_tag, stop_tag)
+    url = nextbus.multiple_stop_prediction(agency_tag, stop_data)
     soup = utils.make_request(url)
     route_predictions = []
     for new_route in soup.find_all('predictions'):
