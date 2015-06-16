@@ -40,12 +40,14 @@ Install
 Usage
 =====
 API
+
 .. code::
 
     from transit import client
     client.agency_list()
 
 CLI
+
 .. code::
 
     transit agency list
