@@ -39,7 +39,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=agency_list.text,
                                content_type='application/xml')
-        agencies = client.agency_list()
+        agencies = client.nextbus.agency_list()
         # Make sure list generated correctly
         for a in agencies:
             self.assertNotEqual(None, a.tag)
@@ -52,7 +52,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=route_list.text,
                                content_type='application/xml')
-        routes = client.route_list(agency_tag)
+        routes = client.nextbus.route_list(agency_tag)
         for r in routes:
             self.assertNotEqual(r.route_tag, None)
             self.assertEqual(r.agency_tag, agency_tag)
@@ -66,7 +66,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=route_show.text,
                                content_type='application/xml')
-        r = client.route_get(agency_tag, route_tag)
+        r = client.nextbus.route_get(agency_tag, route_tag)
         self.assertEqual(r.agency_tag, agency_tag)
         self.assertEqual(r.route_tag, route_tag)
         self.assertNotEqual(len(r.stops), 0)
@@ -83,7 +83,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=stop_predictions.text,
                                content_type='application/xml')
-        preds = client.stop_prediction(agency_tag, stop_id)
+        preds = client.nextbus.stop_prediction(agency_tag, stop_id)
         first_pred = preds[0]
         self.assertNotEqual(len(first_pred.directions), 0)
         self.assertNotEqual(len(first_pred.directions[0].predictions), 0)
@@ -100,7 +100,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=stop_predictions_route.text,
                                content_type='application/xml')
-        preds = client.stop_prediction(agency_tag, stop_id, route_tag=route_tag)
+        preds = client.nextbus.stop_prediction(agency_tag, stop_id, route_tag=route_tag)
         first_pred = preds[0]
         self.assertNotEqual(len(first_pred.directions), 0)
         self.assertNotEqual(len(first_pred.directions[0].predictions), 0)
@@ -114,7 +114,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=schedule_get.text,
                                content_type='application/xml')
-        schedules = client.schedule_get(agency_tag, route_tag)
+        schedules = client.nextbus.schedule_get(agency_tag, route_tag)
         first_sched = schedules[0]
         self.assertNotEqual(len(first_sched.blocks), 0)
         first_block = first_sched.blocks[0]
@@ -130,7 +130,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=vehicle_locations.text,
                                content_type='application/xml')
-        locations = client.vehicle_location(agency_tag, route_tag, epoch_time)
+        locations = client.nextbus.vehicle_location(agency_tag, route_tag, epoch_time)
         self.assertNotEqual(len(locations), 0)
 
     @httpretty.activate
@@ -143,7 +143,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=message_get.text,
                                content_type='application/xml')
-        routes = client.message_get(agency_tag, route_tag)
+        routes = client.nextbus.message_get(agency_tag, route_tag)
         first_route = routes[0]
         self.assertNotEqual(len(first_route.messages), 0)
 
@@ -157,7 +157,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=message_get_multi.text,
                                content_type='application/xml')
-        routes = client.message_get(agency_tag, route_tags)
+        routes = client.nextbus.message_get(agency_tag, route_tags)
         self.assertTrue(len(routes) > 1)
         first_route = routes[0]
         self.assertNotEqual(len(first_route.messages), 0)
@@ -172,7 +172,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=multi_one.text,
                                content_type='application/xml')
-        preds = client.multiple_stop_predictions(agency_tag, data)
+        preds = client.nextbus.multiple_stop_predictions(agency_tag, data)
         first_pred = preds[0]
         self.assertNotEqual(len(first_pred.directions), 0)
         self.assertNotEqual(len(first_pred.directions[0].predictions), 0)
@@ -188,7 +188,7 @@ class TestClient(unittest.TestCase):
                                test_url,
                                body=multi_two.text,
                                content_type='application/xml')
-        preds = client.multiple_stop_predictions(agency_tag, data)
+        preds = client.nextbus.multiple_stop_predictions(agency_tag, data)
         first_pred = preds[0]
         self.assertNotEqual(len(first_pred.directions), 0)
         self.assertNotEqual(len(first_pred.directions[0].predictions), 0)

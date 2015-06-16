@@ -4,7 +4,7 @@ from transit.exceptions import TransitException
 from transit.common.urls import nextbus
 from transit.common import utils
 
-from transit.modules import schedule, stop, vehicle
+from transit.modules.nextbus import schedule, stop, vehicle
 
 class Route(object):
     def __init__(self, route_data, agency_tag=None):

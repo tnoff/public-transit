@@ -1,7 +1,7 @@
 from transit.common.urls import nextbus
 from transit.common import utils
 
-from transit.modules import route, schedule, stop, vehicle
+from transit.modules.nextbus import route, schedule, stop, vehicle
 
 class Agency(object):
     def __init__(self, agency_data):
