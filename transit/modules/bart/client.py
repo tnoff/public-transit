@@ -41,3 +41,8 @@ def service_advisory():
     url = bart.service_advisory()
     soup = utils.make_request(url)
     return [ServiceAdvisory(bsa) for bsa in soup.find_all('bsa')]
+
+def train_count():
+    url = bart.train_count()
+    soup = utils.make_request(url)
+    return int(soup.find('traincount').contents[0].encode('iso-8859-1'))
