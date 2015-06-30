@@ -3,7 +3,10 @@ Public Transit API
 ###################
 
 Implement functionality in
-`NextBus XML Feed <http://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf>`_.
+
+- `NextBus XML Feed <http://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf>`_
+
+- `BART API <http://api.bart.gov/docs/overview/index.aspx>`_
 
 ========================
 Functionality Checklist
@@ -26,6 +29,15 @@ NextBus
 #. Agency Route Messages -- Done
 #. Agency Route Vehicle Locations -- Done
 
+----
+BART
+----
+
+#. Advisories (WIP)
+#. Real-Time Estimates
+#. Route Information
+#. Schedule Information
+#. Station Information
 
 =======
 Install
@@ -44,10 +56,11 @@ API
 .. code::
 
     from transit import client
-    client.agency_list()
+    client.nextbus.agency_list()
+    client.bart.train_count()
 
 CLI
 
 .. code::
 
-    transit agency list
+    transit nextbus agency list
