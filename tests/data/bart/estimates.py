@@ -1,0 +1,75 @@
+text = '''
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+<uri><![CDATA[http://api.bart.gov/api/etd.aspx?cmd=etd&orig=rich]]></uri>
+<date>07/01/2015</date>
+<time>04:16:04 PM PDT</time>
+<station>
+<name>Richmond</name>
+<abbr>RICH</abbr>
+<etd>
+    <destination>Fremont</destination>
+    <abbreviation>FRMT</abbreviation>
+    <estimate>
+        <minutes>1</minutes>
+        <platform>2</platform>
+        <direction>South</direction>
+        <length>6</length>
+        <color>ORANGE</color>
+        <hexcolor>#ff9933</hexcolor>
+        <bikeflag>1</bikeflag>
+    </estimate>
+    <estimate>
+        <minutes>18</minutes>
+        <platform>2</platform>
+        <direction>South</direction>
+        <length>6</length>
+        <color>ORANGE</color>
+        <hexcolor>#ff9933</hexcolor>
+        <bikeflag>1</bikeflag>
+    </estimate>
+    <estimate>
+        <minutes>33</minutes>
+        <platform>2</platform>
+        <direction>South</direction>
+        <length>8</length>
+        <color>ORANGE</color>
+        <hexcolor>#ff9933</hexcolor>
+        <bikeflag>1</bikeflag>
+    </estimate>
+</etd>
+<etd>
+    <destination>Millbrae</destination>
+    <abbreviation>MLBR</abbreviation>
+    <estimate>
+        <minutes>Leaving</minutes>
+        <platform>2</platform>
+        <direction>South</direction>
+        <length>9</length>
+        <color>RED</color>
+        <hexcolor>#ff0000</hexcolor>
+        <bikeflag>1</bikeflag>
+    </estimate>
+    <estimate>
+        <minutes>10</minutes>
+        <platform>2</platform>
+        <direction>South</direction>
+        <length>10</length>
+        <color>RED</color>
+        <hexcolor>#ff0000</hexcolor>
+        <bikeflag>1</bikeflag>
+    </estimate>
+    <estimate>
+        <minutes>25</minutes>
+        <platform>2</platform>
+        <direction>South</direction>
+        <length>10</length>
+        <color>RED</color>
+        <hexcolor>#ff0000</hexcolor>
+        <bikeflag>1</bikeflag>
+    </estimate>
+</etd>
+</station>
+<message></message>
+</root>
+'''

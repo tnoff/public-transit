@@ -9,3 +9,12 @@ def train_count(key=default_key):
 
 def elevator_status(key=default_key):
     return main_url + 'bsa.aspx?cmd=elev&key=%s' % key
+
+def estimated_departures(station, platform=None, direction=None,
+                         key=default_key):
+    url = main_url + 'etd.aspx?cmd=etd&orig=%s&key=%s' % (station, key)
+    if platform:
+        url += '&plat=%s' % platform
+    if direction:
+        url += '&dir=%s' % direction
+    return url
