@@ -8,6 +8,7 @@ from transit.common.urls import bart
 
 from tests.data.bart import bsa
 from tests.data.bart import train_count
+from tests.data.bart import elevator
 
 class TestClient(unittest.TestCase):
 
@@ -31,3 +32,13 @@ class TestClient(unittest.TestCase):
                                content_type='application/xml')
         count = client.bart.train_count()
         self.assertTrue(isinstance(count, int))
+
+    @httpretty.activate
+    def test_elevator_status(self):
+        test_url = bart.elevator_status()
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=elevator.text,
+                               content_type='application/xml')
+        status = client.bart.elevator_status()
+        self.assertTrue(len(status.descriptions) > 0)

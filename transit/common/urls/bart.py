@@ -6,3 +6,6 @@ def service_advisory(date='today', key=default_key):
 
 def train_count(key=default_key):
     return main_url + 'bsa.aspx?cmd=count&key=%s' % key
+
+def elevator_status(key=default_key):
+    return main_url + 'bsa.aspx?cmd=elev&key=%s' % key

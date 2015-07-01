@@ -46,3 +46,8 @@ def train_count():
     url = bart.train_count()
     soup = utils.make_request(url)
     return int(soup.find('traincount').contents[0].encode('iso-8859-1'))
+
+def elevator_status():
+    url = bart.elevator_status()
+    soup = utils.make_request(url)
+    return ServiceAdvisory(soup.find('bsa'))
