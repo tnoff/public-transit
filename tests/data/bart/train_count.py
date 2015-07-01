@@ -1,4 +1,5 @@
 text = '''
+<?xml version="1.0" encoding="iso-8859-1"?>                                     
 <root>
 <uri>
 <![CDATA[ http://api.bart.gov/api/bsa.aspx?cmd=count ]]>

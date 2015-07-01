@@ -4,10 +4,10 @@ from transit.common import utils
 from transit.modules.nextbus import route, schedule, stop, vehicle
 
 class Agency(object):
-    def __init__(self, agency_data):
-        self.tag = agency_data.get('tag').encode('utf-8')
-        self.title = agency_data.get('title').encode('utf-8')
-        self.region = agency_data.get('regiontitle').encode('utf-8')
+    def __init__(self, agency_data, encoding):
+        self.tag = agency_data.get('tag').encode(encoding)
+        self.title = agency_data.get('title').encode(encoding)
+        self.region = agency_data.get('regiontitle').encode(encoding)
 
     def route_list(self):
         return route.route_list(self.tag)
@@ -36,5 +36,5 @@ class Agency(object):
 def list_all():
     '''Get list of agencies'''
     url = nextbus.agency_list()
-    soup = utils.make_request(url)
-    return [Agency(i) for i in soup.find_all('agency')]
+    soup, encoding = utils.make_request(url)
+    return [Agency(i, encoding) for i in soup.find_all('agency')]

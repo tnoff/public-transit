@@ -2,17 +2,17 @@ from transit.urls import nextbus
 from transit.common import utils
 
 class VehicleLocation(object):
-    def __init__(self, vehicle_data):
-        self.vehicle_id = int(vehicle_data.get('id').encode('utf-8'))
-        self.heading = vehicle_data.get('heading').encode('utf-8')
-        self.latitude = float(vehicle_data.get('lat').encode('utf-8'))
-        self.longitude = float(vehicle_data.get('lon').encode('utf-8'))
-        self.route_tag = vehicle_data.get('routetag').encode('utf-8')
+    def __init__(self, vehicle_data, encoding):
+        self.vehicle_id = int(vehicle_data.get('id').encode(encoding))
+        self.heading = vehicle_data.get('heading').encode(encoding)
+        self.latitude = float(vehicle_data.get('lat').encode(encoding))
+        self.longitude = float(vehicle_data.get('lon').encode(encoding))
+        self.route_tag = vehicle_data.get('routetag').encode(encoding)
         self.seconds_since_last_report = \
-            int(vehicle_data.get('secssincereport').encode('utf-8'))
-        self.speed_km_hr = float(vehicle_data.get('speedkmhr').encode('utf-8'))
+            int(vehicle_data.get('secssincereport').encode(encoding))
+        self.speed_km_hr = float(vehicle_data.get('speedkmhr').encode(encoding))
         self.predictable = False
-        if vehicle_data.get('predictable').encode('utf-8') == "true":
+        if vehicle_data.get('predictable').encode(encoding) == "true":
             self.predictable = True
 
     def __repr__(self):
@@ -20,6 +20,6 @@ class VehicleLocation(object):
 
 def vehicle_location(agency_tag, route_tag, epoch_time):
     url = nextbus.vehicle_location(agency_tag, route_tag, epoch_time)
-    soup = utils.make_request(url)
-    vehicle_list = [VehicleLocation(i) for i in soup.find_all('vehicle')]
+    soup, encoding = utils.make_request(url)
+    vehicle_list = [VehicleLocation(i, encoding) for i in soup.find_all('vehicle')]
     return vehicle_list
