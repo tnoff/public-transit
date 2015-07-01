@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from transit.common.urls import bart
+from transit.urls import bart
 from transit.common import utils
 
 class ServiceAdvisory(object):

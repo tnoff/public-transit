@@ -3,7 +3,7 @@ import unittest
 
 from transit import client
 from transit.exceptions import TransitException
-from transit.common.urls import nextbus
+from transit.urls import nextbus
 from transit.common import utils
 
 from tests.data.nextbus import agency_list as agency_list

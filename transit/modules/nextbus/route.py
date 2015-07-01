@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from transit.exceptions import TransitException
-from transit.common.urls import nextbus
+from transit.urls import nextbus
 from transit.common import utils
 
 from transit.modules.nextbus import schedule, stop, vehicle

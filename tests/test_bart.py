@@ -4,7 +4,7 @@ import unittest
 
 from transit import client
 from transit.exceptions import TransitException
-from transit.common.urls import bart
+from transit.urls import bart
 
 from tests.data.bart import bsa
 from tests.data.bart import train_count

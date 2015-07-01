@@ -1,4 +1,4 @@
-from transit.common.urls import nextbus
+from transit.urls import nextbus
 from transit.common import utils
 
 class Stop(object):
