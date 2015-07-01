@@ -33,7 +33,7 @@ NextBus
 BART
 ----
 
-#. Advisories (WIP)
+#. Advisories -- Done
 #. Real-Time Estimates
 #. Route Information
 #. Schedule Information
