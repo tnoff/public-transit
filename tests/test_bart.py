@@ -10,6 +10,7 @@ from tests.data.bart import bsa_no_delay
 from tests.data.bart import train_count
 from tests.data.bart import elevator
 from tests.data.bart import estimates
+from tests.data.bart import current_routes
 
 class BartTestClient(unittest.TestCase):
 
@@ -91,3 +92,16 @@ class BartTestClient(unittest.TestCase):
         self.assertTrue(len(direction.estimates) > 0)
         direction_estimate = direction.estimates[0]
         self.assert_all_variables(direction_estimate)
+
+    @httpretty.activate
+    def test_current_route(self):
+        test_url = bart.current_routes()
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=current_routes.text,
+                               content_type='application/xml')
+        schedule = client.bart.current_routes()
+        self.assert_all_variables(schedule)
+        self.assertTrue(len(schedule.routes) > 0)
+        route = schedule.routes[0]
+        self.assert_all_variables(route)

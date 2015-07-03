@@ -18,3 +18,11 @@ def estimated_departures(station, platform=None, direction=None,
     if direction:
         url += '&dir=%s' % direction
     return url
+
+def current_routes(key=default_key, schedule=None, date=None):
+    url = main_url + 'route.aspx?cmd=routes&key=%s' % key
+    if schedule:
+        url += '&sched=%s' % schedule
+    if date:
+        url += '&date=%s' % date
+    return url
