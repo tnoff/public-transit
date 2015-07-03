@@ -19,7 +19,7 @@ from tests.data.nextbus import stop_predictions as stop_predictions
 from tests.data.nextbus import stop_predictions_route as stop_predictions_route
 from tests.data.nextbus import vehicle_locations as vehicle_locations
 
-class TestClient(unittest.TestCase):
+class NextBusTestClient(unittest.TestCase):
 
     @httpretty.activate
     def test_fails(self):
