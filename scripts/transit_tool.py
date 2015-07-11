@@ -3,19 +3,32 @@ from transit import client
 import argparse
 from prettytable import PrettyTable
 
-MATCH = {'agency' : {'list': 'agency_list'},
-         'route' : {'list' : 'route_list',
-                    'get' : 'route_get'},
-         'stop' : {'prediction' : 'stop_prediction',
-                   'multi_prediction' : 'multi_prediction',},
-         'schedule' : {None: 'schedule_get'},
-         'vehicle' : {None : 'vehicle_location'},
-         'message' : {None : 'message_get'},}
+MATCH = {
+    'nextbus' : {
+        'agency' : {'list': 'agency_list'},
+        'route' : {'list' : 'route_list',
+                   'get' : 'route_get'},
+        'stop' : {'prediction' : 'stop_prediction',
+                  'multi_prediction' : 'multi_prediction',},
+        'schedule' : {None: 'schedule_get'},
+        'vehicle' : {None : 'vehicle_location'},
+        'message' : {None : 'message_get'},
+    },
+    'bart' : {
+        'service-advisory' : {None: 'service_advisory'},
+        'train-count': {None: 'train_count'},
+        'elevator-status': {None: 'elevator_status'},
+        'estimated-departures': {None: 'estimated_departures'},
+        'route': {'list' : 'bart_current_routes',
+                  'info' : 'bart_route_info'},
+    },
+}
 
-def parse_args():
+def parse_args(): #pylint: disable=too-many-locals
     p = argparse.ArgumentParser(description='Public Transit CLI')
 
     msp = p.add_subparsers(help='Module', dest='module')
+
     nextbus = msp.add_parser('nextbus', help='Nextbus Module')
     sp = nextbus.add_subparsers(help='Command', dest='command')
 
@@ -54,6 +67,37 @@ def parse_args():
     message = sp.add_parser('message', help='Messages')
     message.add_argument('agency_tag', help='Agency tag')
     message.add_argument('route_tag', nargs='+', help='Route tag(s)')
+
+    bart = msp.add_parser('bart', help='Bart Module')
+    bsp = bart.add_subparsers(help='Command', dest='command')
+
+    bsp.add_parser('service-advisory',
+                   help='Current Service Advisory')
+
+    bsp.add_parser('train-count',
+                   help='Current Train Count')
+
+    bsp.add_parser('elevator-status',
+                   help='Current Elevator Status')
+
+    est = bsp.add_parser('estimated-departures', help='Estimates for a station')
+    est.add_argument('station', help='Station Abbreviation or "all"')
+    est.add_argument('--direction', help='(n)orth or (s)outh')
+    est.add_argument('--platform', type=int, help='Platform Number')
+
+    bart_routes = bsp.add_parser('route', help='Route commands')
+    bart_routes_sp = bart_routes.add_subparsers(help='Sub-command',
+                                                dest='subcommand')
+    bart_route_list = bart_routes_sp.add_parser('list', help="List routes")
+    bart_route_list.add_argument('--schedule', type=int,
+                                 help='Schedule Number')
+    bart_route_list.add_argument('--date', help='MM/DD/YYYY format')
+
+    bart_route_show = bart_routes_sp.add_parser('info', help='Route Information')
+    bart_route_show.add_argument('route_number', help='Route number')
+    bart_route_show.add_argument('--schedule', type=int,
+                                 help='Schedule Number')
+    bart_route_show.add_argument('--date', help='MM/DD/YYYY format')
 
     return p.parse_args()
 
@@ -143,13 +187,57 @@ def message_get(args):
                            m.send_to_buses, m.start_boundary, m.end_boundary])
         print table
 
+def service_advisory(_):
+    advisories = client.bart.service_advisory()
+    table = PrettyTable(["Station", "Posted", "Description"])
+    for advisory in advisories:
+        table.add_row([advisory.station, advisory.posted, advisory.description])
+    print table
+
+def train_count(_):
+    print client.bart.train_count()
+
+def elevator_status(_):
+    status = client.bart.elevator_status()
+    print status.description
+
+def estimated_departures(args):
+    estimates = client.bart.estimated_departures(args.station,
+                                                 platform=args.platform,
+                                                 direction=args.direction)
+    table = PrettyTable(["Station", "Direction", "Estimates"])
+    for estimate in estimates:
+        for direction in estimate.directions:
+            data = [estimate.station_name]
+            data.append(direction.destination_name)
+            data.append(';'.join('%s' % i for i in direction.estimates))
+            table.add_row(data)
+    print table
+
+def bart_current_routes(args):
+    schedule = client.bart.current_routes(schedule=args.schedule,
+                                         date=args.date)
+    print 'Schedule Number:', schedule.schedule_number
+    table = PrettyTable(["Name", "Number", "Color"])
+    for route in schedule.routes:
+        table.add_row([route.name, route.number, route.color])
+    print table
+
+def bart_route_info(args):
+    route = client.bart.route_info(args.route_number,
+                                   schedule=args.schedule,
+                                   date=args.date)
+    table = PrettyTable(["Name", "Number", "Color"])
+    table.add_row([route.name, route.number, route.color])
+    print table
+
 def main():
     args = parse_args()
     # if no subcommand, make none
     try:
-        MATCH[args.command][args.subcommand]
+        MATCH[args.module][args.command][args.subcommand]
     except AttributeError:
         args.subcommand = None
-    function = MATCH[args.command][args.subcommand]
+    function = MATCH[args.module][args.command][args.subcommand]
     # call local function that matches name
     globals()[function](args)
