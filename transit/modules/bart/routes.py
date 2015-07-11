@@ -13,6 +13,25 @@ class ScheduleRoute(object):
                                              encoding))
         self.color = utils.pretty_strip(route_data.find('color'), encoding)
 
+        # rest are only in route info calls
+        try:
+            self.origin = utils.pretty_strip(route_data.find('origin'), encoding)
+            self.destination = utils.pretty_strip(route_data.find('destination'),
+                                                  encoding)
+            # i assume this means "runs on holidays", but I have no clue
+            self.holidays = int(utils.pretty_strip(route_data.find('holidays'),
+                                                   encoding)) == 1
+            self.number_stations = int(utils.pretty_strip(route_data.find('num_stns'),
+                                                          encoding))
+            self.stations = []
+            for station in route_data.find_all('station'):
+                self.stations.append(utils.pretty_strip(station, encoding))
+        except AttributeError:
+            self.origin = None
+            self.destination = None
+            self.holidays = None
+            self.number_stations = None
+
     def __repr__(self):
         return '%s - %s' % (self.route_id, self.name)
 
@@ -31,3 +50,8 @@ def current_routes(schedule=None, date=None):
     url = bart.current_routes(schedule=schedule, date=date)
     soup, encoding = utils.make_request(url)
     return Schedule(soup, encoding)
+
+def route_info(route_number, schedule=None, date=None):
+    url = bart.route_info(route_number, schedule=schedule, date=date)
+    soup, encoding = utils.make_request(url)
+    return ScheduleRoute(soup.find('route'), encoding)

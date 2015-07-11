@@ -17,3 +17,7 @@ def estimated_departures(station, platform=None, direction=None):
 
 def current_routes(schedule=None, date=None):
     return route_client.current_routes(schedule=schedule, date=date)
+
+def route_info(route_number, schedule=None, date=None):
+    return route_client.route_info(route_number, schedule=schedule,
+                                   date=date)

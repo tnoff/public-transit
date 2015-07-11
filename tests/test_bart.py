@@ -11,6 +11,7 @@ from tests.data.bart import train_count
 from tests.data.bart import elevator
 from tests.data.bart import estimates
 from tests.data.bart import current_routes
+from tests.data.bart import route_info
 
 class BartTestClient(unittest.TestCase):
 
@@ -95,6 +96,8 @@ class BartTestClient(unittest.TestCase):
 
     @httpretty.activate
     def test_current_route(self):
+        # some args only in route info for scheduled routes
+        route_skip = ['origin', 'destination', 'holidays', 'number_stations']
         test_url = bart.current_routes()
         httpretty.register_uri(httpretty.GET,
                                test_url,
@@ -104,4 +107,18 @@ class BartTestClient(unittest.TestCase):
         self.assert_all_variables(schedule)
         self.assertTrue(len(schedule.routes) > 0)
         route = schedule.routes[0]
+        self.assert_all_variables(route, skip=route_skip)
+
+    @httpretty.activate
+    def test_route_info(self):
+        route_number = 35
+        test_url = bart.route_info(route_number)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=route_info.text,
+                               content_type='application/xml')
+        route = client.bart.route_info(route_number)
         self.assert_all_variables(route)
+        self.assertTrue(len(route.stations) > 0)
+        station = route.stations[0]
+        self.assertTrue(isinstance(station, str))
