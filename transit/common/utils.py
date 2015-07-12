@@ -12,15 +12,21 @@ def make_request(url):
         raise TransitException("URL:%s does not return 200" % url)
 
     soup = BeautifulSoup(r.text)
-    error = soup.find('error')
-    if error:
-        raise TransitException("URL:%s returned error:%s" % (url, error.string))
     # Get encoding from top of XML data
     contents = soup.contents
     if str(contents[0]) == '\n':
         del contents[0]
     encoding = str(soup.contents[0].split('encoding')[1])
     encoding = encoding.lstrip('="').rstrip('"')
+    # check for errors
+    error = soup.find('error')
+    if error:
+        # nextbus just gives error message in error
+        error_string = error.string
+        if not error_string:
+            # bart gives it in "details"
+            error_string = error.find('details').string.encode(encoding)
+        raise TransitException("URL:%s returned error:%s" % (url, error_string))
     return soup, encoding
 
 def pretty_strip(data, encoding):
