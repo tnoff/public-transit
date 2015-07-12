@@ -22,3 +22,11 @@ def make_request(url):
     encoding = str(soup.contents[0].split('encoding')[1])
     encoding = encoding.lstrip('="').rstrip('"')
     return soup, encoding
+
+def pretty_strip(data, encoding):
+    s = data.string.encode(encoding)
+    s = s.lstrip('\n').strip('\n')
+    s = s.lstrip(' ').rstrip(' ')
+    s = s.lstrip('\n').strip('\n')
+    s = s.lstrip(' ').rstrip(' ')
+    return s
