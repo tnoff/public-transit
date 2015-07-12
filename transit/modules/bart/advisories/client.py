@@ -6,29 +6,29 @@ from transit.common import utils
 class ServiceAdvisory(object):
     def __init__(self, bsa_data, encoding):
         try:
-            self.id = bsa_data.get('id').encode(encoding)
+            self.id = int(bsa_data.get('id').encode(encoding))
         except AttributeError:
             self.id = None
         try:
-            self.station = bsa_data.find('station').string.encode(encoding)
+            self.station = utils.pretty_strip(bsa_data.find('station'),
+                                              encoding)
         except (IndexError, AttributeError):
             self.station = None
         try:
-            self.type = bsa_data.find('type').string.encode(encoding)
+            self.type = utils.pretty_strip(bsa_data.find('type'), encoding)
         except (IndexError, AttributeError):
             self.type = None
         descriptions = []
-        for i in bsa_data.find('description').contents:
-            s = i.encode(encoding)
-            if s != '\n':
-                descriptions.append(s)
+        for i in bsa_data.find_all('description'):
+            descriptions.append(utils.pretty_strip(i, encoding))
         self.descriptions = descriptions
         try:
-            posted = bsa_data.find('posted').string.encode(encoding)
+            posted = utils.pretty_strip(bsa_data.find('posted'), encoding)
             self.posted = datetime.strptime(posted, '%a %b %d %Y %I:%M %p %Z')
         except (IndexError, AttributeError):
             self.posted = None
         try:
+            expires = utils.pretty_strip(bsa_data.find('expires'), encoding)
             expires = bsa_data.find('expires').string.encode(encoding)
             self.expires = datetime.strptime(expires, '%a %b %d %Y %I:%M %p %Z')
         except (IndexError, AttributeError):
