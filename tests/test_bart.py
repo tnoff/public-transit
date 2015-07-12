@@ -6,11 +6,19 @@ from transit import client
 from transit.urls import bart
 
 from tests.data.bart import bsa
+from tests.data.bart import bsa_no_delay
 from tests.data.bart import train_count
 from tests.data.bart import elevator
 from tests.data.bart import estimates
 
 class BartTestClient(unittest.TestCase):
+
+    def assert_all_variables(self, obj, skip=[]):
+        # assert all variables in object are not none
+        keys = vars(obj).keys()
+        real_keys = list(set(keys) - set(skip))
+        for key in real_keys:
+            self.assertNotEqual(getattr(obj, key), None)
 
     @httpretty.activate
     def test_bsa(self):
@@ -20,8 +28,32 @@ class BartTestClient(unittest.TestCase):
                                body=bsa.text,
                                content_type='application/xml')
         advisories = client.bart.service_advisory()
-        self.assertNotEqual(len(advisories[0].descriptions), 0)
-        self.assertTrue(isinstance(advisories[0].expires, datetime))
+        # should only be one advisory in data anyway
+        adv = advisories[0]
+        self.assert_all_variables(adv)
+        # check for any descriptions
+        self.assertNotEqual(len(adv.descriptions), 0)
+        # find first description, make sure its a string
+        desc = adv.descriptions[0]
+        self.assertTrue(isinstance(desc, str))
+        self.assertTrue(isinstance(adv.expires, datetime))
+
+    @httpretty.activate
+    def test_bsa_delay(self):
+        test_url = bart.service_advisory()
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=bsa_no_delay.text,
+                               content_type='application/xml')
+        advisories = client.bart.service_advisory()
+        # should only be one advisory in data anyway
+        adv = advisories[0]
+        self.assert_all_variables(adv, skip=['station', 'type', 'posted',
+                                             'expires', 'id'])
+        # check for any descriptions
+        self.assertNotEqual(len(adv.descriptions), 0)
+        # find first description, make sure its a string
+        desc = adv.descriptions[0]
 
     @httpretty.activate
     def test_train_count(self):
@@ -41,7 +73,10 @@ class BartTestClient(unittest.TestCase):
                                body=elevator.text,
                                content_type='application/xml')
         status = client.bart.elevator_status()
+        self.assert_all_variables(status, skip=['expires'])
         self.assertTrue(len(status.descriptions) > 0)
+        desc = status.descriptions[0]
+        self.assertTrue(isinstance(desc, str))
 
     @httpretty.activate
     def test_estimated_departures(self):
@@ -53,6 +88,11 @@ class BartTestClient(unittest.TestCase):
                                content_type='application/xml')
         ests = client.bart.estimated_departures(station)
         est = ests[0]
+        self.assert_all_variables(est)
         self.assertEqual(station.lower(), est.station_abbreviation.lower())
         self.assertTrue(len(est.directions) > 0)
-        self.assertTrue(len(est.directions[0].estimates) > 0)
+        direction = est.directions[0]
+        self.assert_all_variables(direction)
+        self.assertTrue(len(direction.estimates) > 0)
+        direction_estimate = direction.estimates[0]
+        self.assert_all_variables(direction_estimate)
