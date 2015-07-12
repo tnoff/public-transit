@@ -12,6 +12,8 @@ from tests.data.bart import elevator
 from tests.data.bart import estimates
 from tests.data.bart import current_routes
 from tests.data.bart import route_info
+from tests.data.bart import station_access
+from tests.data.bart import station_info
 
 class BartTestClient(unittest.TestCase):
 
@@ -21,6 +23,11 @@ class BartTestClient(unittest.TestCase):
         real_keys = list(set(keys) - set(skip))
         for key in real_keys:
             self.assertNotEqual(getattr(obj, key), None)
+            # if list, check not empty
+            if isinstance(getattr(obj, key), list):
+                self.assertTrue(getattr(obj, key))
+            if isinstance(getattr(obj, key), str):
+                self.assertTrue(len(getattr(obj, key)) > 0)
 
     @httpretty.activate
     def test_bsa(self):
@@ -122,3 +129,28 @@ class BartTestClient(unittest.TestCase):
         self.assertTrue(len(route.stations) > 0)
         station = route.stations[0]
         self.assertTrue(isinstance(station, str))
+
+    def test_station_list(self):
+        client.bart.station_list()
+
+    @httpretty.activate
+    def test_station_info(self):
+        station_abbr = '24th'
+        test_url = bart.station_info(station_abbr)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=station_info.text,
+                               content_type='application/xml')
+        station = client.bart.station_info(station_abbr)
+        self.assert_all_variables(station)
+
+    @httpretty.activate
+    def test_station_access(self):
+        station_abbr = '12th'
+        test_url = bart.station_access(station_abbr)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=station_access.text,
+                               content_type='application/xml')
+        station = client.bart.station_access(station_abbr)
+        self.assert_all_variables(station)

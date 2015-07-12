@@ -36,3 +36,7 @@ def pretty_strip(data, encoding):
     s = s.lstrip('\n').strip('\n')
     s = s.lstrip(' ').rstrip(' ')
     return s
+
+def stupid_bart_bug(data, encoding):
+    s = pretty_strip(data, encoding)
+    return s.replace('<p>', '\n').replace('</p>', '').lstrip('\n')

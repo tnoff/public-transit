@@ -21,6 +21,9 @@ MATCH = {
         'estimated-departures': {None: 'estimated_departures'},
         'route': {'list' : 'bart_current_routes',
                   'info' : 'bart_route_info'},
+        'station' : {'list' : 'bart_station_list',
+                     'info' : 'bart_station_info',
+                     'access' : 'bart_station_access',},
     },
 }
 
@@ -99,6 +102,20 @@ def parse_args(): #pylint: disable=too-many-locals
                                  help='Schedule Number')
     bart_route_show.add_argument('--date', help='MM/DD/YYYY format')
 
+    bart_stations = bsp.add_parser('station', help='Station List')
+    bart_stations_sp = bart_stations.add_subparsers(help='Sub-command',
+                                                    dest='subcommand')
+    bart_stations_sp.add_parser('list', help='List stations')
+
+    bart_station_info = bart_stations_sp.add_parser('info',
+                                                    help='Show station info')
+    bart_station_info.add_argument('station',
+                                   help='Station Abbreviation')
+
+    bart_station_access = bart_stations_sp.add_parser('access',
+                                                    help='Show station access')
+    bart_station_access.add_argument('station',
+                                     help='Station Abbreviation')
     return p.parse_args()
 
 def agency_list(_):
@@ -230,6 +247,28 @@ def bart_route_info(args):
     table = PrettyTable(["Name", "Number", "Color"])
     table.add_row([route.name, route.number, route.color])
     print table
+
+def bart_station_list(_):
+    stations = client.bart.station_list()
+    ordered_stations = [(k, stations[k]) for k in stations]
+    ordered_stations.sort(key=lambda x: x[0])
+    table = PrettyTable(["Abbreviation", "Name"])
+    for item in ordered_stations:
+        table.add_row([item[0], item[1]])
+    print table
+
+def bart_station_info(args):
+    station = client.bart.station_info(args.station)
+    print 'Station:', station.name
+    print 'Address:', station.address, station.city, station.state
+    print 'North Routes:', ';'.join('%s' % i for i in station.north_routes)
+    print 'South Routes:', ';'.join('%s' % i for i in station.south_routes)
+
+def bart_station_access(args):
+    station = client.bart.station_access(args.station)
+    print 'Station:', station.name
+    print 'Entering:', station.entering
+    print 'Exiting:', station.exiting
 
 def main():
     args = parse_args()

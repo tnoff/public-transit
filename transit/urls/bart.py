@@ -35,3 +35,14 @@ def route_info(route_number, schedule=None, date=None, key=default_key):
     if date:
         url += '&date=%s' % date
     return url
+
+def station_info(station, key=default_key):
+    url = main_url + 'stn.aspx?cmd=stninfo&orig=%s&key=%s' % (station, key)
+    return url
+
+def station_access(station, legend=False, key=default_key):
+    # legend can be True or False
+    url = main_url + 'stn.aspx?cmd=stnaccess&orig=%s&key=%s' % (station, key)
+    if legend:
+        url += '&l=1'
+    return url

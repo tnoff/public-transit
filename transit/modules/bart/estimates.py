@@ -4,12 +4,15 @@ from transit.urls import bart
 class Estimate(object):
     def __init__(self, estimate_data, encoding):
         try:
-            self.minutes = utils.pretty_strip(estimate_data.find('minutes'),
-                                              encoding)
+            minutes = utils.pretty_strip(estimate_data.find('minutes'),
+                                         encoding)
+            self.minutes = int(minutes)
         except ValueError:
             # Most likely "Leaving"
             self.minutes = 0
-        additional_keys = ['platform', 'direction', 'length', 'color']
+        additional_keys = ['direction', 'length', 'color']
+        self.platform = int(utils.pretty_strip(estimate_data.find('platform'),
+                                               encoding))
         for key in additional_keys:
             setattr(self, key, utils.pretty_strip(estimate_data.find(key),
                                                   encoding))

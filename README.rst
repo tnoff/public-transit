@@ -37,7 +37,7 @@ BART
 #. Real-Time Estimates -- Done
 #. Route Information -- Done
 #. Schedule Information
-#. Station Information
+#. Station Information -- Done
 
 =======
 Install
