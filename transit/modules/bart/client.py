@@ -1,5 +1,5 @@
-from transit.modules.bart.advisories import client as advisory_client
-from transit.modules.bart.estimates import client as estimate_client
+from transit.modules.bart import advisories as advisory_client
+from transit.modules.bart import estimates as estimate_client
 
 def service_advisory():
     return advisory_client.service_advisory()
