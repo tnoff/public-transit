@@ -18,10 +18,8 @@ class ServiceAdvisory(object):
             self.type = utils.pretty_strip(bsa_data.find('type'), encoding)
         except (IndexError, AttributeError):
             self.type = None
-        descriptions = []
-        for i in bsa_data.find_all('description'):
-            descriptions.append(utils.pretty_strip(i, encoding))
-        self.descriptions = descriptions
+        self.description = utils.pretty_strip(bsa_data.find('description'),
+                                              encoding)
         try:
             posted = utils.pretty_strip(bsa_data.find('posted'), encoding)
             self.posted = datetime.strptime(posted, '%a %b %d %Y %I:%M %p %Z')
@@ -35,7 +33,7 @@ class ServiceAdvisory(object):
             self.expires = None
 
     def __repr__(self):
-        return '%s - %s' % (self.station, self.descriptions)
+        return '%s - %s' % (self.station, self.description)
 
 def service_advisory():
     url = bart.service_advisory()

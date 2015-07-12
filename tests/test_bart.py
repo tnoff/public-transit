@@ -31,10 +31,7 @@ class BartTestClient(unittest.TestCase):
         # should only be one advisory in data anyway
         adv = advisories[0]
         self.assert_all_variables(adv)
-        # check for any descriptions
-        self.assertNotEqual(len(adv.descriptions), 0)
-        # find first description, make sure its a string
-        desc = adv.descriptions[0]
+        desc = adv.description
         self.assertTrue(isinstance(desc, str))
         self.assertTrue(isinstance(adv.expires, datetime))
 
@@ -50,10 +47,9 @@ class BartTestClient(unittest.TestCase):
         adv = advisories[0]
         self.assert_all_variables(adv, skip=['station', 'type', 'posted',
                                              'expires', 'id'])
-        # check for any descriptions
-        self.assertNotEqual(len(adv.descriptions), 0)
         # find first description, make sure its a string
-        desc = adv.descriptions[0]
+        desc = adv.description
+        self.assertTrue(isinstance(desc, str))
 
     @httpretty.activate
     def test_train_count(self):
@@ -74,8 +70,7 @@ class BartTestClient(unittest.TestCase):
                                content_type='application/xml')
         status = client.bart.elevator_status()
         self.assert_all_variables(status, skip=['expires'])
-        self.assertTrue(len(status.descriptions) > 0)
-        desc = status.descriptions[0]
+        desc = status.description
         self.assertTrue(isinstance(desc, str))
 
     @httpretty.activate
