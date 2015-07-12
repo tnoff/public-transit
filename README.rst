@@ -35,7 +35,7 @@ BART
 
 #. Advisories -- Done
 #. Real-Time Estimates -- Done
-#. Route Information
+#. Route Information -- Done
 #. Schedule Information
 #. Station Information
 
@@ -64,3 +64,4 @@ CLI
 .. code::
 
     transit nextbus agency list
+    transit bart service-advisory
