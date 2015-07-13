@@ -48,12 +48,23 @@ STATION_MAPPING = {
     "woak" : "West Oakland",
 }
 
-class Station(object):
+# what is in the station object will differ on the call
+# this base class has the very basic stuff that should be in all
+
+class StationBase(object):
     def __init__(self, station_data, encoding):
         self.name = utils.pretty_strip(station_data.find('name'),
                                        encoding)
         self.abbreviation = utils.pretty_strip(station_data.find('abbr'),
                                                encoding)
+
+    def __repr__(self):
+        return '%s' % self.name
+
+
+class Station(StationBase):
+    def __init__(self, station_data, encoding):
+        StationBase.__init__(self, station_data, encoding)
         self.gtfs_latitude = float(utils.pretty_strip(station_data.find('gtfs_latitude'),
                                                       encoding))
         self.gtfs_longitude = float(utils.pretty_strip(station_data.find('gtfs_longitude'),
@@ -98,19 +109,14 @@ class Station(object):
         for plat in south_platforms.find_all('platform'):
             self.south_platforms.append(int(utils.pretty_strip(plat, encoding)))
 
-    def __repr__(self):
-        return '%s' % self.name
-
-class StationAccess(object):
+class StationAccess(StationBase):
     def __init__(self, station_data, encoding):
+        StationBase.__init__(self, station_data, encoding)
         self.parking_flag = station_data.get('parking_flag').encode(encoding) == 1
         self.bike_flag = station_data.get('bike_flag').encode(encoding) == 1
         self.bike_station_flag = station_data.get('bike_station_flag').encode(encoding) == 1
         self.locker_flag = station_data.get('locker_flag').encode(encoding) == 1
 
-        self.name = utils.pretty_strip(station_data.find('name'), encoding)
-        self.abbreviation = utils.pretty_strip(station_data.find('abbr'),
-                                               encoding)
         # Bart returns html as a string here, yeah its dumb
         self.entering = utils.stupid_bart_bug(station_data.find('entering'),
                                               encoding)
@@ -125,9 +131,6 @@ class StationAccess(object):
         self.transit_info = utils.stupid_bart_bug(station_data.find('transit_info'),
                                                   encoding)
         self.link = utils.pretty_strip(station_data.find('link'), encoding)
-
-    def __repr__(self):
-        return '%s' % self.name
 
 def station_list():
     return STATION_MAPPING
