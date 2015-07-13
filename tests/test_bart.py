@@ -15,6 +15,7 @@ from tests.data.bart import route_info
 from tests.data.bart import schedule_list
 from tests.data.bart import station_access
 from tests.data.bart import station_info
+from tests.data.bart import station_schedule
 
 class BartTestClient(unittest.TestCase):
 
@@ -91,7 +92,7 @@ class BartTestClient(unittest.TestCase):
                                test_url,
                                body=estimates.text,
                                content_type='application/xml')
-        ests = client.bart.estimated_departures(station)
+        ests = client.bart.station_departures(station)
         est = ests[0]
         self.assert_all_variables(est)
         self.assertEqual(station.lower(), est.abbreviation.lower())
@@ -153,6 +154,20 @@ class BartTestClient(unittest.TestCase):
                                content_type='application/xml')
         station = client.bart.station_access(station_abbr)
         self.assert_all_variables(station)
+
+    @httpretty.activate
+    def test_station_schedule(self):
+        station_abbr = '12th'
+        test_url = bart.station_schedule(station_abbr)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=station_schedule.text,
+                               content_type='application/xml')
+        station = client.bart.station_schedule(station_abbr)
+        self.assert_all_variables(station)
+        self.assertTrue(len(station.schedule_times) > 0)
+        first_time = station.schedule_times[0]
+        self.assert_all_variables(first_time)
 
     @httpretty.activate
     def test_schedule(self):

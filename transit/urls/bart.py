@@ -38,10 +38,6 @@ def station_access(station, legend=False, key=default_key):
         url += '&l=1'
     return url
 
-def schedule_list(key=default_key):
-    url = main_url + 'sched.aspx?cmd=scheds&key=%s' % key
-    return url
-
 def estimated_departures(station, platform=None, direction=None,
                          key=default_key):
     url = main_url + 'etd.aspx?cmd=etd&orig=%s&key=%s' % (station, key)
@@ -49,4 +45,14 @@ def estimated_departures(station, platform=None, direction=None,
         url += '&plat=%s' % platform
     if direction:
         url += '&dir=%s' % direction
+    return url
+
+def station_schedule(station, date=None, key=default_key):
+    url = main_url + 'sched.aspx?cmd=stnsched&orig=%s&key=%s' % (station, key)
+    if date:
+        url += '&date=%s' % date
+    return url
+
+def schedule_list(key=default_key):
+    url = main_url + 'sched.aspx?cmd=scheds&key=%s' % key
     return url

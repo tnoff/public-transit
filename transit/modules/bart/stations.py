@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from transit.common import utils
 from transit.urls import bart
 
@@ -187,6 +189,23 @@ class StationDepartures(StationBase):
     def __repr__(self):
         return '%s - %s' % (self.name, self.directions)
 
+class ScheduleTime(object):
+    def __init__(self, item_data, encoding):
+        self.line = int(item_data.get('line').replace('ROUTE ', ''))
+        self.destination = item_data.get('trainheadstation')
+        self.origin_time = datetime.strptime(item_data.get('origtime'),
+                                             "%I:%M %p")
+        self.destination_time = datetime.strptime(item_data.get('desttime'),
+                                                  "%I:%M %p")
+        self.train_index = int(item_data.get('trainidx'))
+        self.bike_flag = int(item_data.get('bikeflag')) == 1
+
+class StationSchedule(StationBase):
+    def __init__(self, station_data, encoding):
+        StationBase.__init__(self, station_data, encoding)
+        self.schedule_times = [ScheduleTime(i, encoding) \
+            for i in station_data.find_all('item')]
+
 def station_list():
     return STATION_MAPPING
 
@@ -200,8 +219,13 @@ def station_access(station, legend=False):
     soup, encoding = utils.make_request(url)
     return StationAccess(soup.find('station'), encoding)
 
-def estimated_departures(station, platform=None, direction=None):
+def station_departures(station, platform=None, direction=None):
     url = bart.estimated_departures(station, platform=platform,
                                     direction=direction)
     soup, encoding = utils.make_request(url)
     return [StationDepartures(i, encoding) for i in soup.find_all('station')]
+
+def station_schedule(station, date=None):
+    url = bart.station_schedule(station, date=date)
+    soup, encoding = utils.make_request(url)
+    return StationSchedule(soup.find('station'), encoding)

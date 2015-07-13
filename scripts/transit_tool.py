@@ -23,7 +23,8 @@ MATCH = {
         'station' : {'list' : 'bart_station_list',
                      'info' : 'bart_station_info',
                      'access' : 'bart_station_access',
-                     'departures' : 'estimated_departures'},
+                     'departures' : 'estimated_departures',
+                     'schedule' : 'station_schedule',},
         'schedule' : {'list' : 'bart_schedule_list',},
     },
 }
@@ -129,6 +130,11 @@ def parse_args(): #pylint: disable=too-many-locals
                                                        help='Show station access')
     bart_station_accessy.add_argument('station',
                                      help='Station Abbreviation')
+
+    bart_station_sched = bart_stations_sp.add_parser('schedule',
+                                                     help='Station Schedule')
+    bart_station_sched.add_argument('station', help='Station abbreviation')
+    bart_station_sched.add_argument('--date', help='MM/DD/YYYY format')
 
     bart_schedule = bart_parser.add_parser('schedule', help='Schedule Commands')
     bart_schedule_sp = bart_schedule.add_subparsers(help='Sub-command',
@@ -239,9 +245,9 @@ def elevator_status(_):
     print status.description
 
 def estimated_departures(args):
-    estimates = client.bart.estimated_departures(args.station,
-                                                 platform=args.platform,
-                                                 direction=args.direction)
+    estimates = client.bart.station_departures(args.station,
+                                               platform=args.platform,
+                                               direction=args.direction)
     table = PrettyTable(["Station", "Direction", "Estimates"])
     for estimate in estimates:
         for direction in estimate.directions:
@@ -252,8 +258,8 @@ def estimated_departures(args):
     print table
 
 def bart_current_routes(args):
-    schedule = client.bart.current_routes(schedule=args.schedule,
-                                         date=args.date)
+    schedule = client.bart.route_list(schedule=args.schedule,
+                                      date=args.date)
     print 'Schedule Number:', schedule.schedule_number
     table = PrettyTable(["Name", "Number", "Color"])
     for route in schedule.routes:
@@ -261,7 +267,7 @@ def bart_current_routes(args):
     print table
 
 def bart_route_info(args):
-    route = client.bart.route_info(args.route_number,
+    route = client.bart.route_show(args.route_number,
                                    schedule=args.schedule,
                                    date=args.date)
     table = PrettyTable(["Name", "Number", "Color"])
@@ -289,6 +295,15 @@ def bart_station_access(args):
     print 'Station:', station.name
     print 'Entering:', station.entering
     print 'Exiting:', station.exiting
+
+def station_schedule(args):
+    station = client.bart.station_schedule(args.station, date=args.date)
+    print 'Station:', station.name
+    table = PrettyTable(["Destination", "Origin Time", "Arrival Time"])
+    for item in station.schedule_times:
+        table.add_row([item.destination, item.origin_time.strftime('%H:%M'),
+                       item.destination_time.strftime('%H:%M')])
+    print table
 
 def bart_schedule_list(_):
     schedules = client.bart.schedule_list()

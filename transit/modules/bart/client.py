@@ -12,10 +12,6 @@ def train_count():
 def elevator_status():
     return advisory_client.elevator_status()
 
-def estimated_departures(station, platform=None, direction=None):
-    return station_client.estimated_departures(station, platform=platform,
-                                               direction=direction)
-
 def route_list(schedule=None, date=None):
     return route_client.route_list(schedule=schedule, date=date)
 
@@ -31,6 +27,13 @@ def station_info(station):
 
 def station_access(station, legend=False):
     return station_client.station_access(station, legend=legend)
+
+def station_departures(station, platform=None, direction=None):
+    return station_client.station_departures(station, platform=platform,
+                                             direction=direction)
+
+def station_schedule(station, date=None):
+    return station_client.station_schedule(station, date=date)
 
 def schedule_list():
     return schedule_client.schedule_list()
