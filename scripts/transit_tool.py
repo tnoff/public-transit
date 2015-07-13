@@ -24,6 +24,7 @@ MATCH = {
         'station' : {'list' : 'bart_station_list',
                      'info' : 'bart_station_info',
                      'access' : 'bart_station_access',},
+        'schedule' : {'list' : 'bart_schedule_list',},
     },
 }
 
@@ -102,7 +103,7 @@ def parse_args(): #pylint: disable=too-many-locals
                                  help='Schedule Number')
     bart_route_show.add_argument('--date', help='MM/DD/YYYY format')
 
-    bart_stations = bsp.add_parser('station', help='Station List')
+    bart_stations = bsp.add_parser('station', help='Station Commands')
     bart_stations_sp = bart_stations.add_subparsers(help='Sub-command',
                                                     dest='subcommand')
     bart_stations_sp.add_parser('list', help='List stations')
@@ -116,6 +117,13 @@ def parse_args(): #pylint: disable=too-many-locals
                                                     help='Show station access')
     bart_station_access.add_argument('station',
                                      help='Station Abbreviation')
+
+    bart_schedule = bsp.add_parser('schedule', help='Schedule Commands')
+    bart_schedule_sp = bart_schedule.add_subparsers(help='Sub-command',
+                                                    dest='subcommand')
+
+    bart_schedule_sp.add_parser('list', help='Schedule List')
+
     return p.parse_args()
 
 def agency_list(_):
@@ -269,6 +277,13 @@ def bart_station_access(args):
     print 'Station:', station.name
     print 'Entering:', station.entering
     print 'Exiting:', station.exiting
+
+def bart_schedule_list(_):
+    schedules = client.bart.schedule_list()
+    table = PrettyTable(["ID", "Effective Date"])
+    for sched in schedules:
+        table.add_row([sched.id, sched.effective_date])
+    print table
 
 def main():
     args = parse_args()

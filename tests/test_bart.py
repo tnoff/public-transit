@@ -12,6 +12,7 @@ from tests.data.bart import elevator
 from tests.data.bart import estimates
 from tests.data.bart import current_routes
 from tests.data.bart import route_info
+from tests.data.bart import schedule_list
 from tests.data.bart import station_access
 from tests.data.bart import station_info
 
@@ -154,3 +155,15 @@ class BartTestClient(unittest.TestCase):
                                content_type='application/xml')
         station = client.bart.station_access(station_abbr)
         self.assert_all_variables(station)
+
+    @httpretty.activate
+    def test_schedule(self):
+        test_url = bart.schedule_list()
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=schedule_list.text,
+                               content_type='application/xml')
+        schedules = client.bart.schedule_list()
+        self.assertTrue(len(schedules) > 0)
+        sched = schedules[0]
+        self.assert_all_variables(sched)

@@ -1,6 +1,7 @@
 from transit.modules.bart import advisories as advisory_client
 from transit.modules.bart import estimates as estimate_client
 from transit.modules.bart import routes as route_client
+from transit.modules.bart import schedules as schedule_client
 from transit.modules.bart import stations as station_client
 
 def service_advisory():
@@ -31,3 +32,6 @@ def station_info(station):
 
 def station_access(station, legend=False):
     return station_client.station_access(station, legend=legend)
+
+def schedule_list():
+    return schedule_client.schedule_list()

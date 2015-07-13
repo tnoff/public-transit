@@ -46,3 +46,7 @@ def station_access(station, legend=False, key=default_key):
     if legend:
         url += '&l=1'
     return url
+
+def schedule_list(key=default_key):
+    url = main_url + 'sched.aspx?cmd=scheds&key=%s' % key
+    return url
