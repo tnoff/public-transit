@@ -94,7 +94,7 @@ class BartTestClient(unittest.TestCase):
         ests = client.bart.estimated_departures(station)
         est = ests[0]
         self.assert_all_variables(est)
-        self.assertEqual(station.lower(), est.station_abbreviation.lower())
+        self.assertEqual(station.lower(), est.abbreviation.lower())
         self.assertTrue(len(est.directions) > 0)
         direction = est.directions[0]
         self.assert_all_variables(direction)

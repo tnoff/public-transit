@@ -18,12 +18,12 @@ MATCH = {
         'service-advisory' : {None: 'service_advisory'},
         'train-count': {None: 'train_count'},
         'elevator-status': {None: 'elevator_status'},
-        'estimated-departures': {None: 'estimated_departures'},
         'route': {'list' : 'bart_current_routes',
                   'info' : 'bart_route_info'},
         'station' : {'list' : 'bart_station_list',
                      'info' : 'bart_station_info',
-                     'access' : 'bart_station_access',},
+                     'access' : 'bart_station_access',
+                     'departures' : 'estimated_departures'},
         'schedule' : {'list' : 'bart_schedule_list',},
     },
 }
@@ -84,11 +84,6 @@ def parse_args(): #pylint: disable=too-many-locals
     bsp.add_parser('elevator-status',
                    help='Current Elevator Status')
 
-    est = bsp.add_parser('estimated-departures', help='Estimates for a station')
-    est.add_argument('station', help='Station Abbreviation or "all"')
-    est.add_argument('--direction', help='(n)orth or (s)outh')
-    est.add_argument('--platform', type=int, help='Platform Number')
-
     bart_routes = bsp.add_parser('route', help='Route commands')
     bart_routes_sp = bart_routes.add_subparsers(help='Sub-command',
                                                 dest='subcommand')
@@ -110,6 +105,12 @@ def parse_args(): #pylint: disable=too-many-locals
 
     bart_station_info = bart_stations_sp.add_parser('info',
                                                     help='Show station info')
+    est = bart_stations_sp.add_parser('departures',
+                                      help='Estimates for a station')
+    est.add_argument('station', help='Station Abbreviation or "all"')
+    est.add_argument('--direction', help='(n)orth or (s)outh')
+    est.add_argument('--platform', type=int, help='Platform Number')
+
     bart_station_info.add_argument('station',
                                    help='Station Abbreviation')
 
@@ -233,8 +234,8 @@ def estimated_departures(args):
     table = PrettyTable(["Station", "Direction", "Estimates"])
     for estimate in estimates:
         for direction in estimate.directions:
-            data = [estimate.station_name]
-            data.append(direction.destination_name)
+            data = [estimate.name]
+            data.append(direction.name)
             data.append(';'.join('%s' % i for i in direction.estimates))
             table.add_row(data)
     print table

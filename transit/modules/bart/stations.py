@@ -62,7 +62,7 @@ class StationBase(object):
         return '%s' % self.name
 
 
-class Station(StationBase):
+class StationInfo(StationBase):
     def __init__(self, station_data, encoding):
         StationBase.__init__(self, station_data, encoding)
         self.gtfs_latitude = float(utils.pretty_strip(station_data.find('gtfs_latitude'),
@@ -132,15 +132,64 @@ class StationAccess(StationBase):
                                                   encoding)
         self.link = utils.pretty_strip(station_data.find('link'), encoding)
 
+class Estimate(object):
+    def __init__(self, estimate_data, encoding):
+        try:
+            minutes = utils.pretty_strip(estimate_data.find('minutes'),
+                                         encoding)
+            self.minutes = int(minutes)
+        except ValueError:
+            # Most likely "Leaving"
+            self.minutes = 0
+        additional_keys = ['direction', 'length', 'color']
+        self.platform = int(utils.pretty_strip(estimate_data.find('platform'),
+                                               encoding))
+        for key in additional_keys:
+            setattr(self, key, utils.pretty_strip(estimate_data.find(key),
+                                                  encoding))
+        # True/False but given as 1/0
+        self.bike_flag = int(utils.pretty_strip(estimate_data.find('bikeflag'),
+                                                encoding)) == 1
+
+    def __repr__(self):
+        return '%s minutes' % self.minutes
+
+class DirectionEstimates(object):
+    def __init__(self, station_data, encoding):
+        self.name = utils.pretty_strip(station_data.find('destination'),
+                                                         encoding)
+        self.abbreviation = utils.pretty_strip(station_data.find('abbreviation'),
+                                               encoding)
+        self.estimates = \
+            [Estimate(i, encoding) for i in station_data.find_all('estimate')]
+
+    def __repr__(self):
+        return '%s - %s' % (self.name, self.estimates)
+
+class StationDepartures(StationBase):
+    def __init__(self, station_data, encoding):
+        StationBase.__init__(self, station_data, encoding)
+        self.directions = \
+            [DirectionEstimates(i, encoding) for i in station_data.find_all('etd')]
+
+    def __repr__(self):
+        return '%s - %s' % (self.name, self.directions)
+
 def station_list():
     return STATION_MAPPING
 
 def station_info(station):
     url = bart.station_info(station)
     soup, encoding = utils.make_request(url)
-    return Station(soup.find('station'), encoding)
+    return StationInfo(soup.find('station'), encoding)
 
 def station_access(station, legend=False):
     url = bart.station_access(station, legend=legend)
     soup, encoding = utils.make_request(url)
     return StationAccess(soup.find('station'), encoding)
+
+def estimated_departures(station, platform=None, direction=None):
+    url = bart.estimated_departures(station, platform=platform,
+                                    direction=direction)
+    soup, encoding = utils.make_request(url)
+    return [StationDepartures(i, encoding) for i in soup.find_all('station')]
