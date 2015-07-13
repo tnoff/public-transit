@@ -16,11 +16,11 @@ def estimated_departures(station, platform=None, direction=None):
     return station_client.estimated_departures(station, platform=platform,
                                                direction=direction)
 
-def current_routes(schedule=None, date=None):
-    return route_client.current_routes(schedule=schedule, date=date)
+def route_list(schedule=None, date=None):
+    return route_client.route_list(schedule=schedule, date=date)
 
-def route_info(route_number, schedule=None, date=None):
-    return route_client.route_info(route_number, schedule=schedule,
+def route_show(route_number, schedule=None, date=None):
+    return route_client.route_show(route_number, schedule=schedule,
                                    date=date)
 
 def station_list():

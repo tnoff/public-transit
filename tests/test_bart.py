@@ -106,26 +106,24 @@ class BartTestClient(unittest.TestCase):
     def test_current_route(self):
         # some args only in route info for scheduled routes
         route_skip = ['origin', 'destination', 'holidays', 'number_stations']
-        test_url = bart.current_routes()
+        test_url = bart.route_list()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=current_routes.text,
                                content_type='application/xml')
-        schedule = client.bart.current_routes()
-        self.assert_all_variables(schedule)
-        self.assertTrue(len(schedule.routes) > 0)
-        route = schedule.routes[0]
+        routes = client.bart.route_list()
+        route = routes[0]
         self.assert_all_variables(route, skip=route_skip)
 
     @httpretty.activate
     def test_route_info(self):
         route_number = 35
-        test_url = bart.route_info(route_number)
+        test_url = bart.route_show(route_number)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=route_info.text,
                                content_type='application/xml')
-        route = client.bart.route_info(route_number)
+        route = client.bart.route_show(route_number)
         self.assert_all_variables(route)
         self.assertTrue(len(route.stations) > 0)
         station = route.stations[0]

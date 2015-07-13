@@ -15,9 +15,9 @@ MATCH = {
         'message' : {None : 'message_get'},
     },
     'bart' : {
-        'service-advisory' : {None: 'service_advisory'},
-        'train-count': {None: 'train_count'},
-        'elevator-status': {None: 'elevator_status'},
+        'service' : {'advisory' : 'service_advisory',
+                     'train-count': 'train_count',
+                      'elevator-status' : 'elevator_status',},
         'route': {'list' : 'bart_current_routes',
                   'info' : 'bart_route_info'},
         'station' : {'list' : 'bart_station_list',
@@ -31,60 +31,70 @@ MATCH = {
 def parse_args(): #pylint: disable=too-many-locals
     p = argparse.ArgumentParser(description='Public Transit CLI')
 
-    msp = p.add_subparsers(help='Module', dest='module')
+    module_sub_parser = p.add_subparsers(help='Module', dest='module')
 
-    nextbus = msp.add_parser('nextbus', help='Nextbus Module')
-    sp = nextbus.add_subparsers(help='Command', dest='command')
+    # Nextbus args
+    nextbus = module_sub_parser.add_parser('nextbus', help='Nextbus Module')
+    nextbus_parser = nextbus.add_subparsers(help='Command', dest='command')
 
-    agency = sp.add_parser('agency', help='Agency commands')
-    asp = agency.add_subparsers(help='Sub-command', dest='subcommand')
+    nextbus_agency = nextbus_parser.add_parser('agency', help='Agency commands')
+    nextbus_asp = nextbus_agency.add_subparsers(help='Sub-command',
+                                                dest='subcommand')
+    nextbus_asp.add_parser('list', help='List agencies')
 
-    asp.add_parser('list', help='List agencies')
+    nextbus_route = nextbus_parser.add_parser('route', help='Route commands')
+    nextbus_rsp = nextbus_route.add_subparsers(help='Sub-command',
+                                               dest='subcommand')
 
-    route = sp.add_parser('route', help='Route commands')
-    rsp = route.add_subparsers(help='Sub-command', dest='subcommand')
+    nextbus_rl = nextbus_rsp.add_parser('list', help='List routes by agency')
+    nextbus_rl.add_argument('agency_tag', help='Agency tag')
 
-    rl = rsp.add_parser('list', help='List routes by agency')
-    rl.add_argument('agency_tag', help='Agency tag')
+    nextbus_rg = nextbus_rsp.add_parser('get',
+                                        help='Get information about specific route')
+    nextbus_rg.add_argument('agency_tag', help='Agency tag')
+    nextbus_rg.add_argument('route_tag', help='Route tag')
 
-    rg = rsp.add_parser('get', help='Get information about specific route')
-    rg.add_argument('agency_tag', help='Agency tag')
-    rg.add_argument('route_tag', help='Route tag')
+    nextbus_stop = nextbus_parser.add_parser('stop', help='Stop commands')
+    nextbus_ssp = nextbus_stop.add_subparsers(help='Sub-command',
+                                              dest='subcommand')
 
-    stop = sp.add_parser('stop', help='Stop commands')
-    ssp = stop.add_subparsers(help='Sub-command', dest='subcommand')
+    nextbus_stop_pred = nextbus_ssp.add_parser('prediction',
+                                               help='Predict Stop Wait times')
+    nextbus_stop_pred.add_argument('agency_tag', help='Agency tag')
+    nextbus_stop_pred.add_argument('stop_id', help='Stop ID')
+    nextbus_stop_pred.add_argument('--route-tag', help='Route Tag')
 
-    stop_pred = ssp.add_parser('prediction', help='Predict Stop Wait times')
-    stop_pred.add_argument('agency_tag', help='Agency tag')
-    stop_pred.add_argument('stop_id', help='Stop ID')
-    stop_pred.add_argument('--route-tag', help='Route Tag')
+    nextbus_schedule = nextbus_parser.add_parser('schedule', help='Schedule')
+    nextbus_schedule.add_argument('agency_tag', help='Agency tag')
+    nextbus_schedule.add_argument('route_tag', help='Route tag')
 
-    schedule = sp.add_parser('schedule', help='Schedule')
-    schedule.add_argument('agency_tag', help='Agency tag')
-    schedule.add_argument('route_tag', help='Route tag')
+    nextbus_vehicle = nextbus_parser.add_parser('vehicle', help='Vehicle')
+    nextbus_vehicle.add_argument('agency_tag', help='Agency tag')
+    nextbus_vehicle.add_argument('route_tag', help='Route tag')
+    nextbus_vehicle.add_argument('epoch_time', type=int, help='Epoch Time')
 
-    vehicle = sp.add_parser('vehicle', help='Vehicle')
-    vehicle.add_argument('agency_tag', help='Agency tag')
-    vehicle.add_argument('route_tag', help='Route tag')
-    vehicle.add_argument('epoch_time', type=int, help='Epoch Time')
+    nextbus_message = nextbus_parser.add_parser('message', help='Messages')
+    nextbus_message.add_argument('agency_tag', help='Agency tag')
+    nextbus_message.add_argument('route_tag', nargs='+', help='Route tag(s)')
 
-    message = sp.add_parser('message', help='Messages')
-    message.add_argument('agency_tag', help='Agency tag')
-    message.add_argument('route_tag', nargs='+', help='Route tag(s)')
+    # Bart args
+    bart = module_sub_parser.add_parser('bart', help='Bart Module')
+    bart_parser = bart.add_subparsers(help='Command', dest='command')
 
-    bart = msp.add_parser('bart', help='Bart Module')
-    bsp = bart.add_subparsers(help='Command', dest='command')
+    bart_service = bart_parser.add_parser('service', help='Service commands')
+    bart_service_parser = bart_service.add_subparsers(dest='subcommand',
+                                                      help='Subcommand')
 
-    bsp.add_parser('service-advisory',
-                   help='Current Service Advisory')
+    bart_service_parser.add_parser('advisory',
+                                   help='Current Service Advisory')
 
-    bsp.add_parser('train-count',
-                   help='Current Train Count')
+    bart_service_parser.add_parser('train-count',
+                                   help='Current Train Count')
 
-    bsp.add_parser('elevator-status',
-                   help='Current Elevator Status')
+    bart_service_parser.add_parser('elevator-status',
+                                   help='Current Elevator Status')
 
-    bart_routes = bsp.add_parser('route', help='Route commands')
+    bart_routes = bart_parser.add_parser('route', help='Route commands')
     bart_routes_sp = bart_routes.add_subparsers(help='Sub-command',
                                                 dest='subcommand')
     bart_route_list = bart_routes_sp.add_parser('list', help="List routes")
@@ -92,34 +102,35 @@ def parse_args(): #pylint: disable=too-many-locals
                                  help='Schedule Number')
     bart_route_list.add_argument('--date', help='MM/DD/YYYY format')
 
-    bart_route_show = bart_routes_sp.add_parser('info', help='Route Information')
+    bart_route_show = bart_routes_sp.add_parser('info',
+                                                help='Route Information')
     bart_route_show.add_argument('route_number', help='Route number')
     bart_route_show.add_argument('--schedule', type=int,
                                  help='Schedule Number')
     bart_route_show.add_argument('--date', help='MM/DD/YYYY format')
 
-    bart_stations = bsp.add_parser('station', help='Station Commands')
+    bart_stations = bart_parser.add_parser('station', help='Station Commands')
     bart_stations_sp = bart_stations.add_subparsers(help='Sub-command',
                                                     dest='subcommand')
     bart_stations_sp.add_parser('list', help='List stations')
 
-    bart_station_info = bart_stations_sp.add_parser('info',
-                                                    help='Show station info')
-    est = bart_stations_sp.add_parser('departures',
-                                      help='Estimates for a station')
-    est.add_argument('station', help='Station Abbreviation or "all"')
-    est.add_argument('--direction', help='(n)orth or (s)outh')
-    est.add_argument('--platform', type=int, help='Platform Number')
-
-    bart_station_info.add_argument('station',
+    bart_station_infos = bart_stations_sp.add_parser('info',
+                                                     help='Show station info')
+    bart_station_infos.add_argument('station',
                                    help='Station Abbreviation')
+    bart_est = bart_stations_sp.add_parser('departures',
+                                           help='Estimates for a station')
+    bart_est.add_argument('station', help='Station Abbreviation or "all"')
+    bart_est.add_argument('--direction', help='(n)orth or (s)outh')
+    bart_est.add_argument('--platform', type=int, help='Platform Number')
 
-    bart_station_access = bart_stations_sp.add_parser('access',
-                                                    help='Show station access')
-    bart_station_access.add_argument('station',
+
+    bart_station_accessy = bart_stations_sp.add_parser('access',
+                                                       help='Show station access')
+    bart_station_accessy.add_argument('station',
                                      help='Station Abbreviation')
 
-    bart_schedule = bsp.add_parser('schedule', help='Schedule Commands')
+    bart_schedule = bart_parser.add_parser('schedule', help='Schedule Commands')
     bart_schedule_sp = bart_schedule.add_subparsers(help='Sub-command',
                                                     dest='subcommand')
 

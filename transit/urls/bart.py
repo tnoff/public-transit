@@ -10,16 +10,7 @@ def train_count(key=default_key):
 def elevator_status(key=default_key):
     return main_url + 'bsa.aspx?cmd=elev&key=%s' % key
 
-def estimated_departures(station, platform=None, direction=None,
-                         key=default_key):
-    url = main_url + 'etd.aspx?cmd=etd&orig=%s&key=%s' % (station, key)
-    if platform:
-        url += '&plat=%s' % platform
-    if direction:
-        url += '&dir=%s' % direction
-    return url
-
-def current_routes(key=default_key, schedule=None, date=None):
+def route_list(key=default_key, schedule=None, date=None):
     url = main_url + 'route.aspx?cmd=routes&key=%s' % key
     if schedule:
         url += '&sched=%s' % schedule
@@ -27,7 +18,7 @@ def current_routes(key=default_key, schedule=None, date=None):
         url += '&date=%s' % date
     return url
 
-def route_info(route_number, schedule=None, date=None, key=default_key):
+def route_show(route_number, schedule=None, date=None, key=default_key):
     url = main_url + 'route.aspx?cmd=routeinfo&route=%s&key=%s' % \
         (route_number, key)
     if schedule:
@@ -49,4 +40,13 @@ def station_access(station, legend=False, key=default_key):
 
 def schedule_list(key=default_key):
     url = main_url + 'sched.aspx?cmd=scheds&key=%s' % key
+    return url
+
+def estimated_departures(station, platform=None, direction=None,
+                         key=default_key):
+    url = main_url + 'etd.aspx?cmd=etd&orig=%s&key=%s' % (station, key)
+    if platform:
+        url += '&plat=%s' % platform
+    if direction:
+        url += '&dir=%s' % direction
     return url
