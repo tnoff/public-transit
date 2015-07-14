@@ -34,7 +34,6 @@ class Agency(object):
         return '%s - %s - %s' % (self.title, self.region, self.tag)
 
 def list_all():
-    '''Get list of agencies'''
     url = nextbus.agency_list()
     soup, encoding = utils.make_request(url)
     return [Agency(i, encoding) for i in soup.find_all('agency')]

@@ -222,7 +222,7 @@ def vehicle_location(args):
 def message_get(args):
     routes = client.nextbus.message_get(args.agency_tag, args.route_tag)
     for route in routes:
-        print 'Route:', route.title
+        print 'Route:', route.route_tag
         table = PrettyTable(["Message Text", "Priority", "Send to Buses",
                              "Start", "End"])
         for m in route.messages:

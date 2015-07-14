@@ -7,6 +7,7 @@ class BaseTestClient(unittest.TestCase): #pylint: disable=too-many-public-method
         keys = vars(obj).keys()
         real_keys = list(set(keys) - set(skip))
         for key in real_keys:
+            print key
             self.assertNotEqual(getattr(obj, key), None)
             # if list, check not empty
             if isinstance(getattr(obj, key), list):

@@ -1,11 +1,11 @@
 import httpretty
-import unittest
 
 from transit import client
 from transit.exceptions import TransitException
 from transit.urls import nextbus
-from transit.common import utils
+from transit.common import utils as common_utils
 
+from tests import utils
 from tests.data.nextbus import agency_list as agency_list
 from tests.data.nextbus import error as error
 from tests.data.nextbus import message_get as message_get
@@ -19,7 +19,7 @@ from tests.data.nextbus import stop_predictions as stop_predictions
 from tests.data.nextbus import stop_predictions_route as stop_predictions_route
 from tests.data.nextbus import vehicle_locations as vehicle_locations
 
-class NextBusTestClient(unittest.TestCase):
+class NextBusTestClient(utils.BaseTestClient):
 
     @httpretty.activate
     def test_fails(self):
@@ -30,7 +30,7 @@ class NextBusTestClient(unittest.TestCase):
                                test_url,
                                body=error.text,
                                content_type='application/xml')
-        self.assertRaises(TransitException, utils.make_request, test_url)
+        self.assertRaises(TransitException, common_utils.make_request, test_url)
 
     @httpretty.activate
     def test_agency_list(self):
@@ -42,7 +42,7 @@ class NextBusTestClient(unittest.TestCase):
         agencies = client.nextbus.agency_list()
         # Make sure list generated correctly
         for a in agencies:
-            self.assertNotEqual(None, a.tag)
+            self.assert_all_variables(a)
 
     @httpretty.activate
     def test_route_list(self):
@@ -54,8 +54,7 @@ class NextBusTestClient(unittest.TestCase):
                                content_type='application/xml')
         routes = client.nextbus.route_list(agency_tag)
         for r in routes:
-            self.assertNotEqual(r.route_tag, None)
-            self.assertEqual(r.agency_tag, agency_tag)
+            self.assert_all_variables(r)
 
     @httpretty.activate
     def test_route_show(self):
@@ -67,12 +66,16 @@ class NextBusTestClient(unittest.TestCase):
                                body=route_show.text,
                                content_type='application/xml')
         r = client.nextbus.route_get(agency_tag, route_tag)
-        self.assertEqual(r.agency_tag, agency_tag)
-        self.assertEqual(r.route_tag, route_tag)
-        self.assertNotEqual(len(r.stops), 0)
-        self.assertNotEqual(len(r.directions), 0)
-        self.assertNotEqual(len(r.directions[0].stop_tags), 0)
-        self.assertNotEqual(len(r.paths), 0)
+        self.assert_all_variables(r)
+        stop = r.stops[0]
+        self.assert_all_variables(stop, skip=['short_title'])
+        direction = r.directions[0]
+        self.assert_all_variables(direction)
+        tag = direction.stop_tags[0]
+        self.assertTrue(isinstance(tag, str))
+        path = r.paths[0]
+        path_point = path[0]
+        self.assert_all_variables(path_point)
 
     @httpretty.activate
     def test_stop_prediction_no_route(self):
@@ -85,9 +88,11 @@ class NextBusTestClient(unittest.TestCase):
                                content_type='application/xml')
         preds = client.nextbus.stop_prediction(agency_tag, stop_id)
         first_pred = preds[0]
-        self.assertNotEqual(len(first_pred.directions), 0)
-        self.assertNotEqual(len(first_pred.directions[0].predictions), 0)
-        self.assertNotEqual(len(first_pred.messages), 0)
+        self.assert_all_variables(first_pred)
+        direction = first_pred.directions[0]
+        self.assert_all_variables(direction)
+        pred = direction.predictions[0]
+        self.assert_all_variables(pred)
 
     @httpretty.activate
     def test_stop_prediction_with_route(self):
@@ -100,10 +105,14 @@ class NextBusTestClient(unittest.TestCase):
                                test_url,
                                body=stop_predictions_route.text,
                                content_type='application/xml')
-        preds = client.nextbus.stop_prediction(agency_tag, stop_id, route_tag=route_tag)
+        preds = client.nextbus.stop_prediction(agency_tag, stop_id,
+                                               route_tag=route_tag)
         first_pred = preds[0]
-        self.assertNotEqual(len(first_pred.directions), 0)
-        self.assertNotEqual(len(first_pred.directions[0].predictions), 0)
+        self.assert_all_variables(first_pred, skip=['messages'])
+        direction = first_pred.directions[0]
+        self.assert_all_variables(direction)
+        pred = direction.predictions[0]
+        self.assert_all_variables(pred)
 
     @httpretty.activate
     def test_schedule(self):
@@ -116,9 +125,9 @@ class NextBusTestClient(unittest.TestCase):
                                content_type='application/xml')
         schedules = client.nextbus.schedule_get(agency_tag, route_tag)
         first_sched = schedules[0]
-        self.assertNotEqual(len(first_sched.blocks), 0)
+        self.assert_all_variables(first_sched)
         first_block = first_sched.blocks[0]
-        self.assertNotEqual(len(first_block.stop_schedules), 0)
+        self.assert_all_variables(first_block)
 
     @httpretty.activate
     def test_vehicle_locations(self):
@@ -131,7 +140,8 @@ class NextBusTestClient(unittest.TestCase):
                                body=vehicle_locations.text,
                                content_type='application/xml')
         locations = client.nextbus.vehicle_location(agency_tag, route_tag, epoch_time)
-        self.assertNotEqual(len(locations), 0)
+        location = locations[0]
+        self.assert_all_variables(location)
 
     @httpretty.activate
     def test_message_single(self):
@@ -145,7 +155,7 @@ class NextBusTestClient(unittest.TestCase):
                                content_type='application/xml')
         routes = client.nextbus.message_get(agency_tag, route_tag)
         first_route = routes[0]
-        self.assertNotEqual(len(first_route.messages), 0)
+        self.assert_all_variables(first_route, skip=['agency_tag'])
 
     @httpretty.activate
     def test_message_multiple(self):
@@ -160,7 +170,7 @@ class NextBusTestClient(unittest.TestCase):
         routes = client.nextbus.message_get(agency_tag, route_tags)
         self.assertTrue(len(routes) > 1)
         first_route = routes[0]
-        self.assertNotEqual(len(first_route.messages), 0)
+        self.assert_all_variables(first_route, skip=['agency_tag'])
 
     @httpretty.activate
     def test_multi_prediction_single(self):
@@ -174,9 +184,9 @@ class NextBusTestClient(unittest.TestCase):
                                content_type='application/xml')
         preds = client.nextbus.multiple_stop_predictions(agency_tag, data)
         first_pred = preds[0]
-        self.assertNotEqual(len(first_pred.directions), 0)
-        self.assertNotEqual(len(first_pred.directions[0].predictions), 0)
-        self.assertNotEqual(len(first_pred.messages), 0)
+        self.assert_all_variables(first_pred)
+        direction = first_pred.directions[0]
+        self.assert_all_variables(direction)
 
     @httpretty.activate
     def test_multi_prediction_multiple(self):
@@ -190,6 +200,6 @@ class NextBusTestClient(unittest.TestCase):
                                content_type='application/xml')
         preds = client.nextbus.multiple_stop_predictions(agency_tag, data)
         first_pred = preds[0]
-        self.assertNotEqual(len(first_pred.directions), 0)
-        self.assertNotEqual(len(first_pred.directions[0].predictions), 0)
-        self.assertNotEqual(len(first_pred.messages), 0)
+        self.assert_all_variables(first_pred)
+        direction = first_pred.directions[0]
+        self.assert_all_variables(direction)
