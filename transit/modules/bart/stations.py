@@ -60,6 +60,19 @@ class StationBase(object):
         self.abbreviation = utils.pretty_strip(station_data.find('abbr'),
                                                encoding)
 
+    def station_info(self):
+        return station_info(self.abbreviation)
+
+    def station_access(self):
+        return station_access(self.abbreviation)
+
+    def station_departures(self, platform=None, direction=None):
+        return station_departures(self.abbreviation, platform=platform,
+                                  direction=direction)
+
+    def station_schedule(self, date=None):
+        return station_schedule(self.abbreviation, date=date)
+
     def __repr__(self):
         return '%s' % self.name
 
@@ -111,9 +124,6 @@ class StationInfo(StationBase):
         for plat in south_platforms.find_all('platform'):
             self.south_platforms.append(int(utils.pretty_strip(plat, encoding)))
 
-    def station_access(self):
-        return station_access(self.abbreviation)
-
 class StationAccess(StationBase):
     def __init__(self, station_data, encoding):
         StationBase.__init__(self, station_data, encoding)
@@ -136,9 +146,6 @@ class StationAccess(StationBase):
         self.transit_info = utils.stupid_bart_bug(station_data.find('transit_info'),
                                                   encoding)
         self.link = utils.pretty_strip(station_data.find('link'), encoding)
-
-    def station_info(self):
-        return station_info(self.abbreviation)
 
 class Estimate(object):
     def __init__(self, estimate_data, encoding):
@@ -179,12 +186,6 @@ class StationDepartures(StationBase):
         StationBase.__init__(self, station_data, encoding)
         self.directions = \
             [DirectionEstimates(i, encoding) for i in station_data.find_all('etd')]
-
-    def station_info(self):
-        return station_info(self.abbreviation)
-
-    def station_access(self):
-        return station_access(self.abbreviation)
 
     def __repr__(self):
         return '%s - %s' % (self.name, self.directions)
