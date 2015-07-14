@@ -7,7 +7,8 @@ class RouteBase(object):
         self.abbreviation = utils.pretty_strip(route_data.find('abbr'),
                                                encoding)
         # this is silly, it returns "ROUTE 1" instead of just int(1)
-        route_id_string = utils.pretty_strip(route_data.find('routeid'), encoding)
+        route_id_string = utils.pretty_strip(route_data.find('routeid'),
+                                             encoding)
         self.route_id = int(route_id_string.replace('ROUTE', ''))
         self.number = int(utils.pretty_strip(route_data.find('number'),
                                              encoding))
@@ -21,7 +22,7 @@ class Route(RouteBase):
         RouteBase.__init__(self, route_data, encoding)
 
     def route_show(self, schedule=None, date=None):
-        return route_info(self.number, schedule=schedule, date=date)
+        return route_show(self.number, schedule=schedule, date=date)
 
 class RouteInfo(RouteBase):
     def __init__(self, route_data, encoding):

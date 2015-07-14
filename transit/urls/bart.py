@@ -31,11 +31,9 @@ def station_info(station, key=default_key):
     url = main_url + 'stn.aspx?cmd=stninfo&orig=%s&key=%s' % (station, key)
     return url
 
-def station_access(station, legend=False, key=default_key):
+def station_access(station, key=default_key):
     # legend can be True or False
     url = main_url + 'stn.aspx?cmd=stnaccess&orig=%s&key=%s' % (station, key)
-    if legend:
-        url += '&l=1'
     return url
 
 def estimated_departures(station, platform=None, direction=None,
