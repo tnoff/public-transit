@@ -1,9 +1,10 @@
 from datetime import datetime
 import httpretty
-import unittest
 
 from transit import client
 from transit.urls import bart
+
+from tests import utils
 
 from tests.data.bart import bsa
 from tests.data.bart import bsa_no_delay
@@ -17,19 +18,7 @@ from tests.data.bart import station_access
 from tests.data.bart import station_info
 from tests.data.bart import station_schedule
 
-class BartTestClient(unittest.TestCase):
-
-    def assert_all_variables(self, obj, skip=[]):
-        # assert all variables in object are not none
-        keys = vars(obj).keys()
-        real_keys = list(set(keys) - set(skip))
-        for key in real_keys:
-            self.assertNotEqual(getattr(obj, key), None)
-            # if list, check not empty
-            if isinstance(getattr(obj, key), list):
-                self.assertTrue(getattr(obj, key))
-            if isinstance(getattr(obj, key), str):
-                self.assertTrue(len(getattr(obj, key)) > 0)
+class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-methods
 
     @httpretty.activate
     def test_bsa(self):
@@ -130,7 +119,7 @@ class BartTestClient(unittest.TestCase):
         station = route.stations[0]
         self.assertTrue(isinstance(station, str))
 
-    def test_station_list(self):
+    def test_station_list(self): #pylint: disable=no-self-use
         client.bart.station_list()
 
     @httpretty.activate
