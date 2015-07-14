@@ -258,11 +258,10 @@ def estimated_departures(args):
     print table
 
 def bart_current_routes(args):
-    schedule = client.bart.route_list(schedule=args.schedule,
-                                      date=args.date)
-    print 'Schedule Number:', schedule.schedule_number
+    route_list = client.bart.route_list(schedule=args.schedule,
+                                        date=args.date)
     table = PrettyTable(["Name", "Number", "Color"])
-    for route in schedule.routes:
+    for route in route_list:
         table.add_row([route.name, route.number, route.color])
     print table
 
