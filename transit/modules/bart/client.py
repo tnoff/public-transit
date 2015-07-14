@@ -66,3 +66,10 @@ def station_schedule(station, date=None):
 def schedule_list():
     '''Get a list of current schedules'''
     return schedule_client.schedule_list()
+
+def schedule_fare(origin_station, destination_station,
+                  date=None, schedule=None):
+    return schedule_client.schedule_fare(origin_station,
+                                         destination_station,
+                                         date=date,
+                                         schedule=schedule)

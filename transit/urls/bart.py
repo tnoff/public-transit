@@ -54,3 +54,13 @@ def station_schedule(station, date=None, key=default_key):
 def schedule_list(key=default_key):
     url = main_url + 'sched.aspx?cmd=scheds&key=%s' % key
     return url
+
+def schedule_fare(origin_station, destination_station, date=None,
+                  schedule=None, key=default_key):
+    url = main_url + 'sched.aspx?cmd=fare&orig=%s&dest=%s&key=%s' % \
+        (origin_station, destination_station, key)
+    if date:
+        url += '&date=%s' % date
+    if schedule:
+        url += '&sched=%s' % schedule
+    return url

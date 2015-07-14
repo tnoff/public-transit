@@ -13,6 +13,7 @@ from tests.data.bart import elevator
 from tests.data.bart import estimates
 from tests.data.bart import current_routes
 from tests.data.bart import route_info
+from tests.data.bart import schedule_fare
 from tests.data.bart import schedule_list
 from tests.data.bart import station_access
 from tests.data.bart import station_info
@@ -169,3 +170,15 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
         self.assertTrue(len(schedules) > 0)
         sched = schedules[0]
         self.assert_all_variables(sched)
+
+    @httpretty.activate
+    def test_schedule_fare(self):
+        origin = '12th'
+        dest = 'embr'
+        test_url = bart.schedule_fare(origin, dest)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=schedule_fare.text,
+                               content_type='application/xml')
+        fare = client.bart.schedule_fare(origin, dest)
+        self.assert_all_variables(fare)
