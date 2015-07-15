@@ -33,6 +33,7 @@ STATION_MAPPING = {
     "mont" : "Montgomery St. (SF)",
     "nbrk" : "North Berkeley",
     "ncon" : "North Concord/Martinez",
+    "oakl" : "Oakland Int'l Airport",
     "orin" : "Orinda",
     "pitt" : "Pittsburg/Bay Point",
     "phil" : "Pleasant Hill",
