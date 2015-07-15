@@ -1,3 +1,6 @@
+'''Bart API Client
+Gather all information using methods
+'''
 from transit.modules.bart import advisories as advisory_client
 from transit.modules.bart import routes as route_client
 from transit.modules.bart import schedules as schedule_client

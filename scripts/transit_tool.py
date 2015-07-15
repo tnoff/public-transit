@@ -5,31 +5,31 @@ from prettytable import PrettyTable
 
 MATCH = {
     'nextbus' : {
-        'agency' : {'list': 'agency_list'},
-        'route' : {'list' : 'route_list',
-                   'get' : 'route_get'},
-        'stop' : {'prediction' : 'stop_prediction',
-                  'multi_prediction' : 'multi_prediction',},
-        'schedule' : {None: 'schedule_get'},
-        'vehicle' : {None : 'vehicle_location'},
-        'message' : {None : 'message_get'},
+        'agency' : {'list': 'nextbus_agency_list'},
+        'route' : {'list' : 'nextbus_route_list',
+                   'get' : 'nextbus_route_get'},
+        'stop' : {'prediction' : 'nextbus_stop_prediction',
+                  'multi_prediction' : 'nextbus_multi_prediction',},
+        'schedule' : {None: 'nextbus_schedule_get'},
+        'vehicle' : {None : 'nextbus_vehicle_location'},
+        'message' : {None : 'nextbus_message_get'},
     },
     'bart' : {
-        'service' : {'advisory' : 'service_advisory',
-                     'train-count': 'train_count',
-                      'elevator-status' : 'elevator_status',},
+        'service' : {'advisory' : 'bart_service_advisory',
+                     'train-count': 'bart_train_count',
+                      'elevator-status' : 'bart_elevator_status',},
         'route': {'list' : 'bart_current_routes',
                   'info' : 'bart_route_info'},
         'station' : {'list' : 'bart_station_list',
                      'info' : 'bart_station_info',
                      'access' : 'bart_station_access',
-                     'departures' : 'estimated_departures',
-                     'schedule' : 'station_schedule',},
+                     'departures' : 'bart_estimated_departures',
+                     'schedule' : 'bart_station_schedule',},
         'schedule' : {'list' : 'bart_schedule_list',},
     },
 }
 
-def parse_args(): #pylint: disable=too-many-locals
+def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     p = argparse.ArgumentParser(description='Public Transit CLI')
 
     module_sub_parser = p.add_subparsers(help='Module', dest='module')
@@ -50,8 +50,8 @@ def parse_args(): #pylint: disable=too-many-locals
     nextbus_rl = nextbus_rsp.add_parser('list', help='List routes by agency')
     nextbus_rl.add_argument('agency_tag', help='Agency tag')
 
-    nextbus_rg = nextbus_rsp.add_parser('get',
-                                        help='Get information about specific route')
+    nextbus_rg = nextbus_rsp.add_parser('get',\
+                    help='Get information about specific route')
     nextbus_rg.add_argument('agency_tag', help='Agency tag')
     nextbus_rg.add_argument('route_tag', help='Route tag')
 
@@ -126,8 +126,8 @@ def parse_args(): #pylint: disable=too-many-locals
     bart_est.add_argument('--platform', type=int, help='Platform Number')
 
 
-    bart_station_accessy = bart_stations_sp.add_parser('access',
-                                                       help='Show station access')
+    bart_station_accessy = bart_stations_sp.add_parser('access',\
+                            help='Show station access')
     bart_station_accessy.add_argument('station',
                                      help='Station Abbreviation')
 
@@ -144,21 +144,22 @@ def parse_args(): #pylint: disable=too-many-locals
 
     return p.parse_args()
 
-def agency_list(_):
+def nextbus_agency_list(_):
     table = PrettyTable(["Agency Title", "Agency Tag", "Region Title"])
     agencies = sorted(client.nextbus.agency_list(), key=lambda k: k.title)
     for agency in agencies:
         table.add_row([agency.title, agency.tag, agency.region])
     print table
 
-def route_list(args):
+def nextbus_route_list(args):
     table = PrettyTable(["Route Title", "Route Tag"])
-    routes = sorted(client.nextbus.route_list(args.agency_tag), key=lambda k: k.title)
+    routes = sorted(client.nextbus.route_list(args.agency_tag),
+                    key=lambda k: k.title)
     for route in routes:
         table.add_row([route.title, route.route_tag])
     print table
 
-def route_get(args):
+def nextbus_route_get(args):
     route = client.nextbus.route_get(args.agency_tag, args.route_tag)
     table = PrettyTable(["Stop Title", "Stop Tag", "Latitude", "Longitude",
                          "Stop ID"])
@@ -176,7 +177,7 @@ def route_get(args):
     print 'Directions'
     print table
 
-def stop_prediction(args):
+def nextbus_stop_prediction(args):
     route_preds = client.nextbus.stop_prediction(args.agency_tag, args.stop_id,
                                   route_tag=args.route_tag)
 
@@ -191,7 +192,7 @@ def stop_prediction(args):
             table.add_row([route_string, predictions])
     print table
 
-def schedule_get(args):
+def nextbus_schedule_get(args):
     schedules = client.nextbus.schedule_get(args.agency_tag, args.route_tag)
     for r in schedules:
         print r.title, '-', r.direction, '-', r.service_class
@@ -208,7 +209,7 @@ def schedule_get(args):
                     (time.hour, time.minute, time.second)])
         print table
 
-def vehicle_location(args):
+def nextbus_vehicle_location(args):
     locations = client.nextbus.vehicle_location(args.agency_tag,
                                         args.route_tag,
                                         args.epoch_time)
@@ -219,7 +220,7 @@ def vehicle_location(args):
                        l.speed_km_hr, l.seconds_since_last_report])
     print table
 
-def message_get(args):
+def nextbus_message_get(args):
     routes = client.nextbus.message_get(args.agency_tag, args.route_tag)
     for route in routes:
         print 'Route:', route.route_tag
@@ -230,21 +231,21 @@ def message_get(args):
                            m.send_to_buses, m.start_boundary, m.end_boundary])
         print table
 
-def service_advisory(_):
+def bart_service_advisory(_):
     advisories = client.bart.service_advisory()
     table = PrettyTable(["Station", "Posted", "Description"])
     for advisory in advisories:
         table.add_row([advisory.station, advisory.posted, advisory.description])
     print table
 
-def train_count(_):
+def bart_train_count(_):
     print client.bart.train_count()
 
-def elevator_status(_):
+def bart_elevator_status(_):
     status = client.bart.elevator_status()
     print status.description
 
-def estimated_departures(args):
+def bart_estimated_departures(args):
     estimates = client.bart.station_departures(args.station,
                                                platform=args.platform,
                                                direction=args.direction)
@@ -295,7 +296,7 @@ def bart_station_access(args):
     print 'Entering:', station.entering
     print 'Exiting:', station.exiting
 
-def station_schedule(args):
+def bart_station_schedule(args):
     station = client.bart.station_schedule(args.station, date=args.date)
     print 'Station:', station.name
     table = PrettyTable(["Destination", "Origin Time", "Arrival Time"])

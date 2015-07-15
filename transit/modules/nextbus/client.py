@@ -1,3 +1,6 @@
+'''NextBus API Client
+Gather all information using methods
+'''
 from transit.modules.nextbus import agency, route, stop, schedule, vehicle
 
 def agency_list():
