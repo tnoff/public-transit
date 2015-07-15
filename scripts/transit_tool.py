@@ -1,3 +1,4 @@
+'''CLI for Transit Client'''
 from transit import client
 
 import argparse
