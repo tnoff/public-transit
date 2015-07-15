@@ -18,7 +18,7 @@ MATCH = {
     'bart' : {
         'service' : {'advisory' : 'bart_service_advisory',
                      'train-count': 'bart_train_count',
-                      'elevator-status' : 'bart_elevator_status',},
+                     'elevator-status' : 'bart_elevator_status',},
         'route': {'list' : 'bart_current_routes',
                   'info' : 'bart_route_info'},
         'station' : {'list' : 'bart_station_list',
@@ -26,7 +26,8 @@ MATCH = {
                      'access' : 'bart_station_access',
                      'departures' : 'bart_estimated_departures',
                      'schedule' : 'bart_station_schedule',},
-        'schedule' : {'list' : 'bart_schedule_list',},
+        'schedule' : {'list' : 'bart_schedule_list',
+                      'fare' : 'bart_schedule_fare'},
     },
 }
 
@@ -119,7 +120,7 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     bart_station_infos = bart_stations_sp.add_parser('info',
                                                      help='Show station info')
     bart_station_infos.add_argument('station',
-                                   help='Station Abbreviation')
+                                    help='Station Abbreviation')
     bart_est = bart_stations_sp.add_parser('departures',
                                            help='Estimates for a station')
     bart_est.add_argument('station', help='Station Abbreviation or "all"')
@@ -130,7 +131,7 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     bart_station_accessy = bart_stations_sp.add_parser('access',\
                             help='Show station access')
     bart_station_accessy.add_argument('station',
-                                     help='Station Abbreviation')
+                                      help='Station Abbreviation')
 
     bart_station_sched = bart_stations_sp.add_parser('schedule',
                                                      help='Station Schedule')
@@ -143,6 +144,15 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
 
     bart_schedule_sp.add_parser('list', help='Schedule List')
 
+    bart_schedule_farey = bart_schedule_sp.add_parser('fare',\
+                            help='Get fare information')
+    bart_schedule_farey.add_argument('origin_station',
+                                     help='Origin Station')
+    bart_schedule_farey.add_argument('destination_station',
+                                     help='Destination Station')
+    bart_schedule_farey.add_argument('--schedule', type=int,
+                                     help='Schedule Number')
+    bart_schedule_farey.add_argument('--date', help='MM/DD/YYYY format')
     return p.parse_args()
 
 def nextbus_agency_list(_):
@@ -174,13 +184,13 @@ def nextbus_route_get(args):
     table = PrettyTable(["Direction Title", "Direction Tag", "Stop Tags"])
     for direction in route.directions:
         table.add_row([direction.title, direction.tag,
-                      ", ".join(i for i in direction.stop_tags)])
+                       ", ".join(i for i in direction.stop_tags)])
     print 'Directions'
     print table
 
 def nextbus_stop_prediction(args):
     route_preds = client.nextbus.stop_prediction(args.agency_tag, args.stop_id,
-                                  route_tag=args.route_tag)
+                                                 route_tag=args.route_tag)
 
     routes = sorted(route_preds, key=lambda k: k.route_title)
     table = PrettyTable(["Route-Direction", "Predictions (M-S)"])
@@ -212,8 +222,8 @@ def nextbus_schedule_get(args):
 
 def nextbus_vehicle_location(args):
     locations = client.nextbus.vehicle_location(args.agency_tag,
-                                        args.route_tag,
-                                        args.epoch_time)
+                                                args.route_tag,
+                                                args.epoch_time)
     table = PrettyTable(["Vehicle ID", "Latitude", "Longitude", "Predictable",
                          "Speed KM/HR", "Seconds Since Last Report"])
     for l in locations:
@@ -312,6 +322,15 @@ def bart_schedule_list(_):
     for sched in schedules:
         table.add_row([sched.id, sched.effective_date])
     print table
+
+def bart_schedule_fare(args):
+    fare = client.bart.schedule_fare(args.origin_station,
+                                     args.destination_station,
+                                     schedule=args.schedule,
+                                     date=args.date)
+    print 'Schedule Number:%s' % fare.schedule_number
+    print 'Fare:%s' % fare.fare
+    print 'Discount:%s' % fare.discount
 
 def main():
     args = parse_args()
