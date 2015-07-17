@@ -1,5 +1,6 @@
 '''CLI for Transit Client'''
 from transit import client
+from transit.common import utils
 
 import argparse
 from prettytable import PrettyTable
@@ -193,12 +194,15 @@ def nextbus_stop_prediction(args):
                                                  route_tag=args.route_tag)
 
     routes = sorted(route_preds, key=lambda k: k.route_title)
-    table = PrettyTable(["Route-Direction", "Predictions (M-S)"])
+    table = PrettyTable(["Route-Direction", "Predictions (M:S)"])
     for route in routes:
         for direction in route.directions:
             route_string = '%s-%s' % (route.route_title, direction.title)
-            preds = ['%s-%s' % (i.minutes, (i.seconds - (i.minutes * 60))) \
-                        for i in direction.predictions]
+            preds = []
+            for pred in direction.predictions:
+                time = utils.pretty_time(pred.minutes,
+                                        (pred.seconds - (pred.minutes * 60)))
+                preds.append('%s' % time)
             predictions = ', '.join(i for i in preds)
             table.add_row([route_string, predictions])
     print table

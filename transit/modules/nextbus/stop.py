@@ -75,8 +75,10 @@ class RouteStopPrediction(object): #pylint: disable=too-many-instance-attributes
         except AttributeError:
             # data not present
             pass
+
     def __repr__(self):
-        return '%s:%s - %s' % (self.minutes, self.seconds, self.vehicle)
+        time = utils.pretty_time(self.minutes, self.seconds)
+        return '%s - %s' % (time, self.vehicle)
 
 def stop_prediction(agency_tag, stop_id, route_tag=None):
     # Different url depending on route_tag

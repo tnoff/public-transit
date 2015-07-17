@@ -40,3 +40,13 @@ def pretty_strip(data, encoding):
 def stupid_bart_bug(data, encoding):
     s = pretty_strip(data, encoding)
     return s.replace('<p>', '\n').replace('</p>', '').lstrip('\n')
+
+def pretty_time(minutes, seconds):
+    s = ''
+    if minutes < 10:
+        s += '0'
+    s += '%s:' % minutes
+    if seconds < 10:
+        s += '0'
+    s += '%s' % seconds
+    return s
