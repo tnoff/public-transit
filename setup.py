@@ -18,6 +18,7 @@ setuptools.setup(
         'console_scripts' : [
             'bart = scripts.bart:main',
             'nextbus = scripts.nextbus:main',
+            'trip-planner = scripts.trip_planner:main',
         ]
     },
     packages=setuptools.find_packages(),
