@@ -3,7 +3,7 @@ import requests
 
 from transit.exceptions import TransitException
 
-def make_request(url):
+def make_request(url, markup="html.parser"):
     '''Check return 200 and not error'''
     headers = {'accept-encoding' : 'gzip, deflate'}
     r = requests.get(url, headers=headers)
@@ -11,7 +11,7 @@ def make_request(url):
     if r.status_code != 200:
         raise TransitException("URL:%s does not return 200" % url)
 
-    soup = BeautifulSoup(r.text)
+    soup = BeautifulSoup(r.text, markup)
     # Get encoding from top of XML data
     contents = soup.contents
     if str(contents[0]) == '\n':
