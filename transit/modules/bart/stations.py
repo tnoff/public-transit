@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from transit.common import utils
+from transit.exceptions import TransitException
 from transit.urls import bart
 
 STATION_MAPPING = {
@@ -184,11 +185,17 @@ class DirectionEstimates(object):
         return '%s - %s' % (self.name, self.estimates)
 
 class StationDepartures(StationBase):
-    def __init__(self, data, encoding):
+    def __init__(self, data, encoding, destinations):
         StationBase.__init__(self, data, encoding)
-        self.directions = \
-            [DirectionEstimates(i, encoding) \
-                for i in data.find_all('etd')]
+        all_directions = [DirectionEstimates(i, encoding) \
+            for i in data.find_all('etd')]
+        if not destinations:
+            self.directions = all_directions
+        else:
+            self.directions = []
+            for direction in all_directions:
+                if direction.abbreviation.lower() in destinations:
+                    self.directions.append(direction)
 
     def __repr__(self):
         return '%s - %s' % (self.name, self.directions)
@@ -223,11 +230,16 @@ def station_access(station):
     soup, encoding = utils.make_request(url)
     return StationAccess(soup.find('station'), encoding)
 
-def station_departures(station, platform=None, direction=None):
+def station_departures(station, platform=None, direction=None,
+                       destinations=None):
     url = bart.estimated_departures(station, platform=platform,
                                     direction=direction)
     soup, encoding = utils.make_request(url)
-    return [StationDepartures(i, encoding) for i in soup.find_all('station')]
+    # make destination lower input here to save time
+    if destinations:
+        destinations = [i.lower() for i in destinations]
+    return [StationDepartures(i, encoding, destinations) \
+        for i in soup.find_all('station')]
 
 def station_schedule(station, date=None):
     url = bart.station_schedule(station, date=date)

@@ -50,14 +50,17 @@ def station_access(station):
     '''
     return station_client.station_access(station)
 
-def station_departures(station, platform=None, direction=None):
+def station_departures(station, platform=None, direction=None,
+                       destinations=None):
     '''Get estimated station departures
        station: station abbreviation
        plaform: platfrom number
        direction: (n)orth or (s)outh
+       destinatons: List of abbreviated destinations, exclude all others
     '''
     return station_client.station_departures(station, platform=platform,
-                                             direction=direction)
+                                             direction=direction,
+                                             destinations=destinations)
 
 def station_schedule(station, date=None):
     '''Get a stations schedule

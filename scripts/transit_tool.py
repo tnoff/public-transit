@@ -127,7 +127,8 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     bart_est.add_argument('station', help='Station Abbreviation or "all"')
     bart_est.add_argument('--direction', help='(n)orth or (s)outh')
     bart_est.add_argument('--platform', type=int, help='Platform Number')
-
+    bart_est.add_argument('--destinations', nargs='+',
+                          help='Only show these desination abbreviatons')
 
     bart_station_accessy = bart_stations_sp.add_parser('access',\
                             help='Show station access')
@@ -263,7 +264,8 @@ def bart_elevator_status(_):
 def bart_estimated_departures(args):
     estimates = client.bart.station_departures(args.station,
                                                platform=args.platform,
-                                               direction=args.direction)
+                                               direction=args.direction,
+                                               destinations=args.destinations)
     table = PrettyTable(["Station", "Direction", "Estimates"])
     for estimate in estimates:
         for direction in estimate.directions:

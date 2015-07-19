@@ -20,5 +20,5 @@ setuptools.setup(
         ]
     },
     packages=setuptools.find_packages(),
-    version='0.1.7',
+    version='0.1.8',
 )

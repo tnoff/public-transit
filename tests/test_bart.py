@@ -86,12 +86,19 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
         est = ests[0]
         self.assert_all_variables(est)
         self.assertEqual(station.lower(), est.abbreviation.lower())
-        self.assertTrue(len(est.directions) > 0)
+        self.assertTrue(len(est.directions) > 1)
         direction = est.directions[0]
         self.assert_all_variables(direction)
         self.assertTrue(len(direction.estimates) > 0)
         direction_estimate = direction.estimates[0]
         self.assert_all_variables(direction_estimate)
+
+        # test with destinations
+        ests = client.bart.station_departures(station,
+                                              destinations=['frmt'])
+        est = ests[0]
+        self.assertEqual(len(est.directions), 1)
+
 
     @httpretty.activate
     def test_current_route(self):
