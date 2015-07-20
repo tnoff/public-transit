@@ -80,13 +80,19 @@ class RouteStopPrediction(object): #pylint: disable=too-many-instance-attributes
         time = utils.pretty_time(self.minutes, self.seconds)
         return '%s - %s' % (time, self.vehicle)
 
-def stop_prediction(agency_tag, stop_id, route_tag=None):
+def stop_prediction(agency_tag, stop_id, route_tags=None):
     # Different url depending on route_tag
-    url = nextbus.stop_prediction(agency_tag, stop_id, route_tag=route_tag)
+    url = nextbus.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
     soup, encoding = utils.make_request(url)
     # Add all stop predictions for routes
-    return [RoutePrediction(i, encoding) \
-                            for i in soup.find_all('predictions')]
+    routes = [RoutePrediction(i, encoding) \
+        for i in soup.find_all('predictions')]
+    # If no route tags specified return
+    if not isinstance(route_tags, list):
+        return routes
+    # only return routes with tags in list
+    tags = [i.lower() for i in route_tags]
+    return [route for route in routes if route.route_tag.lower() in tags]
 
 def multiple_stop_prediction(agency_tag, data):
     url = nextbus.multiple_stop_prediction(agency_tag, data)

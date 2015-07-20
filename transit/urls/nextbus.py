@@ -10,11 +10,11 @@ def route_show(agency_tag, route_tag):
     return main_url + '?command=routeConfig&a=%s&r=%s' % \
         (agency_tag, route_tag)
 
-def stop_prediction(agency_tag, stop_id, route_tag=None):
+def stop_prediction(agency_tag, stop_id, route_tags=None):
     url = main_url + '?command=predictions&a=%s&stopId=%s' % \
         (agency_tag, stop_id)
-    if route_tag:
-        url += '&routeTag=%s' % route_tag
+    if route_tags and not isinstance(route_tags, list):
+        url += '&routeTag=%s' % route_tags
     return url
 
 def multiple_stop_prediction(agency_tag, stop_data):

@@ -66,7 +66,7 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
                                                help='Predict Stop Wait times')
     nextbus_stop_pred.add_argument('agency_tag', help='Agency tag')
     nextbus_stop_pred.add_argument('stop_id', help='Stop ID')
-    nextbus_stop_pred.add_argument('--route-tag', help='Route Tag')
+    nextbus_stop_pred.add_argument('--route-tags', nargs='+', help='Route Tag')
 
     nextbus_schedule = nextbus_parser.add_parser('schedule', help='Schedule')
     nextbus_schedule.add_argument('agency_tag', help='Agency tag')
@@ -192,7 +192,7 @@ def nextbus_route_get(args):
 
 def nextbus_stop_prediction(args):
     route_preds = client.nextbus.stop_prediction(args.agency_tag, args.stop_id,
-                                                 route_tag=args.route_tag)
+                                                 route_tags=args.route_tags)
 
     routes = sorted(route_preds, key=lambda k: k.route_title)
     table = PrettyTable(["Route-Direction", "Predictions (M:S)"])

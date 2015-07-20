@@ -87,6 +87,7 @@ class NextBusTestClient(utils.BaseTestClient):
                                body=stop_predictions.text,
                                content_type='application/xml')
         preds = client.nextbus.stop_prediction(agency_tag, stop_id)
+        self.assertEqual(len(preds), 3)
         first_pred = preds[0]
         self.assert_all_variables(first_pred)
         direction = first_pred.directions[0]
@@ -100,15 +101,36 @@ class NextBusTestClient(utils.BaseTestClient):
         stop_id = '51303'
         route_tag = '22'
         test_url = nextbus.stop_prediction(agency_tag, stop_id,
-                                           route_tag=route_tag)
+                                           route_tags=route_tag)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=stop_predictions_route.text,
                                content_type='application/xml')
         preds = client.nextbus.stop_prediction(agency_tag, stop_id,
-                                               route_tag=route_tag)
+                                               route_tags=route_tag)
         first_pred = preds[0]
         self.assert_all_variables(first_pred, skip=['messages'])
+        direction = first_pred.directions[0]
+        self.assert_all_variables(direction)
+        pred = direction.predictions[0]
+        self.assert_all_variables(pred)
+
+    @httpretty.activate
+    def test_stop_prediction_with_route_multi(self):
+        agency_tag = 'actransit'
+        stop_id = '51303'
+        route_tags = ['22', '99']
+        test_url = nextbus.stop_prediction(agency_tag, stop_id,
+                                           route_tags=route_tags)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=stop_predictions.text,
+                               content_type='application/xml')
+        preds = client.nextbus.stop_prediction(agency_tag, stop_id,
+                                               route_tags=route_tags)
+        self.assertEqual(len(preds), 2)
+        first_pred = preds[0]
+        self.assert_all_variables(first_pred)
         direction = first_pred.directions[0]
         self.assert_all_variables(direction)
         pred = direction.predictions[0]

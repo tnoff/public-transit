@@ -20,13 +20,13 @@ def route_get(agency_tag, route_tag):
     '''
     return route.route_get(agency_tag, route_tag)
 
-def stop_prediction(agency_tag, stop_id, route_tag=None):
+def stop_prediction(agency_tag, stop_id, route_tags=None):
     '''Get arrival predictions for stops
        agency_tag: agency tag
        stop_id: stop id
-       route_tag: route tag, will only show times for this route
+       route_tags: list of routes to show, enter single value to search directly
     '''
-    return stop.stop_prediction(agency_tag, stop_id, route_tag=route_tag)
+    return stop.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
 
 def multiple_stop_predictions(agency_tag, stop_data):
     '''Get predictions for multiple stops
