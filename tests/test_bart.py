@@ -11,6 +11,7 @@ from tests.data.bart import bsa_no_delay
 from tests.data.bart import train_count
 from tests.data.bart import elevator
 from tests.data.bart import estimates
+from tests.data.bart import estimate_all
 from tests.data.bart import current_routes
 from tests.data.bart import route_info
 from tests.data.bart import schedule_fare
@@ -95,9 +96,53 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
 
         # test with destinations
         ests = client.station_departures(station,
-                                              destinations=['frmt'])
+                                         destinations=['frmt'])
         est = ests[0]
         self.assertEqual(len(est.directions), 1)
+
+
+    @httpretty.activate
+    def test_multiple_stations(self):
+        station = 'all'
+        test_url = bart.estimated_departures(station)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=estimate_all.text,
+                               content_type='application/xml')
+        ests = client.station_departures(station)
+        self.assertTrue(len(ests) > 0)
+        for est in ests:
+            self.assert_all_variables(est)
+            direction = est.directions[0]
+            self.assert_all_variables(direction)
+            self.assertTrue(len(direction.estimates) > 0)
+            direction_estimate = direction.estimates[0]
+            self.assert_all_variables(direction_estimate)
+
+    @httpretty.activate
+    def test_multiple_stations_custom(self):
+        station = 'all'
+        test_url = bart.estimated_departures(station)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=estimate_all.text,
+                               content_type='application/xml')
+        station_data = {
+            'mont' : ['dubl', 'pitt'],
+            'bayf' : [],
+        }
+        ests = client.multiple_station_departures(station_data)
+        for est in ests:
+            if est.abbreviation.lower() == 'mont':
+                self.assertEqual(len(est.directions), 2)
+            elif est.abbreviation.lower() == 'bayf':
+                self.assertTrue(len(est.directions) > 0)
+            self.assert_all_variables(est)
+            direction = est.directions[0]
+            self.assert_all_variables(direction)
+            self.assertTrue(len(direction.estimates) > 0)
+            direction_estimate = direction.estimates[0]
+            self.assert_all_variables(direction_estimate)
 
 
     @httpretty.activate

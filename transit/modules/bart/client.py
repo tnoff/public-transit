@@ -50,6 +50,15 @@ def station_access(station):
     '''
     return station_client.station_access(station)
 
+def multiple_station_departures(station_data):
+    '''
+    Get estimated departures for mutliple stations
+    station_data:
+        {'station_abbrevation' : [destination1, destination2],
+         'station_abbreviation2' : [], # empty for all possible destinations}
+    '''
+    return station_client.multiple_station_departures(station_data)
+
 def station_departures(station, platform=None, direction=None,
                        destinations=None):
     '''Get estimated station departures

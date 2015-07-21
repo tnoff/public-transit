@@ -190,7 +190,7 @@ class DirectionEstimates(object):
         return '%s - %s' % (self.name, self.estimates)
 
 class StationDepartures(StationBase):
-    def __init__(self, data, encoding, destinations):
+    def __init__(self, data, encoding, destinations=None):
         StationBase.__init__(self, data, encoding)
         self.directions = []
         # if exception was raised then direction not in destinations given
@@ -233,6 +233,24 @@ def station_access(station):
     url = bart.station_access(station)
     soup, encoding = utils.make_request(url)
     return StationAccess(soup.find('station'), encoding)
+
+def multiple_station_departures(station_data):
+    url = bart.estimated_departures('all')
+    soup, encoding = utils.make_request(url)
+    # make all keys lower case
+    keys = station_data.keys()
+    for key in keys:
+        if key.lower() == key:
+            continue
+        station_data[key.lower()] = station_data[key]
+        del station_data[key]
+    abbreviations = [i.lower() for i in station_data]
+    full_data = []
+    for i in soup.find_all('station'):
+        abbr = i.find('abbr').string.encode(encoding).lower()
+        if abbr in abbreviations:
+            full_data.append(StationDepartures(i, encoding, station_data[abbr]))
+    return full_data
 
 def station_departures(station, platform=None, direction=None,
                        destinations=None):
