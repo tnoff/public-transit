@@ -1,4 +1,5 @@
-'''Public Transit Client
+'''
+Public Transit Client
 Modules: nextbus and bart
 '''
 from transit.modules.bart import client as bart_client

@@ -1,7 +1,7 @@
 from datetime import datetime
 import httpretty
 
-from transit import client
+from transit.client import bart as client
 from transit.urls import bart
 
 from tests import utils
@@ -28,7 +28,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=bsa.text,
                                content_type='application/xml')
-        advisories = client.bart.service_advisory()
+        advisories = client.service_advisory()
         # should only be one advisory in data anyway
         adv = advisories[0]
         self.assert_all_variables(adv)
@@ -43,7 +43,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=bsa_no_delay.text,
                                content_type='application/xml')
-        advisories = client.bart.service_advisory()
+        advisories = client.service_advisory()
         # should only be one advisory in data anyway
         adv = advisories[0]
         self.assert_all_variables(adv, skip=['station', 'type', 'posted',
@@ -59,7 +59,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=train_count.text,
                                content_type='application/xml')
-        count = client.bart.train_count()
+        count = client.train_count()
         self.assertTrue(isinstance(count, int))
 
     @httpretty.activate
@@ -69,7 +69,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=elevator.text,
                                content_type='application/xml')
-        status = client.bart.elevator_status()
+        status = client.elevator_status()
         self.assert_all_variables(status, skip=['expires'])
         desc = status.description
         self.assertTrue(isinstance(desc, str))
@@ -82,7 +82,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=estimates.text,
                                content_type='application/xml')
-        ests = client.bart.station_departures(station)
+        ests = client.station_departures(station)
         est = ests[0]
         self.assert_all_variables(est)
         self.assertEqual(station.lower(), est.abbreviation.lower())
@@ -94,7 +94,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
         self.assert_all_variables(direction_estimate)
 
         # test with destinations
-        ests = client.bart.station_departures(station,
+        ests = client.station_departures(station,
                                               destinations=['frmt'])
         est = ests[0]
         self.assertEqual(len(est.directions), 1)
@@ -109,7 +109,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=current_routes.text,
                                content_type='application/xml')
-        routes = client.bart.route_list()
+        routes = client.route_list()
         route = routes[0]
         self.assert_all_variables(route, skip=route_skip)
 
@@ -121,14 +121,14 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=route_info.text,
                                content_type='application/xml')
-        route = client.bart.route_show(route_number)
+        route = client.route_show(route_number)
         self.assert_all_variables(route)
         self.assertTrue(len(route.stations) > 0)
         station = route.stations[0]
         self.assertTrue(isinstance(station, str))
 
     def test_station_list(self): #pylint: disable=no-self-use
-        client.bart.station_list()
+        client.station_list()
 
     @httpretty.activate
     def test_station_info(self):
@@ -138,7 +138,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=station_info.text,
                                content_type='application/xml')
-        station = client.bart.station_info(station_abbr)
+        station = client.station_info(station_abbr)
         self.assert_all_variables(station)
 
     @httpretty.activate
@@ -149,7 +149,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=station_access.text,
                                content_type='application/xml')
-        station = client.bart.station_access(station_abbr)
+        station = client.station_access(station_abbr)
         self.assert_all_variables(station)
 
     @httpretty.activate
@@ -160,7 +160,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=station_schedule.text,
                                content_type='application/xml')
-        station = client.bart.station_schedule(station_abbr)
+        station = client.station_schedule(station_abbr)
         self.assert_all_variables(station)
         self.assertTrue(len(station.schedule_times) > 0)
         first_time = station.schedule_times[0]
@@ -173,7 +173,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=schedule_list.text,
                                content_type='application/xml')
-        schedules = client.bart.schedule_list()
+        schedules = client.schedule_list()
         self.assertTrue(len(schedules) > 0)
         sched = schedules[0]
         self.assert_all_variables(sched)
@@ -187,5 +187,5 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
                                test_url,
                                body=schedule_fare.text,
                                content_type='application/xml')
-        fare = client.bart.schedule_fare(origin, dest)
+        fare = client.schedule_fare(origin, dest)
         self.assert_all_variables(fare)

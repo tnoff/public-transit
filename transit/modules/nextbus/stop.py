@@ -87,7 +87,8 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     # Add all stop predictions for routes
     routes = [RoutePrediction(i, encoding) \
         for i in soup.find_all('predictions')]
-    # If no route tags specified return
+    # if no route tag list specified return
+    # .. a single route tag will already be taken care of
     if not isinstance(route_tags, list):
         return routes
     # only return routes with tags in list
