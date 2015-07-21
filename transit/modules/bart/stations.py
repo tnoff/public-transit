@@ -173,11 +173,16 @@ class Estimate(object):
         return '%s minutes' % self.minutes
 
 class DirectionEstimates(object):
-    def __init__(self, data, encoding):
+    def __init__(self, data, encoding, destinations):
         self.name = utils.pretty_strip(data.find('destination'),
                                                          encoding)
         self.abbreviation = utils.pretty_strip(data.find('abbreviation'),
                                                encoding)
+        # if destinations given, check here if valid
+        # .. if not valid give up now to save time
+        if destinations:
+            if self.abbreviation.lower() not in destinations:
+                raise TransitException("Not valid destination:%s" % self.abbreviation)
         self.estimates = \
             [Estimate(i, encoding) for i in data.find_all('estimate')]
 
@@ -187,15 +192,14 @@ class DirectionEstimates(object):
 class StationDepartures(StationBase):
     def __init__(self, data, encoding, destinations):
         StationBase.__init__(self, data, encoding)
-        all_directions = [DirectionEstimates(i, encoding) \
-            for i in data.find_all('etd')]
-        if not destinations:
-            self.directions = all_directions
-        else:
-            self.directions = []
-            for direction in all_directions:
-                if direction.abbreviation.lower() in destinations:
-                    self.directions.append(direction)
+        self.directions = []
+        # if exception was raised then direction not in destinations given
+        # .. so skip and dont put it in list
+        for i in data.find_all('etd'):
+            try:
+                self.directions.append(DirectionEstimates(i, encoding, destinations))
+            except TransitException:
+                continue
 
     def __repr__(self):
         return '%s - %s' % (self.name, self.directions)
