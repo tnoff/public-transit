@@ -1,5 +1,6 @@
 from transit.urls import nextbus
 from transit.common import utils
+from transit.exceptions import TransitException
 
 class Stop(object):
     def __init__(self, data, encoding):
@@ -26,8 +27,11 @@ class Point(object):
         return '%s lat- %s lon' % (self.latitude, self.longitude)
 
 class RoutePrediction(object):
-    def __init__(self, route_data, encoding):
+    def __init__(self, route_data, encoding, route_tags=None):
         self.route_tag = route_data.get('routetag').encode(encoding)
+        if route_tags:
+            if self.route_tag.lower() not in route_tags:
+                raise TransitException("Tag not allowed:%s" % self.route_tag)
         self.agency_title = route_data.get('agencytitle').encode(encoding)
         self.route_title = route_data.get('routetitle').encode(encoding)
         self.stop_title = route_data.get('stoptitle').encode(encoding)
@@ -81,19 +85,26 @@ class RouteStopPrediction(object): #pylint: disable=too-many-instance-attributes
         return '%s - %s' % (time, self.vehicle)
 
 def stop_prediction(agency_tag, stop_id, route_tags=None):
-    # Different url depending on route_tag
+    # Treat this two different ways for route tags
+    # .. if route tag is only a single route, it will make the call directly
+    # .. and you dont have to do anything fancy
+    # .. if there is a list of route tags, get all route tags and strip
+    # .. during the call
+    tags = None
+    if isinstance(route_tags, list):
+        if len(route_tags) == 1:
+            route_tags = route_tags[0]
+        else:
+            tags = [i.lower() for i in route_tags]
     url = nextbus.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
     soup, encoding = utils.make_request(url)
-    # Add all stop predictions for routes
-    routes = [RoutePrediction(i, encoding) \
-        for i in soup.find_all('predictions')]
-    # if no route tag list specified return
-    # .. a single route tag will already be taken care of
-    if not isinstance(route_tags, list):
-        return routes
-    # only return routes with tags in list
-    tags = [i.lower() for i in route_tags]
-    return [route for route in routes if route.route_tag.lower() in tags]
+    routes = []
+    for i in soup.find_all('predictions'):
+        try:
+            routes.append(RoutePrediction(i, encoding, route_tags=tags))
+        except TransitException:
+            continue
+    return routes
 
 def multiple_stop_prediction(agency_tag, data):
     url = nextbus.multiple_stop_prediction(agency_tag, data)

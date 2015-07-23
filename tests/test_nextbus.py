@@ -107,7 +107,29 @@ class NextBusTestClient(utils.BaseTestClient):
                                body=stop_predictions_route.text,
                                content_type='application/xml')
         preds = client.stop_prediction(agency_tag, stop_id,
-                                               route_tags=route_tag)
+                                       route_tags=route_tag)
+        self.assertTrue(len(preds) > 0)
+        first_pred = preds[0]
+        self.assert_all_variables(first_pred, skip=['messages'])
+        direction = first_pred.directions[0]
+        self.assert_all_variables(direction)
+        pred = direction.predictions[0]
+        self.assert_all_variables(pred)
+
+    @httpretty.activate
+    def test_stop_prediction_with_route_as_list(self):
+        agency_tag = 'actransit'
+        stop_id = '51303'
+        route_tag = ['22']
+        test_url = nextbus.stop_prediction(agency_tag, stop_id,
+                                           route_tags=route_tag)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=stop_predictions_route.text,
+                               content_type='application/xml')
+        preds = client.stop_prediction(agency_tag, stop_id,
+                                       route_tags=route_tag)
+        self.assertTrue(len(preds) > 0)
         first_pred = preds[0]
         self.assert_all_variables(first_pred, skip=['messages'])
         direction = first_pred.directions[0]
