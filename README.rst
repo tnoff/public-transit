@@ -55,9 +55,15 @@ API
 
 .. code::
 
-    from transit import client
-    client.nextbus.agency_list()
-    client.bart.train_count()
+    from transit.modules.bart import client as bart_client
+    from transit.modules.nextbus import client as nextbus_client
+
+    nextbus_client.agency_list()
+    bart_client.train_count()
+
+    # to see all possible functions
+    help(bart_client)
+    help(nextbus_client)
 
 CLI
 

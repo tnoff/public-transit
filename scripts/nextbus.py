@@ -1,5 +1,5 @@
 '''CLI for Nextbus Client'''
-from transit import client
+from transit.modules.nextbus import client
 from transit.modules.nextbus import utils
 
 import argparse
@@ -66,21 +66,21 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
 
 def agency_list(_):
     table = PrettyTable(["Agency Title", "Agency Tag", "Region Title"])
-    agencies = sorted(client.nextbus.agency_list(), key=lambda k: k.title)
+    agencies = sorted(client.agency_list(), key=lambda k: k.title)
     for agency in agencies:
         table.add_row([agency.title, agency.tag, agency.region])
     print table
 
 def route_list(args):
     table = PrettyTable(["Route Title", "Route Tag"])
-    routes = sorted(client.nextbus.route_list(args.agency_tag),
+    routes = sorted(client.route_list(args.agency_tag),
                     key=lambda k: k.title)
     for route in routes:
         table.add_row([route.title, route.route_tag])
     print table
 
 def route_get(args):
-    route = client.nextbus.route_get(args.agency_tag, args.route_tag)
+    route = client.route_get(args.agency_tag, args.route_tag)
     table = PrettyTable(["Stop Title", "Stop Tag", "Latitude", "Longitude",
                          "Stop ID"])
     stops = sorted(route.stops, key=lambda k: k.title)
@@ -98,8 +98,8 @@ def route_get(args):
     print table
 
 def stop_prediction(args):
-    route_preds = client.nextbus.stop_prediction(args.agency_tag, args.stop_id,
-                                                 route_tags=args.route_tags)
+    route_preds = client.stop_prediction(args.agency_tag, args.stop_id,
+                                         route_tags=args.route_tags)
 
     routes = sorted(route_preds, key=lambda k: k.route_title)
     table = PrettyTable(["Route-Direction", "Predictions (M:S)"])
@@ -116,7 +116,7 @@ def stop_prediction(args):
     print table
 
 def schedule_get(args):
-    schedules = client.nextbus.schedule_get(args.agency_tag, args.route_tag)
+    schedules = client.schedule_get(args.agency_tag, args.route_tag)
     for r in schedules:
         print r.title, '-', r.direction, '-', r.service_class
         route_times = dict()
@@ -133,9 +133,9 @@ def schedule_get(args):
         print table
 
 def vehicle_location(args):
-    locations = client.nextbus.vehicle_location(args.agency_tag,
-                                                args.route_tag,
-                                                args.epoch_time)
+    locations = client.vehicle_location(args.agency_tag,
+                                        args.route_tag,
+                                        args.epoch_time)
     table = PrettyTable(["Vehicle ID", "Latitude", "Longitude", "Predictable",
                          "Speed KM/HR", "Seconds Since Last Report"])
     for l in locations:
@@ -144,7 +144,7 @@ def vehicle_location(args):
     print table
 
 def message_get(args):
-    routes = client.nextbus.message_get(args.agency_tag, args.route_tag)
+    routes = client.message_get(args.agency_tag, args.route_tag)
     for route in routes:
         print 'Route:', route.route_tag
         table = PrettyTable(["Message Text", "Priority", "Send to Buses",

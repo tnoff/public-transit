@@ -9,7 +9,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
-from transit import client
+from transit.modules.bart import client as bart_client
+from transit.modules.nextbus import client as nextbus_client
 from transit.modules.nextbus import utils
 from transit.exceptions import TransitException
 
@@ -103,14 +104,14 @@ def parse_args():
 
 def __validate_bart_station(stop_tag):
     # you can check the station list fairly quickly, since its hardcoded
-    valid_stations = client.bart.station_list()
+    valid_stations = bart_client.station_list()
     if stop_tag.lower() not in [i for i in valid_stations]:
         raise TransitException('Bart station not valid:%s' % stop_tag)
 
 def __validate_nextbus_stop(agency_tag, stop_id):
     # otherwise get a stop prediction now and check for errors
     try:
-        predictions = client.nextbus.stop_prediction(agency_tag,
+        predictions = nextbus_client.stop_prediction(agency_tag,
                                                      stop_id)
     except TransitException as e:
         raise TransitException("Could not identify stop:%s" % str(e))
@@ -126,7 +127,7 @@ def __validate_nextbus_stop(agency_tag, stop_id):
         (agency_tag, stop_id)
     # use first predictions route tag
     route_tag = predictions[0].route_tag
-    route = client.nextbus.route_get(agency_tag, route_tag)
+    route = nextbus_client.route_get(agency_tag, route_tag)
     stop_tag = None
     stop_title = None
     stop_id = int(stop_id)
@@ -145,7 +146,7 @@ def leg_create(args, db_session):
         __validate_bart_station(args.stop_id)
         stop_tag = None
         route_tags = args.include
-        stop_title = client.bart.station_list()[args.stop_id.lower()]
+        stop_title = bart_client.station_list()[args.stop_id.lower()]
     else:
         stop_tag, stop_title, route_tags = __validate_nextbus_stop(args.agency_tag,
                                                                    args.stop_id)
@@ -233,11 +234,11 @@ def leg_show(args, db_session):
     print 'Stop ID:', leg.stop_id
     tags = [i.tag for i in db_session.query(LegInclude).filter_by(leg_id=args.id)]
     if leg.agency == 'bart':
-        estimations = client.bart.station_departures(leg.stop_id,
+        estimations = bart_client.station_departures(leg.stop_id,
                                                      destinations=tags,)
         __show_bart_leg(estimations)
     else:
-        estimations = client.nextbus.stop_prediction(leg.agency,
+        estimations = nextbus_client.stop_prediction(leg.agency,
                                                      leg.stop_id,
                                                      tags,)
         __show_nextbus_leg(estimations)
@@ -288,11 +289,11 @@ def trip_show(args, db_session):
                 agency_data[route].add(leg.stop_tag)
     if station_data:
         print 'Bart data'
-        estimates = client.bart.multiple_station_departures(station_data)
+        estimates = bart_client.multiple_station_departures(station_data)
         __show_bart_leg(estimates)
     for agency, data in nextbus_leg_data.iteritems():
         print 'Nextbus Agency:%s' % agency
-        estimates = client.nextbus.multiple_stop_predictions(agency,
+        estimates = nextbus_client.multiple_stop_predictions(agency,
                                                              data)
         __show_nextbus_leg(estimates)
 

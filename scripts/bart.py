@@ -1,5 +1,5 @@
 '''CLI for Bart Client'''
-from transit import client
+from transit.modules.bart import client
 
 import argparse
 from prettytable import PrettyTable
@@ -97,24 +97,24 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     return p.parse_args()
 
 def service_advisory(_):
-    advisories = client.bart.service_advisory()
+    advisories = client.service_advisory()
     table = PrettyTable(["Station", "Posted", "Description"])
     for advisory in advisories:
         table.add_row([advisory.station, advisory.posted, advisory.description])
     print table
 
 def train_count(_):
-    print client.bart.train_count()
+    print client.train_count()
 
 def elevator_status(_):
-    status = client.bart.elevator_status()
+    status = client.elevator_status()
     print status.description
 
 def estimated_departures(args):
-    estimates = client.bart.station_departures(args.station,
-                                               platform=args.platform,
-                                               direction=args.direction,
-                                               destinations=args.destinations)
+    estimates = client.station_departures(args.station,
+                                          platform=args.platform,
+                                          direction=args.direction,
+                                          destinations=args.destinations)
     table = PrettyTable(["Station", "Direction", "Estimates"])
     for estimate in estimates:
         for direction in estimate.directions:
@@ -125,23 +125,23 @@ def estimated_departures(args):
     print table
 
 def current_routes(args):
-    route_list = client.bart.route_list(schedule=args.schedule,
-                                        date=args.date)
+    route_list = client.route_list(schedule=args.schedule,
+                                   date=args.date)
     table = PrettyTable(["Name", "Number", "Color"])
     for route in route_list:
         table.add_row([route.name, route.number, route.color])
     print table
 
 def route_info(args):
-    route = client.bart.route_show(args.route_number,
-                                   schedule=args.schedule,
-                                   date=args.date)
+    route = client.route_show(args.route_number,
+                              schedule=args.schedule,
+                              date=args.date)
     table = PrettyTable(["Name", "Number", "Color"])
     table.add_row([route.name, route.number, route.color])
     print table
 
 def station_list(_):
-    stations = client.bart.station_list()
+    stations = client.station_list()
     ordered_stations = [(k, stations[k]) for k in stations]
     ordered_stations.sort(key=lambda x: x[0])
     table = PrettyTable(["Abbreviation", "Name"])
@@ -150,20 +150,20 @@ def station_list(_):
     print table
 
 def station_info(args):
-    station = client.bart.station_info(args.station)
+    station = client.station_info(args.station)
     print 'Station:', station.name
     print 'Address:', station.address, station.city, station.state
     print 'North Routes:', ';'.join('%s' % i for i in station.north_routes)
     print 'South Routes:', ';'.join('%s' % i for i in station.south_routes)
 
 def station_access(args):
-    station = client.bart.station_access(args.station)
+    station = client.station_access(args.station)
     print 'Station:', station.name
     print 'Entering:', station.entering
     print 'Exiting:', station.exiting
 
 def station_schedule(args):
-    station = client.bart.station_schedule(args.station, date=args.date)
+    station = client.station_schedule(args.station, date=args.date)
     print 'Station:', station.name
     table = PrettyTable(["Destination", "Origin Time", "Arrival Time"])
     for item in station.schedule_times:
@@ -172,17 +172,17 @@ def station_schedule(args):
     print table
 
 def schedule_list(_):
-    schedules = client.bart.schedule_list()
+    schedules = client.schedule_list()
     table = PrettyTable(["ID", "Effective Date"])
     for sched in schedules:
         table.add_row([sched.id, sched.effective_date])
     print table
 
 def schedule_fare(args):
-    fare = client.bart.schedule_fare(args.origin_station,
-                                     args.destination_station,
-                                     schedule=args.schedule,
-                                     date=args.date)
+    fare = client.schedule_fare(args.origin_station,
+                                args.destination_station,
+                                schedule=args.schedule,
+                                date=args.date)
     print 'Schedule Number:%s' % fare.schedule_number
     print 'Fare:%s' % fare.fare
     print 'Discount:%s' % fare.discount
