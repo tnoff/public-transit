@@ -84,6 +84,12 @@ def schedule_list():
 
 def schedule_fare(origin_station, destination_station,
                   date=None, schedule=None):
+    '''Get the scheduled fare
+       origin_station: station you'll onbard at
+       destination_station: station you'll offboard at
+       schedule: schedule number
+       date: mm/dd/yyyy format
+    '''
     return schedule_client.schedule_fare(origin_station,
                                          destination_station,
                                          date=date,
