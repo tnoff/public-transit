@@ -1,9 +1,7 @@
 from datetime import datetime
 
 from transit.exceptions import TransitException
-from transit.urls import nextbus
-from transit.common import utils
-
+from transit.modules.nextbus import urls, utils
 from transit.modules.nextbus import schedule, stop, vehicle
 
 class RouteBase(object):
@@ -60,7 +58,7 @@ class RouteInfo(RouteBase): #pylint: disable=too-many-instance-attributes
         if not self.agency_tag:
             raise TransitException("Cannot get schedule w/o agency tag")
         return stop.stop_prediction(self.agency_tag, stop_id,
-                                    route_tag=self.route_tag)
+                                    route_tags=self.route_tag)
 
     def vehicle_location(self, epoch_time):
         if not self.agency_tag:
@@ -131,7 +129,7 @@ class RouteMessage(RouteBase):
         self.messages = [Message(i, encoding) for i in data.find_all("message")]
 
 def route_list(agency_tag):
-    url = nextbus.route_list(agency_tag)
+    url = urls.route_list(agency_tag)
     soup, encoding = utils.make_request(url)
 
     # Build route list
@@ -139,12 +137,12 @@ def route_list(agency_tag):
         for i in soup.find_all('route')]
 
 def route_get(agency_tag, route_tag):
-    url = nextbus.route_show(agency_tag, route_tag)
+    url = urls.route_show(agency_tag, route_tag)
     soup, encoding = utils.make_request(url)
     # Get route data
     return RouteInfo(soup.find('route'), encoding, agency_tag=agency_tag)
 
 def message_get(agency_tag, route_tags):
-    url = nextbus.message_get(agency_tag, route_tags)
+    url = urls.message_get(agency_tag, route_tags)
     soup, encoding = utils.make_request(url)
     return [RouteMessage(i, encoding) for i in soup.find_all('route')]

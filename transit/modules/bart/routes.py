@@ -1,5 +1,4 @@
-from transit.common import utils
-from transit.urls import bart
+from transit.modules.bart import urls, utils
 
 class RouteBase(object):
     def __init__(self, route_data, encoding):
@@ -40,11 +39,11 @@ class RouteInfo(RouteBase):
             self.stations.append(utils.pretty_strip(station, encoding))
 
 def route_list(schedule=None, date=None):
-    url = bart.route_list(schedule=schedule, date=date)
+    url = urls.route_list(schedule=schedule, date=date)
     soup, encoding = utils.make_request(url)
     return [Route(i, encoding) for i in soup.find_all('route')]
 
 def route_show(route_number, schedule=None, date=None):
-    url = bart.route_show(route_number, schedule=schedule, date=date)
+    url = urls.route_show(route_number, schedule=schedule, date=date)
     soup, encoding = utils.make_request(url)
     return RouteInfo(soup.find('route'), encoding)

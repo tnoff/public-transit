@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from transit.common import utils
+from transit.modules.bart import urls, utils
 from transit.exceptions import TransitException
-from transit.urls import bart
 
 STATION_MAPPING = {
     "12th" : "12th St. Oakland City Center",
@@ -225,17 +224,17 @@ def station_list():
     return STATION_MAPPING
 
 def station_info(station):
-    url = bart.station_info(station)
+    url = urls.station_info(station)
     soup, encoding = utils.make_request(url)
     return StationInfo(soup.find('station'), encoding)
 
 def station_access(station):
-    url = bart.station_access(station)
+    url = urls.station_access(station)
     soup, encoding = utils.make_request(url)
     return StationAccess(soup.find('station'), encoding)
 
 def multiple_station_departures(station_data):
-    url = bart.estimated_departures('all')
+    url = urls.estimated_departures('all')
     soup, encoding = utils.make_request(url)
     # make all keys lower case
     keys = station_data.keys()
@@ -254,7 +253,7 @@ def multiple_station_departures(station_data):
 
 def station_departures(station, platform=None, direction=None,
                        destinations=None):
-    url = bart.estimated_departures(station, platform=platform,
+    url = urls.estimated_departures(station, platform=platform,
                                     direction=direction)
     soup, encoding = utils.make_request(url)
     # make destination lower input here to save time
@@ -264,6 +263,6 @@ def station_departures(station, platform=None, direction=None,
         for i in soup.find_all('station')]
 
 def station_schedule(station, date=None):
-    url = bart.station_schedule(station, date=date)
+    url = urls.station_schedule(station, date=date)
     soup, encoding = utils.make_request(url)
     return StationSchedule(soup.find('station'), encoding)

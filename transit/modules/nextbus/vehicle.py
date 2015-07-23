@@ -1,5 +1,4 @@
-from transit.urls import nextbus
-from transit.common import utils
+from transit.modules.nextbus import urls, utils
 
 class VehicleLocation(object): #pylint: disable=too-many-instance-attributes
     def __init__(self, vehicle_data, encoding):
@@ -23,6 +22,6 @@ class VehicleLocation(object): #pylint: disable=too-many-instance-attributes
         return '%s:%s-%s' % (self.vehicle_id, self.latitude, self.longitude)
 
 def vehicle_location(agency_tag, route_tag, epoch_time):
-    url = nextbus.vehicle_location(agency_tag, route_tag, epoch_time)
+    url = urls.vehicle_location(agency_tag, route_tag, epoch_time)
     soup, encoding = utils.make_request(url)
     return [VehicleLocation(i, encoding) for i in soup.find_all('vehicle')]

@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from transit.common import utils
-from transit.urls import bart
+from transit.modules.bart import urls, utils
 
 class Schedule(object):
     def __init__(self, schedule_data, encoding):
@@ -27,13 +26,13 @@ class ScheduleFare(object):
         return '%s' % self.fare
 
 def schedule_list():
-    url = bart.schedule_list()
+    url = urls.schedule_list()
     soup, encoding = utils.make_request(url)
     return [Schedule(i, encoding) for i in soup.find_all('schedule')]
 
 def schedule_fare(origin_station, destination_station,
                   date=None, schedule=None):
-    url = bart.schedule_fare(origin_station, destination_station,
+    url = urls.schedule_fare(origin_station, destination_station,
                              date=date, schedule=schedule)
     soup, encoding = utils.make_request(url)
     return ScheduleFare(soup, encoding)

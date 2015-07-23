@@ -1,4 +1,4 @@
-'''CLI for Transit Client'''
+'''CLI for Bart Client'''
 from transit import client
 
 import argparse
@@ -26,73 +26,73 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
 
     service = sub_parser.add_parser('service', help='Service commands')
     service_parser = service.add_subparsers(dest='subcommand',
-                                                      help='Subcommand')
+                                            help='Subcommand')
 
     service_parser.add_parser('advisory',
-                                   help='Current Service Advisory')
+                              help='Current Service Advisory')
 
     service_parser.add_parser('train-count',
-                                   help='Current Train Count')
+                              help='Current Train Count')
 
     service_parser.add_parser('elevator-status',
-                                   help='Current Elevator Status')
+                              help='Current Elevator Status')
 
     routes = sub_parser.add_parser('route', help='Route commands')
     routes_sp = routes.add_subparsers(help='Sub-command',
-                                                dest='subcommand')
+                                      dest='subcommand')
     route_list = routes_sp.add_parser('list', help="List routes")
     route_list.add_argument('--schedule', type=int,
-                                 help='Schedule Number')
+                            help='Schedule Number')
     route_list.add_argument('--date', help='MM/DD/YYYY format')
 
     route_show = routes_sp.add_parser('info',
-                                                help='Route Information')
+                                      help='Route Information')
     route_show.add_argument('route_number', help='Route number')
     route_show.add_argument('--schedule', type=int,
-                                 help='Schedule Number')
+                            help='Schedule Number')
     route_show.add_argument('--date', help='MM/DD/YYYY format')
 
     stations = sub_parser.add_parser('station', help='Station Commands')
     stations_sp = stations.add_subparsers(help='Sub-command',
-                                                    dest='subcommand')
+                                          dest='subcommand')
     stations_sp.add_parser('list', help='List stations')
 
     station_infos = stations_sp.add_parser('info',
-                                                     help='Show station info')
+                                           help='Show station info')
     station_infos.add_argument('station',
-                                    help='Station Abbreviation')
+                               help='Station Abbreviation')
     est = stations_sp.add_parser('departures',
-                                           help='Estimates for a station')
+                                 help='Estimates for a station')
     est.add_argument('station', help='Station Abbreviation or "all"')
     est.add_argument('--direction', help='(n)orth or (s)outh')
     est.add_argument('--platform', type=int, help='Platform Number')
     est.add_argument('--destinations', nargs='+',
-                          help='Only show these desination abbreviatons')
+                     help='Only show these desination abbreviatons')
 
     station_accessy = stations_sp.add_parser('access',\
                             help='Show station access')
     station_accessy.add_argument('station',
-                                      help='Station Abbreviation')
+                                 help='Station Abbreviation')
 
     station_sched = stations_sp.add_parser('schedule',
-                                                     help='Station Schedule')
+                                           help='Station Schedule')
     station_sched.add_argument('station', help='Station abbreviation')
     station_sched.add_argument('--date', help='MM/DD/YYYY format')
 
     schedule = sub_parser.add_parser('schedule', help='Schedule Commands')
     schedule_sp = schedule.add_subparsers(help='Sub-command',
-                                                    dest='subcommand')
+                                          dest='subcommand')
 
     schedule_sp.add_parser('list', help='Schedule List')
 
     schedule_farey = schedule_sp.add_parser('fare',\
                             help='Get fare information')
     schedule_farey.add_argument('origin_station',
-                                     help='Origin Station')
+                                help='Origin Station')
     schedule_farey.add_argument('destination_station',
-                                     help='Destination Station')
+                                help='Destination Station')
     schedule_farey.add_argument('--schedule', type=int,
-                                     help='Schedule Number')
+                                help='Schedule Number')
     schedule_farey.add_argument('--date', help='MM/DD/YYYY format')
     return p.parse_args()
 

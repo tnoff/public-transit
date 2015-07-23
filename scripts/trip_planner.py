@@ -10,7 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
 from transit import client
-from transit.common import utils
+from transit.modules.nextbus import utils
 from transit.exceptions import TransitException
 
 Base = declarative_base()

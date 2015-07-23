@@ -2,8 +2,8 @@ import httpretty
 
 from transit.client import nextbus as client
 from transit.exceptions import TransitException
-from transit.urls import nextbus
-from transit.common import utils as common_utils
+from transit.modules.nextbus import urls
+from transit.modules.nextbus import utils as common_utils
 
 from tests import utils
 from tests.data.nextbus import agency_list as agency_list
@@ -25,7 +25,7 @@ class NextBusTestClient(utils.BaseTestClient):
     def test_fails(self):
         # Check that failures catch nicely
         # Failure xml format in nextbus docs
-        test_url = nextbus.agency_list()
+        test_url = urls.agency_list()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=error.text,
@@ -34,7 +34,7 @@ class NextBusTestClient(utils.BaseTestClient):
 
     @httpretty.activate
     def test_agency_list(self):
-        test_url = nextbus.agency_list()
+        test_url = urls.agency_list()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=agency_list.text,
@@ -47,7 +47,7 @@ class NextBusTestClient(utils.BaseTestClient):
     @httpretty.activate
     def test_route_list(self):
         agency_tag = 'sf-muni'
-        test_url = nextbus.route_list(agency_list)
+        test_url = urls.route_list(agency_list)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=route_list.text,
@@ -60,7 +60,7 @@ class NextBusTestClient(utils.BaseTestClient):
     def test_route_show(self):
         agency_tag = 'actransit'
         route_tag = '22'
-        test_url = nextbus.route_show(agency_tag, route_tag)
+        test_url = urls.route_show(agency_tag, route_tag)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=route_show.text,
@@ -81,7 +81,7 @@ class NextBusTestClient(utils.BaseTestClient):
     def test_stop_prediction_no_route(self):
         agency_tag = 'actransit'
         stop_id = '51303'
-        test_url = nextbus.stop_prediction(agency_tag, stop_id)
+        test_url = urls.stop_prediction(agency_tag, stop_id)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=stop_predictions.text,
@@ -100,8 +100,8 @@ class NextBusTestClient(utils.BaseTestClient):
         agency_tag = 'actransit'
         stop_id = '51303'
         route_tag = '22'
-        test_url = nextbus.stop_prediction(agency_tag, stop_id,
-                                           route_tags=route_tag)
+        test_url = urls.stop_prediction(agency_tag, stop_id,
+                                        route_tags=route_tag)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=stop_predictions_route.text,
@@ -121,8 +121,8 @@ class NextBusTestClient(utils.BaseTestClient):
         agency_tag = 'actransit'
         stop_id = '51303'
         route_tag = ['22']
-        test_url = nextbus.stop_prediction(agency_tag, stop_id,
-                                           route_tags=route_tag)
+        test_url = urls.stop_prediction(agency_tag, stop_id,
+                                        route_tags=route_tag)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=stop_predictions_route.text,
@@ -142,14 +142,14 @@ class NextBusTestClient(utils.BaseTestClient):
         agency_tag = 'actransit'
         stop_id = '51303'
         route_tags = ['22', '99']
-        test_url = nextbus.stop_prediction(agency_tag, stop_id,
-                                           route_tags=route_tags)
+        test_url = urls.stop_prediction(agency_tag, stop_id,
+                                        route_tags=route_tags)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=stop_predictions.text,
                                content_type='application/xml')
         preds = client.stop_prediction(agency_tag, stop_id,
-                                               route_tags=route_tags)
+                                       route_tags=route_tags)
         self.assertEqual(len(preds), 2)
         first_pred = preds[0]
         self.assert_all_variables(first_pred)
@@ -162,7 +162,7 @@ class NextBusTestClient(utils.BaseTestClient):
     def test_schedule(self):
         agency_tag = 'actransit'
         route_tag = '22'
-        test_url = nextbus.schedule_get(agency_tag, route_tag)
+        test_url = urls.schedule_get(agency_tag, route_tag)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=schedule_get.text,
@@ -178,7 +178,7 @@ class NextBusTestClient(utils.BaseTestClient):
         agency_tag = 'sf-muni'
         route_tag = 'N'
         epoch_time = '1144953500233'
-        test_url = nextbus.vehicle_location(agency_tag, route_tag, epoch_time)
+        test_url = urls.vehicle_location(agency_tag, route_tag, epoch_time)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=vehicle_locations.text,
@@ -192,7 +192,7 @@ class NextBusTestClient(utils.BaseTestClient):
         # Test with one arg
         agency_tag = 'sf-muni'
         route_tag = '38'
-        test_url = nextbus.message_get(agency_tag, route_tag)
+        test_url = urls.message_get(agency_tag, route_tag)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=message_get.text,
@@ -206,7 +206,7 @@ class NextBusTestClient(utils.BaseTestClient):
         # Test with mulitple args
         agency_tag = 'sf-muni'
         route_tags = ['38', '47']
-        test_url = nextbus.message_get(agency_tag, route_tags)
+        test_url = urls.message_get(agency_tag, route_tags)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=message_get_multi.text,
@@ -221,7 +221,7 @@ class NextBusTestClient(utils.BaseTestClient):
         # Test with one stop/route
         agency_tag = 'sf-muni'
         data = {'38' : ['13568']}
-        test_url = nextbus.multiple_stop_prediction(agency_tag, data)
+        test_url = urls.multiple_stop_prediction(agency_tag, data)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=multi_one.text,
@@ -237,7 +237,7 @@ class NextBusTestClient(utils.BaseTestClient):
         # Test with multiple stops on same route
         agency_tag = 'sf-muni'
         data = {'38' : ['13568', '13567']}
-        test_url = nextbus.multiple_stop_prediction(agency_tag, data)
+        test_url = urls.multiple_stop_prediction(agency_tag, data)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=multi_two.text,

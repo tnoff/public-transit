@@ -2,8 +2,7 @@ from datetime import datetime
 import httpretty
 
 from transit.client import bart as client
-from transit.urls import bart
-
+from transit.modules.bart import urls
 from tests import utils
 
 from tests.data.bart import bsa
@@ -24,7 +23,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
 
     @httpretty.activate
     def test_bsa(self):
-        test_url = bart.service_advisory()
+        test_url = urls.service_advisory()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=bsa.text,
@@ -39,7 +38,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
 
     @httpretty.activate
     def test_bsa_delay(self):
-        test_url = bart.service_advisory()
+        test_url = urls.service_advisory()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=bsa_no_delay.text,
@@ -55,7 +54,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
 
     @httpretty.activate
     def test_train_count(self):
-        test_url = bart.train_count()
+        test_url = urls.train_count()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=train_count.text,
@@ -65,7 +64,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
 
     @httpretty.activate
     def test_elevator_status(self):
-        test_url = bart.elevator_status()
+        test_url = urls.elevator_status()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=elevator.text,
@@ -78,7 +77,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     @httpretty.activate
     def test_estimated_departures(self):
         station = 'rich'
-        test_url = bart.estimated_departures(station)
+        test_url = urls.estimated_departures(station)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=estimates.text,
@@ -104,7 +103,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     @httpretty.activate
     def test_multiple_stations(self):
         station = 'all'
-        test_url = bart.estimated_departures(station)
+        test_url = urls.estimated_departures(station)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=estimate_all.text,
@@ -122,7 +121,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     @httpretty.activate
     def test_multiple_stations_custom(self):
         station = 'all'
-        test_url = bart.estimated_departures(station)
+        test_url = urls.estimated_departures(station)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=estimate_all.text,
@@ -149,7 +148,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     def test_current_route(self):
         # some args only in route info for scheduled routes
         route_skip = ['origin', 'destination', 'holidays', 'number_stations']
-        test_url = bart.route_list()
+        test_url = urls.route_list()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=current_routes.text,
@@ -161,7 +160,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     @httpretty.activate
     def test_route_info(self):
         route_number = 35
-        test_url = bart.route_show(route_number)
+        test_url = urls.route_show(route_number)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=route_info.text,
@@ -178,7 +177,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     @httpretty.activate
     def test_station_info(self):
         station_abbr = '24th'
-        test_url = bart.station_info(station_abbr)
+        test_url = urls.station_info(station_abbr)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=station_info.text,
@@ -189,7 +188,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     @httpretty.activate
     def test_station_access(self):
         station_abbr = '12th'
-        test_url = bart.station_access(station_abbr)
+        test_url = urls.station_access(station_abbr)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=station_access.text,
@@ -200,7 +199,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     @httpretty.activate
     def test_station_schedule(self):
         station_abbr = '12th'
-        test_url = bart.station_schedule(station_abbr)
+        test_url = urls.station_schedule(station_abbr)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=station_schedule.text,
@@ -213,7 +212,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
 
     @httpretty.activate
     def test_schedule(self):
-        test_url = bart.schedule_list()
+        test_url = urls.schedule_list()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=schedule_list.text,
@@ -227,7 +226,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     def test_schedule_fare(self):
         origin = '12th'
         dest = 'embr'
-        test_url = bart.schedule_fare(origin, dest)
+        test_url = urls.schedule_fare(origin, dest)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=schedule_fare.text,

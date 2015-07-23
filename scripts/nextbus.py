@@ -1,6 +1,6 @@
-'''CLI for Transit Client'''
+'''CLI for Nextbus Client'''
 from transit import client
-from transit.common import utils
+from transit.modules.nextbus import utils
 
 import argparse
 from prettytable import PrettyTable
@@ -24,12 +24,12 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     # Nextbus args
     agency = sub_parser.add_parser('agency', help='Agency commands')
     asp = agency.add_subparsers(help='Sub-command',
-                                                dest='subcommand')
+                                dest='subcommand')
     asp.add_parser('list', help='List agencies')
 
     route = sub_parser.add_parser('route', help='Route commands')
     rsp = route.add_subparsers(help='Sub-command',
-                                               dest='subcommand')
+                               dest='subcommand')
 
     rl = rsp.add_parser('list', help='List routes by agency')
     rl.add_argument('agency_tag', help='Agency tag')
@@ -41,10 +41,10 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
 
     stop = sub_parser.add_parser('stop', help='Stop commands')
     ssp = stop.add_subparsers(help='Sub-command',
-                                              dest='subcommand')
+                              dest='subcommand')
 
     stop_pred = ssp.add_parser('prediction',
-                                               help='Predict Stop Wait times')
+                               help='Predict Stop Wait times')
     stop_pred.add_argument('agency_tag', help='Agency tag')
     stop_pred.add_argument('stop_id', help='Stop ID')
     stop_pred.add_argument('--route-tags', nargs='+', help='Route Tag')
@@ -109,7 +109,7 @@ def stop_prediction(args):
             preds = []
             for pred in direction.predictions:
                 time = utils.pretty_time(pred.minutes,
-                                        (pred.seconds - (pred.minutes * 60)))
+                                         (pred.seconds - (pred.minutes * 60)))
                 preds.append('%s' % time)
             predictions = ', '.join(i for i in preds)
             table.add_row([route_string, predictions])

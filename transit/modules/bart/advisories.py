@@ -1,7 +1,6 @@
 from datetime import datetime
 
-from transit.urls import bart
-from transit.common import utils
+from transit.modules.bart import urls, utils
 
 class ServiceAdvisory(object):
     def __init__(self, bsa_data, encoding):
@@ -36,16 +35,16 @@ class ServiceAdvisory(object):
         return '%s - %s' % (self.station, self.description)
 
 def service_advisory():
-    url = bart.service_advisory()
+    url = urls.service_advisory()
     soup, encoding = utils.make_request(url)
     return [ServiceAdvisory(bsa, encoding) for bsa in soup.find_all('bsa')]
 
 def train_count():
-    url = bart.train_count()
+    url = urls.train_count()
     soup, encoding = utils.make_request(url)
     return int(soup.find('traincount').string.encode(encoding))
 
 def elevator_status():
-    url = bart.elevator_status()
+    url = urls.elevator_status()
     soup, encoding = utils.make_request(url)
     return ServiceAdvisory(soup.find('bsa'), encoding)

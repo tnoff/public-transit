@@ -1,5 +1,4 @@
-from transit.urls import nextbus
-from transit.common import utils
+from transit.modules.nextbus import urls, utils
 from transit.exceptions import TransitException
 
 class Stop(object):
@@ -96,7 +95,7 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
             route_tags = route_tags[0]
         else:
             tags = [i.lower() for i in route_tags]
-    url = nextbus.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
+    url = urls.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
     soup, encoding = utils.make_request(url)
     routes = []
     for i in soup.find_all('predictions'):
@@ -107,7 +106,7 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     return routes
 
 def multiple_stop_prediction(agency_tag, data):
-    url = nextbus.multiple_stop_prediction(agency_tag, data)
+    url = urls.multiple_stop_prediction(agency_tag, data)
     soup, encoding = utils.make_request(url)
     return [RoutePrediction(i, encoding) \
                             for i in soup.find_all('predictions')]

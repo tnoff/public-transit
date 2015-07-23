@@ -1,5 +1,4 @@
-from transit.urls import nextbus
-from transit.common import utils
+from transit.modules.nextbus import urls, utils
 
 from transit.modules.nextbus import route, schedule, stop, vehicle
 
@@ -15,8 +14,8 @@ class Agency(object):
     def route_get(self, route_tag):
         return route.route_get(self.tag, route_tag)
 
-    def stop_prediction(self, stop_id, route_tag=None):
-        return stop.stop_prediction(self.tag, stop_id, route_tag=route_tag)
+    def stop_prediction(self, stop_id, route_tags=None):
+        return stop.stop_prediction(self.tag, stop_id, route_tags=route_tags)
 
     def multiple_stop_prediction(self, stop_data):
         return stop.multiple_stop_prediction(self.tag, stop_data)
@@ -34,6 +33,6 @@ class Agency(object):
         return '%s - %s - %s' % (self.title, self.region, self.tag)
 
 def list_all():
-    url = nextbus.agency_list()
+    url = urls.agency_list()
     soup, encoding = utils.make_request(url)
     return [Agency(i, encoding) for i in soup.find_all('agency')]
