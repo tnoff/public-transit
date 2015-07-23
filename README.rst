@@ -63,5 +63,5 @@ CLI
 
 .. code::
 
-    transit nextbus agency list
-    transit bart service-advisory
+    nextbus agency list
+    bart service-advisory

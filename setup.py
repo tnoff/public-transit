@@ -16,9 +16,10 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts' : [
-            'transit = scripts.transit_tool:main',
+            'bart = scripts.bart:main',
+            'nextbus = scripts.nextbus:main',
         ]
     },
     packages=setuptools.find_packages(),
-    version='0.1.8',
+    version='0.1.9',
 )
