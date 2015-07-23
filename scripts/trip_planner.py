@@ -1,13 +1,44 @@
 '''Use CLI Tool To Configure Shortcuts For Common Routes'''
 
 import argparse
-import json
 import os
 from prettytable import PrettyTable
+from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm.exc import UnmappedInstanceError
 
 from transit import client
 from transit.common import utils
 from transit.exceptions import TransitException
+
+Base = declarative_base()
+
+class Leg(Base): #pylint:disable=no-init
+    __tablename__ = 'leg'
+    id = Column(Integer, primary_key=True)
+    agency = Column(String(128))
+    stop_id = Column(String(64))
+    stop_tag = Column(String(64))
+    stop_title = Column(String(128))
+
+class LegInclude(Base): #pylint:disable=no-init
+    __tablename__ = 'leg_include'
+    id = Column(Integer, primary_key=True)
+    leg_id = Column(Integer, ForeignKey('leg.id'))
+    tag = Column(String(64))
+
+class Trip(Base): #pylint:disable=no-init
+    __tablename__ = 'trip'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(128))
+
+class TripLeg(Base): #pylint:disable=no-init
+    __tablename__ = 'trip_leg'
+    id = Column(Integer, primary_key=True)
+    trip_id = Column(Integer, ForeignKey('trip.id'))
+    leg_id = Column(Integer, ForeignKey('leg.id'))
 
 FUNCTION_MAPPING = {
     'leg' : {
@@ -35,14 +66,6 @@ def __create_directory(path):
         else:
             raise OSError(e)
 
-def __ensure_directory(module):
-    __create_directory(HOME_PATH)
-    __create_directory(HOME_PATH + '/%s' % module)
-    return os.listdir(HOME_PATH + '/%s' % module)
-
-def __build_path(module, number):
-    return HOME_PATH + '/%s/%s' % (module, number)
-
 def parse_args():
     p = argparse.ArgumentParser(description='Trip Planner')
 
@@ -50,15 +73,15 @@ def parse_args():
 
     leg = subparsers.add_parser('leg', help='Lget of a trip')
     leg_parsers = leg.add_subparsers(dest='command',
-                                       help='Command')
+                                     help='Command')
     leg_createy = leg_parsers.add_parser('create',
-                                           help='Create leg')
+                                         help='Create leg')
     leg_createy.add_argument('agency_tag',
                              help='actransit, bart, sf-muni, etc..')
     leg_createy.add_argument('stop_id',
-                              help='ID of stop or station abbreviation')
+                             help='ID of stop or station abbreviation')
     leg_createy.add_argument('--include', nargs='+',
-                              help='Include destination or route tag')
+                             help='Include destination or route tag')
     leg_parsers.add_parser('list', help='List legs')
     leg_deletey = leg_parsers.add_parser('delete', help='Delete Leg')
     leg_deletey.add_argument('id', type=int, help='Leg ID number')
@@ -70,21 +93,13 @@ def parse_args():
     trips_parsers.add_parser('list', help='List trips')
     trips_createy = trips_parsers.add_parser('create', help='Create trip')
     trips_createy.add_argument('name', help='Trip Name')
-    trips_createy.add_argument('id', type=int, nargs='+', help='Leg IDs')
+    trips_createy.add_argument('leg_id', type=int, nargs='+', help='Leg IDs')
     trips_showy = trips_parsers.add_parser('show', help='Show trip')
     trips_showy.add_argument('id', help='Trip ID')
     trips_deletey = trips_parsers.add_parser('delete', help='Delete trip')
     trips_deletey.add_argument('id', help='Trip ID')
 
     return p.parse_args()
-
-def __write_json(path, data):
-    with open(path, 'w') as f:
-        f.write(json.dumps(data, indent=4))
-
-def __read_json(path):
-    with open(path, 'r') as r:
-        return json.loads(r.read())
 
 def __validate_bart_station(stop_tag):
     # you can check the station list fairly quickly, since its hardcoded
@@ -125,7 +140,7 @@ def __validate_nextbus_stop(agency_tag, stop_id):
     route_tags = [i.route_tag for i in predictions]
     return stop_tag, stop_title, route_tags
 
-def leg_create(args):
+def leg_create(args, db_session):
     if args.agency_tag.lower() == 'bart':
         __validate_bart_station(args.stop_id)
         stop_tag = None
@@ -133,7 +148,7 @@ def leg_create(args):
         stop_title = client.bart.station_list()[args.stop_id.lower()]
     else:
         stop_tag, stop_title, route_tags = __validate_nextbus_stop(args.agency_tag,
-                                                       args.stop_id)
+                                                                   args.stop_id)
         # if nextbus, if no args.include given, default to route tags
         # .. this is for http speed up logic later
         if args.include:
@@ -141,47 +156,49 @@ def leg_create(args):
         else:
             print 'No route tags given, so defaulting to:%s' % \
                 ', '.join(i for i in route_tags)
-    # should be good from here, add to rest
-    files = __ensure_directory('legs')
-    try:
-        new_number = max([int(i) for i in files]) + 1
-    except ValueError:
-        new_number = 0
-    data = {
-        'id' : new_number,
-        'agency' :  args.agency_tag,
-        'stop_id' : args.stop_id,
-        'include' : route_tags,
-        'stop_tag' : stop_tag,
-        'stop_title' : stop_title,
-    }
-    __write_json(__build_path('legs', new_number), data)
-    print 'Created leg:', new_number
+    new_leg = Leg(stop_id=args.stop_id,
+                  stop_tag=stop_tag,
+                  stop_title=stop_title,
+                  agency=args.agency_tag.lower(),)
+    db_session.add(new_leg)
+    db_session.commit()
 
-def leg_list(_):
-    files = __ensure_directory('legs')
+    if route_tags is None:
+        route_tags = []
+    for tag in route_tags:
+        leg_include = LegInclude(leg_id=new_leg.id,
+                                 tag=tag)
+        db_session.add(leg_include)
+    db_session.commit()
+    print 'Created leg:', new_leg.id
+
+def leg_list(_, db_session):
     table = PrettyTable(["Leg ID", "Agency", "Stop ID", "Stop Tag", "Stop Title",
                          "Routes/Directions"])
     table_data = []
-    for f in files:
-        data = __read_json(__build_path('legs', f))
-        try:
-            include_data = ', '.join(i for i in data['include'])
-        except TypeError:
-            include_data = ''
-        table_data.append([data['id'], data['agency'], data['stop_id'],
-                           data['stop_tag'], data['stop_title'], include_data])
+    for leg in db_session.query(Leg):
+        data = [leg.id, leg.agency, leg.stop_id, leg.stop_tag, leg.stop_title]
+        leg_includes = db_session.query(LegInclude).filter_by(leg_id=leg.id)
+        routes = ', '.join(i.tag for i in leg_includes)
+        data.append(routes)
+        table_data.append(data)
     table_data.sort(key=lambda x: x[0])
     for row in table_data:
         table.add_row(row)
     print table
 
-def leg_delete(args):
-    files = __ensure_directory('legs')
-    if args.id not in [int(i) for i in files]:
-        raise TransitException("Invalid Leg ID:%s" % args.id)
-    os.remove(__build_path('legs', args.id))
-    print 'Deleted Leg:', args.id
+def leg_delete(args, db_session):
+    leg = db_session.query(Leg).get(args.id)
+    try:
+        db_session.delete(leg)
+        db_session.commit()
+        print 'Deleted Leg:', args.id
+    except UnmappedInstanceError:
+        print 'Cannot delete leg:%s' % args.id
+
+    for includes in db_session.query(LegInclude).filter_by(leg_id=args.id):
+        db_session.delete(includes)
+    db_session.commit()
 
 def __show_bart_leg(estimations):
     table = PrettyTable(["Station", "Direction", "Estimates(minutes)"])
@@ -206,75 +223,69 @@ def __show_nextbus_leg(estimations):
             table.add_row(data)
     print table
 
-def leg_show(args):
-    files = __ensure_directory('legs')
-    if args.id not in [int(i) for i in files]:
-        raise TransitException("Invalid Leg ID:%s" % args.id)
-    data = __read_json(__build_path('legs', args.id))
-    print 'Agency:', data['agency']
-    print 'Stop ID:', data['stop_id']
-    if data['agency'] == 'bart':
-        estimations = client.bart.station_departures(data['stop_id'],
-                                                     destinations=data['include'])
+def leg_show(args, db_session):
+    try:
+        leg = db_session.query(Leg).get(args.id)
+    except UnmappedInstanceError:
+        print 'Cannot find leg:%s' % args.id
+        return
+    print 'Agency:', leg.agency
+    print 'Stop ID:', leg.stop_id
+    tags = [i.tag for i in db_session.query(LegInclude).filter_by(leg_id=args.id)]
+    if leg.agency == 'bart':
+        estimations = client.bart.station_departures(leg.stop_id,
+                                                     destinations=tags,)
         __show_bart_leg(estimations)
     else:
-        estimations = client.nextbus.stop_prediction(data['agency'],
-                                                     data['stop_id'],
-                                                     data['include'],)
+        estimations = client.nextbus.stop_prediction(leg.agency,
+                                                     leg.stop_id,
+                                                     tags,)
         __show_nextbus_leg(estimations)
 
-def trip_create(args):
-    files = __ensure_directory('trips')
-    if args.name.lower() in [i.lower() for i in files]:
-        raise TransitException("Invalid name, already in use:%s" % args.name)
-    trip_ids = []
-    for f in files:
-        data = __read_json(__build_path('trips', f))
-        trip_ids.append(data['id'])
-    try:
-        max_id = max(trip_ids)
-    except ValueError:
-        max_id = -1
-    valid_legs = [int(i) for i in __ensure_directory('legs')]
-    for leg in args.id:
-        if leg not in valid_legs:
-            raise TransitException("Leg cannot be found:%s" % leg)
-    data = {
-        'id' : max_id + 1,
-        'name' : args.name,
-        'legs' : args.id,
-    }
-    __write_json(__build_path('trips', data['id']), data)
-    print 'Trip Created:', args.name
+def trip_create(args, db_session):
+    new_trip = Trip(name=args.name)
+    db_session.add(new_trip)
+    db_session.commit()
 
-def trip_list(_):
-    files = __ensure_directory('trips')
+    for leg in args.leg_id:
+        new_leg = TripLeg(trip_id=new_trip.id,
+                          leg_id=leg)
+        db_session.add(new_leg)
+    db_session.commit()
+    print 'Trip Created:', new_trip.id
+
+def trip_list(_, db_session):
     table = PrettyTable(["ID", "Name", "Legs"])
-    for f in files:
-        data = __read_json(__build_path('trips', f))
-        table.add_row([data['id'],
-                       data['name'],
-                       ','.join('%s' % i for i in data['legs'])])
+    data = []
+    for trip in db_session.query(Trip):
+        legs = db_session.query(TripLeg).filter_by(trip_id=trip.id)
+        data.append([trip.id,
+                     trip.name,
+                     ', '.join('%d' % i.leg_id for i in legs)])
+    data.sort(key=lambda x: x[0])
+    for row in data:
+        table.add_row(row)
     print table
 
-def trip_show(args):
-    files = __ensure_directory('trips')
-    if args.id not in [i for i in files]:
-        raise TransitException("Invalid name, cannot find:%s" % args.id)
-    trip_data = __read_json(__build_path('trips', args.id))
-
+def trip_show(args, db_session):
     nextbus_leg_data = {}
     station_data = {}
-    for leg in trip_data['legs']:
-        leg_data = __read_json(__build_path('legs', leg))
-        if leg_data['agency'] == 'bart':
-            station_data[leg_data['stop_id']] = leg_data['include']
+    try:
+        legs = db_session.query(TripLeg).filter_by(trip_id=args.id)
+    except UnmappedInstanceError:
+        print 'Cannot find legs for trip:%s' % args.id
+        return
+    for leg in legs:
+        leg = db_session.query(Leg).get(leg.leg_id)
+        tags = [i.tag for i in db_session.query(LegInclude).filter_by(leg_id=leg.id)]
+        if leg.agency == 'bart':
+            station_data[leg.stop_id] = tags
         else:
-            nextbus_leg_data.setdefault(leg_data['agency'], {})
-            agency_data = nextbus_leg_data[leg_data['agency']]
-            for route in leg_data['include']:
-                agency_data.setdefault(route, [])
-                agency_data[route].append(leg_data['stop_tag'])
+            nextbus_leg_data.setdefault(leg.agency, {})
+            agency_data = nextbus_leg_data[leg.agency]
+            for route in tags:
+                agency_data.setdefault(route, set([]))
+                agency_data[route].add(leg.stop_tag)
     if station_data:
         print 'Bart data'
         estimates = client.bart.multiple_station_departures(station_data)
@@ -285,14 +296,25 @@ def trip_show(args):
                                                              data)
         __show_nextbus_leg(estimates)
 
-def trip_delete(args):
-    files = __ensure_directory('trips')
-    if args.id not in [i for i in files]:
-        raise TransitException("Invalid name, cannot find:%s" % args.id)
-    os.remove(__build_path('trips', args.id))
+def trip_delete(args, db_session):
+    try:
+        trip = db_session.query(Trip).get(args.id)
+        db_session.delete(trip)
+        db_session.commit()
+    except UnmappedInstanceError:
+        print 'Cannot delete trip:%s' % args.id
+        return
+    for leg in db_session.query(TripLeg).filter_by(trip_id=args.id):
+        db_session.delete(leg)
+    db_session.commit()
     print 'Deleted trip:%s' % args.id
 
 def main():
     args = parse_args()
+    __create_directory(HOME_PATH)
+    engine = create_engine('sqlite:///' + HOME_PATH + '/sqlite.sql')
+    Base.metadata.create_all(engine)
+    Base.metadata.bind = engine
+    db_session = sessionmaker(bind=engine)()
     method = globals()[FUNCTION_MAPPING[args.module][args.command]]
-    method(args)
+    method(args, db_session)

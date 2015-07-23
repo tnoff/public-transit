@@ -174,8 +174,6 @@ class Estimate(object):
 
 class DirectionEstimates(object):
     def __init__(self, data, encoding, destinations):
-        self.name = utils.pretty_strip(data.find('destination'),
-                                                         encoding)
         self.abbreviation = utils.pretty_strip(data.find('abbreviation'),
                                                encoding)
         # if destinations given, check here if valid
@@ -183,6 +181,8 @@ class DirectionEstimates(object):
         if destinations:
             if self.abbreviation.lower() not in destinations:
                 raise TransitException("Not valid destination:%s" % self.abbreviation)
+        self.name = utils.pretty_strip(data.find('destination'),
+                                       encoding)
         self.estimates = \
             [Estimate(i, encoding) for i in data.find_all('estimate')]
 
