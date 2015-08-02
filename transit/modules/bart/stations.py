@@ -3,6 +3,9 @@ from datetime import datetime
 from transit.modules.bart import urls, utils
 from transit.exceptions import TransitException
 
+# bart doesnt have a way to call this easily that I can find
+# .. the one on their official website didnt include the new(-ish) station
+# .. at Oakland Airport, so I assume it isnt maintained
 STATION_MAPPING = {
     "12th" : "12th St. Oakland City Center",
     "16th" : "16th St. Mission (SF)",
