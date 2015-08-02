@@ -89,9 +89,16 @@ def leg_list(_, trip_planner):
 def __nice_predictions(predictions):
     preds = []
     for pred in predictions:
-        minute = pred.minutes
-        seconds = pred.seconds - (minute * 60)
-        preds.append('%s:%s' % (minute, seconds))
+        m = ''
+        if pred.minutes < 10:
+            m += '0'
+        m += '%d' % pred.minutes
+        seconds = pred.seconds - (pred.minutes * 60)
+        s = ''
+        if seconds < 10:
+            s += '0'
+        s += '%d' % seconds
+        preds.append('%s:%s' % (m, s))
     return ', '.join(i for i in preds)
 
 def __bart_leg(estimates):
@@ -118,6 +125,7 @@ def leg_show(args, trip_planner):
         agency, estimations = trip_planner.leg_show(args.id) #pylint: disable=unpacking-non-sequence
     except TransitException as e:
         print 'ERROR:', str(e)
+        return
     if agency == 'bart':
         table = __bart_leg(estimations)
     else:
@@ -125,15 +133,16 @@ def leg_show(args, trip_planner):
     print table
 
 def leg_delete(args, trip_planner):
-    deleted = trip_planner.leg_delete(args.id)
-    if deleted:
-        print 'Deleted leg id:%s' % args.id
-    else:
-        print 'Unable to delete leg:%s' % args.id
+    try:
+        deleted = trip_planner.leg_delete(args.id)
+        if deleted:
+            print 'Deleted leg id:%s' % args.id
+    except TransitException as t:
+        print '%s' % t
 
 def trip_create(args, trip_planner):
     new_trip = trip_planner.trip_create(args.name, args.leg)
-    print 'Trip created:%s', new_trip.id
+    print 'Trip created:%s' % new_trip.id
 
 def trip_list(_, trip_planner):
     trips = trip_planner.trip_list()
@@ -144,14 +153,19 @@ def trip_list(_, trip_planner):
     print table
 
 def trip_delete(args, trip_planner):
-    deleted = trip_planner.trip_delete(args.id)
-    if deleted:
-        print 'Deleted trip id:%s' % args.id
-    else:
-        print 'Unable to delete trip id:%s' % args.id
+    try:
+        deleted = trip_planner.trip_delete(args.id)
+        if deleted:
+            print 'Deleted trip id:%s' % args.id
+    except TransitException as t:
+        print '%s' % t
 
 def trip_show(args, trip_planner):
-    trip_data = trip_planner.trip_show(args.id)
+    try:
+        trip_data = trip_planner.trip_show(args.id)
+    except TransitException as t:
+        print '%s' % t
+        return
     if trip_data['bart']:
         print 'Bart'
         print __bart_leg(trip_data['bart'])
@@ -162,7 +176,7 @@ def trip_show(args, trip_planner):
 def main():
     args = parse_args()
     __create_directory(HOME_PATH)
-    engine = create_engine('sqlite:///' + HOME_PATH + '/sqlite.sql')
+    engine = create_engine('sqlite:///' + HOME_PATH + '/trip_db.sql')
     planner = TripPlanner(engine)
     method = globals()[FUNCTION_MAPPING[args.module][args.command]]
     method(args, planner)
