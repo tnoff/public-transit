@@ -1,27 +1,28 @@
-from datetime import datetime
-
+from transit.common import utils as common_utils
 from transit.modules.bart import urls, utils
 
 class Schedule(object):
     def __init__(self, schedule_data, encoding):
-        self.id = schedule_data.get('id').encode(encoding)
-        effective_date = schedule_data.get('effectivedate').encode(encoding)
-        self.effective_date = datetime.strptime(effective_date,
-                                                "%m/%d/%Y %I:%M %p")
+        self.id = common_utils.parse_data(schedule_data, 'id', encoding)
+        self.effective_date = common_utils.parse_data(schedule_data,
+                                                      'effectivedate', encoding,
+                                                      datetime_format='%m/%d/%Y %I:%M %p')
     def __repr__(self):
         return '%s - %s' % (self.id, self.effective_date)
 
 class ScheduleFare(object):
     def __init__(self, data, encoding):
-        self.origin = utils.pretty_strip(data.find('origin'), encoding)
-        self.destination = utils.pretty_strip(data.find('destination'),
-                                              encoding)
-        self.schedule_number = int(utils.pretty_strip(data.find('sched_num'),
-                                                      encoding))
+        self.origin = common_utils.parse_data(data, 'origin', encoding)
+        self.destination = common_utils.parse_data(data, 'destination', encoding)
+        self.schedule_number = common_utils.parse_data(data, 'sched_num', encoding)
+
         trip_data = data.find('trip')
-        self.fare = utils.pretty_strip(trip_data.find('fare'), encoding)
-        self.discount = utils.pretty_strip(trip_data.find('discount').find('clipper'),
-                                           encoding)
+
+        self.fare = common_utils.parse_data(trip_data, 'fare', encoding)
+
+        discount = trip_data.find('discount')
+
+        self.discount = common_utils.parse_data(discount, 'clipper', encoding)
     def __repr__(self):
         return '%s' % self.fare
 

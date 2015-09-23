@@ -1,6 +1,6 @@
 '''CLI for Nextbus Client'''
 from transit.modules.nextbus import client
-from transit.modules.nextbus import utils
+from transit.common import utils
 
 import argparse
 from prettytable import PrettyTable

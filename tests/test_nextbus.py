@@ -1,6 +1,7 @@
+from datetime import datetime
 import httpretty
 
-from transit.client import nextbus as client
+from transit.modules.nextbus import client
 from transit.exceptions import TransitException
 from transit.modules.nextbus import urls
 from transit.modules.nextbus import utils as common_utils
@@ -67,9 +68,11 @@ class NextBusTestClient(utils.BaseTestClient):
                                content_type='application/xml')
         r = client.route_get(agency_tag, route_tag)
         self.assert_all_variables(r)
+        self.assertTrue(isinstance(r.longitude_min, float))
         stop = r.stops[0]
         self.assert_all_variables(stop, skip=['short_title'])
         direction = r.directions[0]
+        self.assertTrue(isinstance(direction.use_for_ui, bool))
         self.assert_all_variables(direction)
         tag = direction.stop_tags[0]
         self.assertTrue(isinstance(tag, str))
@@ -93,6 +96,8 @@ class NextBusTestClient(utils.BaseTestClient):
         direction = first_pred.directions[0]
         self.assert_all_variables(direction)
         pred = direction.predictions[0]
+        self.assertTrue(isinstance(pred.seconds, int))
+        self.assertTrue(isinstance(pred.minutes, int))
         self.assert_all_variables(pred)
 
     @httpretty.activate
@@ -156,6 +161,8 @@ class NextBusTestClient(utils.BaseTestClient):
         direction = first_pred.directions[0]
         self.assert_all_variables(direction)
         pred = direction.predictions[0]
+        self.assertTrue(isinstance(pred.minutes, int))
+        self.assertTrue(isinstance(pred.seconds, int))
         self.assert_all_variables(pred)
 
     @httpretty.activate
@@ -199,6 +206,8 @@ class NextBusTestClient(utils.BaseTestClient):
                                content_type='application/xml')
         routes = client.message_get(agency_tag, route_tag)
         first_route = routes[0]
+        first_message = first_route.messages[1]
+        self.assertTrue(isinstance(first_message.start_boundary, datetime))
         self.assert_all_variables(first_route, skip=['agency_tag'])
 
     @httpretty.activate

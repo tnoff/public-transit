@@ -1,14 +1,17 @@
 from datetime import datetime
 
+from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 
 class ScheduleRoute(object):
     def __init__(self, data, encoding):
-        self.tag = data.get('tag').encode(encoding)
-        self.title = data.get('title').encode(encoding)
-        self.schedule_class = data.get('scheduleclass').encode(encoding)
-        self.service_class = data.get('serviceclass').encode(encoding)
-        self.direction = data.get('direction').encode(encoding)
+        self.tag = common_utils.parse_data(data, 'tag', encoding)
+        self.title = common_utils.parse_data(data, 'title', encoding)
+        self.schedule_class = common_utils.parse_data(data, 'scheduleclass',
+                                                      encoding)
+        self.service_class = common_utils.parse_data(data, 'serviceclass',
+                                                     encoding)
+        self.direction = common_utils.parse_data(data, 'direction', encoding)
         self.blocks = []
 
         # titles are put in the header for some reason
@@ -16,8 +19,8 @@ class ScheduleRoute(object):
         title_data = dict()
         header = data.find('header')
         for new_stop in header.find_all('stop'):
-            title_data[new_stop.get('tag').encode(encoding)] = \
-                new_stop.contents[0].encode(encoding)
+            title_tag = common_utils.parse_data(new_stop, 'tag', encoding)
+            title_data[title_tag] = new_stop.contents[0].encode(encoding)
         # Then find all blocks and add them in
         self.blocks = [ScheduleBlock(i, encoding, title_data) \
             for i in data.find_all('tr')]
@@ -27,7 +30,7 @@ class ScheduleRoute(object):
 
 class ScheduleBlock(object):
     def __init__(self, block_data, encoding, title_data):
-        self.block_id = block_data.get('blockid').encode(encoding)
+        self.block_id = common_utils.parse_data(block_data, 'blockid', encoding)
         self.stop_schedules = []
         for new_stop in block_data.find_all('stop'):
             ss = StopSchedule(new_stop, encoding)
@@ -39,10 +42,10 @@ class ScheduleBlock(object):
 
 class StopSchedule(object):
     def __init__(self, stop_data, encoding, title=None):
-        self.stop_tag = stop_data.get('tag').encode(encoding)
-        self.epoch_time = stop_data.get("epochtime").encode(encoding)
-        time_data = stop_data.contents[0].encode(encoding)
+        self.stop_tag = common_utils.parse_data(stop_data, 'tag', encoding)
+        self.epoch_time = common_utils.parse_data(stop_data, 'epochtime', encoding)
         self.title = title
+        time_data = stop_data.contents[0].encode(encoding)
         if time_data == "--":
             self.time = None
         else:

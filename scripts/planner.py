@@ -5,6 +5,7 @@ import os
 from prettytable import PrettyTable
 from sqlalchemy import create_engine
 
+from transit.common import utils as common_utils
 from transit.exceptions import TransitException
 from trip_planner.client import TripPlanner
 
@@ -89,16 +90,9 @@ def leg_list(_, trip_planner):
 def __nice_predictions(predictions):
     preds = []
     for pred in predictions:
-        m = ''
-        if pred.minutes < 10:
-            m += '0'
-        m += '%d' % pred.minutes
         seconds = pred.seconds - (pred.minutes * 60)
-        s = ''
-        if seconds < 10:
-            s += '0'
-        s += '%d' % seconds
-        preds.append('%s:%s' % (m, s))
+        t = common_utils.pretty_time(pred.minutes, seconds)
+        preds.append(t)
     return ', '.join(i for i in preds)
 
 def __bart_leg(estimates):

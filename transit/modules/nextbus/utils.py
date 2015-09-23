@@ -4,7 +4,6 @@ import requests
 from transit.exceptions import TransitException
 
 def make_request(url, markup="html.parser"):
-    '''Check return 200 and not error'''
     headers = {'accept-encoding' : 'gzip, deflate'}
     r = requests.get(url, headers=headers)
 
@@ -25,13 +24,3 @@ def make_request(url, markup="html.parser"):
         error_string = error.string
         raise TransitException("URL:%s returned error:%s" % (url, error_string))
     return soup, encoding
-
-def pretty_time(minutes, seconds):
-    s = ''
-    if minutes < 10:
-        s += '0'
-    s += '%s:' % minutes
-    if seconds < 10:
-        s += '0'
-    s += '%s' % seconds
-    return s

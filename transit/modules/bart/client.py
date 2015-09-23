@@ -25,13 +25,13 @@ def route_list(schedule=None, date=None):
     '''
     return route_client.route_list(schedule=schedule, date=date)
 
-def route_show(route_number, schedule=None, date=None):
+def route_info(route_number, schedule=None, date=None):
     '''Show information for specific route
        route_number: number of route to show
        schedule: schedule number
        date: mm/dd/yyyy format
     '''
-    return route_client.route_show(route_number, schedule=schedule,
+    return route_client.route_info(route_number, schedule=schedule,
                                    date=date)
 
 def station_list():

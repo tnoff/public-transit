@@ -18,7 +18,7 @@ def route_list(key=default_key, schedule=None, date=None):
         url += '&date=%s' % date
     return url
 
-def route_show(route_number, schedule=None, date=None, key=default_key):
+def route_info(route_number, schedule=None, date=None, key=default_key):
     url = main_url + 'route.aspx?cmd=routeinfo&route=%s&key=%s' % \
         (route_number, key)
     if schedule:

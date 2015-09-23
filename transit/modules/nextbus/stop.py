@@ -1,17 +1,15 @@
+from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 from transit.exceptions import TransitException
 
 class Stop(object):
     def __init__(self, data, encoding):
-        self.tag = data.get('tag').encode(encoding)
-        self.title = data.get('title').encode(encoding)
-        self.latitude = float(data.get('lat').encode(encoding))
-        self.longitude = float(data.get('lon').encode(encoding))
-        self.stop_id = int(data.get('stopid').encode(encoding))
-        try:
-            self.short_title = data.get('shorttitle').encode(encoding)
-        except AttributeError:
-            self.short_title = None
+        self.tag = common_utils.parse_data(data, 'tag', encoding)
+        self.title = common_utils.parse_data(data, 'title', encoding)
+        self.latitude = common_utils.parse_data(data, 'lat', encoding)
+        self.longitude = common_utils.parse_data(data, 'lon', encoding)
+        self.stop_id = common_utils.parse_data(data, 'stopid', encoding)
+        self.short_title = common_utils.parse_data(data, 'shortttile', encoding)
 
     def __repr__(self):
         return '%s - %s' % (self.tag, self.title)
@@ -19,25 +17,30 @@ class Stop(object):
 
 class Point(object):
     def __init__(self, point_data, encoding):
-        self.latitude = float(point_data.get('lat').encode(encoding))
-        self.longitude = float(point_data.get('lon').encode(encoding))
+        self.latitude = common_utils.parse_data(point_data, 'lat', encoding)
+        self.longitude = common_utils.parse_data(point_data, 'lon', encoding)
 
     def __repr__(self):
         return '%s lat- %s lon' % (self.latitude, self.longitude)
 
+
 class RoutePrediction(object):
     def __init__(self, route_data, encoding, route_tags=None):
-        self.route_tag = route_data.get('routetag').encode(encoding)
+        self.route_tag = common_utils.parse_data(route_data, 'routetag', encoding)
+        # Raise exception here for multiple stop excludes
+        # .. that way you dont get a bunch of data you dont care about
         if route_tags:
-            if self.route_tag.lower() not in route_tags:
+            if str(self.route_tag).lower() not in route_tags:
                 raise TransitException("Tag not allowed:%s" % self.route_tag)
-        self.agency_title = route_data.get('agencytitle').encode(encoding)
-        self.route_title = route_data.get('routetitle').encode(encoding)
-        self.stop_title = route_data.get('stoptitle').encode(encoding)
+        self.agency_title = common_utils.parse_data(route_data, 'agencytitle',
+                                                    encoding)
+        self.route_title = common_utils.parse_data(route_data, 'routetitle',
+                                                   encoding)
+        self.stop_title = common_utils.parse_data(route_data, 'stoptitle',
+                                                  encoding)
         self.directions = []
         self.messages = []
 
-        #route_pred = RoutePrediction(new_route, encoding)
         # All directions in route
         self.directions = [RouteDirectionPrediction(i, encoding) \
             for i in route_data.find_all('direction')]
@@ -50,7 +53,7 @@ class RoutePrediction(object):
 
 class RouteDirectionPrediction(object):
     def __init__(self, direction_data, encoding):
-        self.title = direction_data.get('title').encode(encoding)
+        self.title = common_utils.parse_data(direction_data, 'title', encoding)
         self.predictions = []
         # Find all predictions in direction
         for pred in direction_data.find_all('prediction'):
@@ -61,26 +64,23 @@ class RouteDirectionPrediction(object):
 
 class RouteStopPrediction(object): #pylint: disable=too-many-instance-attributes
     def __init__(self, data, encoding):
-        self.seconds = int(data.get('seconds').encode(encoding))
-        self.minutes = int(data.get('minutes').encode(encoding))
-        self.epochtime = int(data.get('epochtime').encode(encoding))
-        self.trip_tag = data.get('triptag').encode(encoding)
-        self.vehicle = data.get('vehicle').encode(encoding)
-        self.block = data.get('block').encode(encoding)
-        self.dir_tag = data.get('dirtag').encode(encoding)
-        self.is_departure = False
-        if data.get('isdeparture').encode(encoding) == 'true':
-            self.is_departure = True
-        self.affected_by_layover = False
-        try:
-            if data.get('affectedbylayover').encode(encoding) == 'true':
-                self.affected_by_layover = True
-        except AttributeError:
-            # data not present
-            pass
+        self.seconds = common_utils.parse_data(data, 'seconds', encoding)
+        self.minutes = common_utils.parse_data(data, 'minutes', encoding)
+        self.epoch_time = common_utils.parse_data(data, 'epochtime', encoding)
+        self.trip_tag = common_utils.parse_data(data, 'triptag', encoding)
+        self.vehicle = common_utils.parse_data(data, 'vehicle', encoding)
+        self.block = common_utils.parse_data(data, 'block', encoding)
+        self.dir_tag = common_utils.parse_data(data, 'dirtag', encoding)
+        self.is_departure = common_utils.parse_data(data, 'isdeparture', encoding)
+        self.affected_by_layover = common_utils.parse_data(data,
+                                                           'affectedbylayover',
+                                                           encoding)
+        # this is not listed if false sometimes
+        if not self.affected_by_layover:
+            self.affected_by_layover = False
 
     def __repr__(self):
-        time = utils.pretty_time(self.minutes, self.seconds)
+        time = common_utils.pretty_time(self.minutes, self.seconds)
         return '%s - %s' % (time, self.vehicle)
 
 def stop_prediction(agency_tag, stop_id, route_tags=None):
@@ -95,6 +95,7 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
             route_tags = route_tags[0]
         else:
             tags = [i.lower() for i in route_tags]
+
     url = urls.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
     soup, encoding = utils.make_request(url)
     routes = []

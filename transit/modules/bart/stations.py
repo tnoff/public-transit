@@ -1,7 +1,8 @@
-from datetime import datetime
-
+from transit.common import utils as common_utils
 from transit.modules.bart import urls, utils
 from transit.exceptions import TransitException
+
+datetime_format = '%I:%M %p'
 
 # bart doesnt have a way to call this easily that I can find
 # .. the one on their official website didnt include the new(-ish) station
@@ -59,10 +60,8 @@ STATION_MAPPING = {
 
 class StationBase(object):
     def __init__(self, data, encoding):
-        self.name = utils.pretty_strip(data.find('name'),
-                                       encoding)
-        self.abbreviation = utils.pretty_strip(data.find('abbr'),
-                                               encoding)
+        self.name = common_utils.parse_data(data, 'name', encoding)
+        self.abbreviation = common_utils.parse_data(data, 'abbr', encoding)
 
     def station_info(self):
         return station_info(self.abbreviation)
@@ -84,107 +83,88 @@ class StationBase(object):
 class StationInfo(StationBase): #pylint: disable=too-many-instance-attributes
     def __init__(self, data, encoding):
         StationBase.__init__(self, data, encoding)
-        self.gtfs_latitude = float(utils.pretty_strip(data.find('gtfs_latitude'),
-                                                      encoding))
-        self.gtfs_longitude = float(utils.pretty_strip(data.find('gtfs_longitude'),
-                                                       encoding))
-        self.address = utils.pretty_strip(data.find('address'), encoding)
-        self.city = utils.pretty_strip(data.find('county'), encoding)
-        self.county = utils.pretty_strip(data.find('county'), encoding)
-        self.state = utils.pretty_strip(data.find('state'), encoding)
-        self.zipcode = utils.pretty_strip(data.find('zipcode'),
-                                          encoding)
-        self.platform_info = utils.pretty_strip(data.find('platform_info'),
-                                                encoding)
-        self.intro = utils.pretty_strip(data.find('intro'), encoding)
-        self.cross_street = utils.pretty_strip(data.find('cross_street'),
-                                               encoding)
-        self.food = utils.pretty_strip(data.find('food'), encoding)
-        self.shopping = utils.pretty_strip(data.find('shopping'),
-                                           encoding)
-        self.attraction = utils.pretty_strip(data.find('attraction'),
-                                             encoding)
-        self.link = utils.pretty_strip(data.find('link'), encoding)
+        self.gtfs_latitude = common_utils.parse_data(data, 'gtfs_latitude', encoding)
+        self.gtfs_longitude = common_utils.parse_data(data, 'gtfs_longitude', encoding)
+        self.address = common_utils.parse_data(data, 'address', encoding)
+        self.city = common_utils.parse_data(data, 'city', encoding)
+        self.county = common_utils.parse_data(data, 'county', encoding)
+        self.state = common_utils.parse_data(data, 'state', encoding)
+        self.zipcode = common_utils.parse_data(data, 'zipcode', encoding)
+        self.platform_info = common_utils.parse_data(data, 'platform_info', encoding)
+        self.intro = common_utils.parse_data(data, 'intro', encoding)
+        self.cross_street = common_utils.parse_data(data, 'cross_street', encoding)
+        self.food = common_utils.parse_data(data, 'food', encoding)
+        self.shopping = common_utils.parse_data(data, 'shopping', encoding)
+        self.attraction = common_utils.parse_data(data, 'attraction', encoding)
+        self.link = common_utils.parse_data(data, 'link', encoding)
 
         self.north_routes = []
         north_routes = data.find('north_routes')
         for route in north_routes.find_all('route'):
-            route_string = utils.pretty_strip(route, encoding)
-            self.north_routes.append(int(route_string.replace('ROUTE', '')))
+            route_string = route.contents[0].encode(encoding)
+            self.north_routes.append(int(route_string.replace('ROUTE ', '')))
 
         self.south_routes = []
         south_routes = data.find('south_routes')
         for route in south_routes.find_all('route'):
-            route_string = utils.pretty_strip(route, encoding)
+            route_string = route.contents[0].encode(encoding)
             self.south_routes.append(int(route_string.replace('ROUTE', '')))
 
         north_platforms = data.find('north_platforms')
         self.north_platforms = []
         for plat in north_platforms.find_all('platform'):
-            self.north_platforms.append(int(utils.pretty_strip(plat, encoding)))
+            route_string = plat.contents[0].encode(encoding)
+            self.north_platforms.append(int(route_string))
 
         south_platforms = data.find('south_platforms')
         self.south_platforms = []
         for plat in south_platforms.find_all('platform'):
-            self.south_platforms.append(int(utils.pretty_strip(plat, encoding)))
+            route_string = plat.contents[0].encode(encoding)
+            self.south_platforms.append(int(route_string))
 
 class StationAccess(StationBase): #pylint: disable=too-many-instance-attributes
     def __init__(self, data, encoding):
         StationBase.__init__(self, data, encoding)
-        self.parking_flag = data.get('parking_flag').encode(encoding) == 1
-        self.bike_flag = data.get('bike_flag').encode(encoding) == 1
-        bike_flag = data.get('bike_station_flag').encode(encoding)
-        self.bike_station_flag = int(bike_flag) == 1
-        self.locker_flag = data.get('locker_flag').encode(encoding) == 1
+        parking_flag = common_utils.parse_data(data, 'parking_flag', encoding)
+        self.parking_flag = (parking_flag == 1)
+        bike_flag = common_utils.parse_data(data, 'bike_flag', encoding)
+        self.bike_flag = (bike_flag == 1)
+        locker_flag = common_utils.parse_data(data, 'locker_flag', encoding)
+        self.locker_flag = (locker_flag == 1)
 
-        # Bart returns html as a string here, yeah its dumb
-        self.entering = utils.stupid_bart_bug(data.find('entering'),
-                                              encoding)
-        self.exiting = utils.stupid_bart_bug(data.find('exiting'),
-                                             encoding)
-        self.parking = utils.stupid_bart_bug(data.find('parking'),
-                                             encoding)
-        self.lockers = utils.stupid_bart_bug(data.find('lockers'),
-                                             encoding)
-        self.destinations = utils.stupid_bart_bug(data.find('destinations'),
-                                                  encoding)
-        self.transit_info = utils.stupid_bart_bug(data.find('transit_info'),
-                                                  encoding)
-        self.link = utils.pretty_strip(data.find('link'), encoding)
+        self.entering = common_utils.parse_data(data, 'entering', encoding)
+        self.exiting = common_utils.parse_data(data, 'exiting', encoding)
+        self.parking = common_utils.parse_data(data, 'parking', encoding)
+        self.lockers = common_utils.parse_data(data, 'lockers', encoding)
+        self.destinations = common_utils.parse_data(data, 'destinations', encoding)
+        self.transit_info = common_utils.parse_data(data, 'transit_info', encoding)
+        self.link = common_utils.parse_data(data, 'link', encoding)
+
 
 class Estimate(object):
     def __init__(self, estimate_data, encoding):
-        try:
-            minutes = utils.pretty_strip(estimate_data.find('minutes'),
-                                         encoding)
-            self.minutes = int(minutes)
-        except ValueError:
-            # Most likely "Leaving"
+        self.minutes = common_utils.parse_data(estimate_data, 'minutes', encoding)
+        if not isinstance(self.minutes, int) and 'leaving' in self.minutes.lower():
             self.minutes = 0
-        additional_keys = ['direction', 'length', 'color']
-        self.platform = int(utils.pretty_strip(estimate_data.find('platform'),
-                                               encoding))
-        for key in additional_keys:
-            setattr(self, key, utils.pretty_strip(estimate_data.find(key),
-                                                  encoding))
-        # True/False but given as 1/0
-        self.bike_flag = int(utils.pretty_strip(estimate_data.find('bikeflag'),
-                                                encoding)) == 1
+        self.platform = common_utils.parse_data(estimate_data, 'platform', encoding)
+        self.direction = common_utils.parse_data(estimate_data, 'direction', encoding)
+        self.length = common_utils.parse_data(estimate_data, 'length', encoding)
+        self.color = common_utils.parse_data(estimate_data, 'color', encoding)
+        bike_flag = common_utils.parse_data(estimate_data, 'bikeflag', encoding)
+        self.bike_flag = (bike_flag == 1)
 
     def __repr__(self):
         return '%s minutes' % self.minutes
 
 class DirectionEstimates(object):
     def __init__(self, data, encoding, destinations):
-        self.abbreviation = utils.pretty_strip(data.find('abbreviation'),
-                                               encoding)
+        self.abbreviation = common_utils.parse_data(data, 'abbreviation', encoding)
         # if destinations given, check here if valid
         # .. if not valid give up now to save time
         if destinations:
             if self.abbreviation.lower() not in destinations:
                 raise TransitException("Not valid destination:%s" % self.abbreviation)
-        self.name = utils.pretty_strip(data.find('destination'),
-                                       encoding)
+        self.name = common_utils.parse_data(data, 'destination', encoding)
         self.estimates = \
             [Estimate(i, encoding) for i in data.find_all('estimate')]
 
@@ -207,15 +187,20 @@ class StationDepartures(StationBase):
         return '%s - %s' % (self.name, self.directions)
 
 class ScheduleTime(object):
-    def __init__(self, item_data, _):
-        self.line = int(item_data.get('line').replace('ROUTE ', ''))
-        self.destination = item_data.get('trainheadstation')
-        self.origin_time = datetime.strptime(item_data.get('origtime'),
-                                             "%I:%M %p")
-        self.destination_time = datetime.strptime(item_data.get('desttime'),
-                                                  "%I:%M %p")
-        self.train_index = int(item_data.get('trainidx'))
-        self.bike_flag = int(item_data.get('bikeflag')) == 1
+    def __init__(self, item_data, encoding):
+        line = common_utils.parse_data(item_data, 'line', encoding)
+        self.line = line.replace('ROUTE ', '')
+        self.head_station = common_utils.parse_data(item_data,
+                                                    'trainheadstation', encoding)
+        self.origin_time = common_utils.parse_data(item_data, 'origtime',
+                                                   encoding,
+                                                   datetime_format=datetime_format)
+        self.destination_time = common_utils.parse_data(item_data, 'desttime',
+                                                        encoding,
+                                                        datetime_format=datetime_format)
+        self.train_index = common_utils.parse_data(item_data, 'trainidx', encoding)
+        bike_flag = common_utils.parse_data(item_data, 'bikeflag', encoding)
+        self.bike_flag = (bike_flag == 1)
 
 class StationSchedule(StationBase):
     def __init__(self, data, encoding):

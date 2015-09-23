@@ -133,7 +133,7 @@ def current_routes(args):
     print table
 
 def route_info(args):
-    route = client.route_show(args.route_number,
+    route = client.route_info(args.route_number,
                               schedule=args.schedule,
                               date=args.date)
     table = PrettyTable(["Name", "Number", "Color"])

@@ -1,35 +1,21 @@
 from datetime import datetime
 
+from transit.common import utils as common_utils
 from transit.modules.bart import urls, utils
+
+datetime_format = '%a %b %d %Y %I:%M %p %Z'
 
 class ServiceAdvisory(object):
     def __init__(self, bsa_data, encoding):
-        try:
-            self.id = int(bsa_data.get('id').encode(encoding))
-        except AttributeError:
-            self.id = None
-        try:
-            self.station = utils.pretty_strip(bsa_data.find('station'),
-                                              encoding)
-        except (IndexError, AttributeError):
-            self.station = None
-        try:
-            self.type = utils.pretty_strip(bsa_data.find('type'), encoding)
-        except (IndexError, AttributeError):
-            self.type = None
-        self.description = utils.pretty_strip(bsa_data.find('description'),
-                                              encoding)
-        try:
-            posted = utils.pretty_strip(bsa_data.find('posted'), encoding)
-            self.posted = datetime.strptime(posted, '%a %b %d %Y %I:%M %p %Z')
-        except (IndexError, AttributeError):
-            self.posted = None
-        try:
-            expires = utils.pretty_strip(bsa_data.find('expires'), encoding)
-            expires = bsa_data.find('expires').string.encode(encoding)
-            self.expires = datetime.strptime(expires, '%a %b %d %Y %I:%M %p %Z')
-        except (IndexError, AttributeError):
-            self.expires = None
+        self.id = common_utils.parse_data(bsa_data, 'id', encoding)
+        self.station = common_utils.parse_data(bsa_data, 'station', encoding)
+        self.type = common_utils.parse_data(bsa_data, 'type', encoding)
+        self.description = common_utils.parse_data(bsa_data, 'description', encoding)
+
+        self.posted = common_utils.parse_data(bsa_data, 'posted', encoding,
+                                              datetime_format=datetime_format)
+        self.expires = common_utils.parse_data(bsa_data, 'expires', encoding,
+                                               datetime_format=datetime_format)
 
     def __repr__(self):
         return '%s - %s' % (self.station, self.description)

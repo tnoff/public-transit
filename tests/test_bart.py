@@ -1,7 +1,7 @@
 from datetime import datetime
 import httpretty
 
-from transit.client import bart as client
+from transit.modules.bart import client
 from transit.modules.bart import urls
 from tests import utils
 
@@ -160,12 +160,12 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
     @httpretty.activate
     def test_route_info(self):
         route_number = 35
-        test_url = urls.route_show(route_number)
+        test_url = urls.route_info(route_number)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=route_info.text,
                                content_type='application/xml')
-        route = client.route_show(route_number)
+        route = client.route_info(route_number)
         self.assert_all_variables(route)
         self.assertTrue(len(route.stations) > 0)
         station = route.stations[0]

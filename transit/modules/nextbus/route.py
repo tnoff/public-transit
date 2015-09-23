@@ -1,12 +1,12 @@
-from datetime import datetime
-
 from transit.exceptions import TransitException
+
+from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 from transit.modules.nextbus import schedule, stop, vehicle
 
 class RouteBase(object):
     def __init__(self, data, encoding, agency_tag=None):
-        self.route_tag = data.get('tag').encode(encoding)
+        self.route_tag = common_utils.parse_data(data, 'tag', encoding)
         self.agency_tag = agency_tag
 
     def __repr__(self):
@@ -15,18 +15,24 @@ class RouteBase(object):
 class Route(RouteBase):
     def __init__(self, data, encoding, agency_tag=None):
         RouteBase.__init__(self, data, encoding, agency_tag=agency_tag)
-        self.title = data.get('title').encode(encoding)
+        self.title = common_utils.parse_data(data, 'title', encoding)
 
 class RouteInfo(RouteBase): #pylint: disable=too-many-instance-attributes
     def __init__(self, data, encoding, agency_tag=None):
         RouteBase.__init__(self, data, encoding, agency_tag=agency_tag)
-        self.title = data.get('title').encode(encoding)
-        self.color = data.get('color').encode(encoding)
-        self.opposite_color = data.get('oppositecolor').encode(encoding)
-        self.latitude_min = float(data.get('latmin').encode(encoding))
-        self.latitude_max = float(data.get('latmax').encode(encoding))
-        self.longitdue_min = float(data.get('lonmin').encode(encoding))
-        self.longitude_max = float(data.get('lonmax').encode(encoding))
+        self.title = common_utils.parse_data(data, 'title', encoding)
+        self.color = common_utils.parse_data(data, 'color', encoding)
+        self.opposite_color = common_utils.parse_data(data,
+                                                      'oppositecolor',
+                                                      encoding)
+        self.latitude_min = common_utils.parse_data(data, 'latmin',
+                                                    encoding)
+        self.latitude_max = common_utils.parse_data(data, 'latmax',
+                                                    encoding)
+        self.longitude_min = common_utils.parse_data(data, 'lonmin',
+                                                     encoding)
+        self.longitude_max = common_utils.parse_data(data, 'lonmax',
+                                                     encoding)
         self.stops = []
         self.paths = []
         self.directions = []
@@ -38,12 +44,14 @@ class RouteInfo(RouteBase): #pylint: disable=too-many-instance-attributes
             if not new_stop.get('stopid'):
                 continue
             self.stops.append(stop.Stop(new_stop, encoding))
+
         for direction in data.find_all('direction'):
             new_dir = RouteDirection(direction, encoding)
-            # now add all stop tags
+            # now add all stop tags for each direction
             for i in direction.find_all('stop'):
                 new_dir.stop_tags.append(i.get('tag').encode(encoding))
             self.directions.append(new_dir)
+
         for path in data.find_all('path'):
             path_points = [stop.Point(i, encoding) \
                 for i in path.find_all('point')]
@@ -76,12 +84,11 @@ class RouteInfo(RouteBase): #pylint: disable=too-many-instance-attributes
 
 class RouteDirection(object):
     def __init__(self, direction_data, encoding):
-        self.tag = direction_data.get('tag').encode(encoding)
-        self.name = direction_data.get('name').encode(encoding)
-        self.title = direction_data.get('title').encode(encoding)
-        self.use_for_ui = False
-        if direction_data.get('useforui').encode(encoding) == 'true':
-            self.use_for_ui = True
+        self.tag = common_utils.parse_data(direction_data, 'tag', encoding)
+        self.name = common_utils.parse_data(direction_data, 'name', encoding)
+        self.title = common_utils.parse_data(direction_data, 'title', encoding)
+        self.use_for_ui = common_utils.parse_data(direction_data, 'useforui',
+                                                  encoding)
         self.stop_tags = []
 
     def __repr__(self):
@@ -89,34 +96,17 @@ class RouteDirection(object):
 
 class Message(object): #pylint: disable=too-many-instance-attributes
     def __init__(self, data, encoding):
-        self.message_id = int(data.get('id').encode(encoding))
-        self.priority = data.get('priority').encode(encoding)
-        try:
-            self.start_boundary_time = float(data.get('startboundary').enocde(encoding))
-        except AttributeError:
-            self.start_boundary = None
-        try:
-            self.end_boundary_time = float(data.get('endboundary').encode(encoding))
-        except AttributeError:
-            self.end_boundary = None
-        try:
-            sb = datetime.strptime(data.get('startboundarystr'),
-                                   "%a, %b %d %H:%M:%S %Z %Y")
-            self.start_boundary = sb
-        except (TypeError, AttributeError):
-            self.start_boundary = None
-        try:
-            eb = datetime.strptime(data.get('endboundarystr'),
-                                   "%a, %b %d %H:%M:%S %Z %Y")
-            self.end_boundary = eb
-        except (TypeError, AttributeError):
-            self.end_boundary = None
-        self.send_to_buses = False
-        try:
-            if data.get('senttobuses').encode(encoding) == 'true':
-                self.send_to_buses = True
-        except AttributeError:
-            pass
+        self.message_id = common_utils.parse_data(data, 'id', encoding)
+        self.priority = common_utils.parse_data(data, 'priority', encoding)
+        self.start_boundary_epoch = common_utils.parse_data(data,
+                                                            'startboundary',
+                                                            encoding)
+        self.end_boundary_epoch = common_utils.parse_data(data,
+                                                          'endboundary',
+                                                          encoding)
+        self.start_boundary = common_utils.parse_data(data, 'startboundarystr', encoding)
+        self.end_boundary = common_utils.parse_data(data, 'endboundarystr', encoding)
+        self.send_to_buses = common_utils.parse_data(data, 'senttobuses', encoding)
         self.text = [i.contents[0].encode(encoding) \
             for i in data.find_all('text')]
 

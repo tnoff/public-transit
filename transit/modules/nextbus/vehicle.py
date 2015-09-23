@@ -1,22 +1,18 @@
+from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 
 class VehicleLocation(object): #pylint: disable=too-many-instance-attributes
     def __init__(self, vehicle_data, encoding):
-        self.vehicle_id = int(vehicle_data.get('id').encode(encoding))
-        self.heading = vehicle_data.get('heading').encode(encoding)
-        self.latitude = float(vehicle_data.get('lat').encode(encoding))
-        self.longitude = float(vehicle_data.get('lon').encode(encoding))
-        # Not present sometimes
-        try:
-            self.route_tag = vehicle_data.get('routetag').encode(encoding)
-        except AttributeError:
-            self.route_tag = None
+        self.vehicle_id = common_utils.parse_data(vehicle_data, 'id', encoding)
+        self.heading = common_utils.parse_data(vehicle_data, 'heading', encoding)
+        self.latitude = common_utils.parse_data(vehicle_data, 'lat', encoding)
+        self.longitude = common_utils.parse_data(vehicle_data, 'lon', encoding)
+
+        self.route_tag = common_utils.parse_data(vehicle_data, 'routetag', encoding)
         self.seconds_since_last_report = \
-            int(vehicle_data.get('secssincereport').encode(encoding))
-        self.speed_km_hr = float(vehicle_data.get('speedkmhr').encode(encoding))
-        self.predictable = False
-        if vehicle_data.get('predictable').encode(encoding) == "true":
-            self.predictable = True
+            common_utils.parse_data(vehicle_data, 'secssincereport', encoding)
+        self.speed_km_hr = common_utils.parse_data(vehicle_data, 'speedkmhr', encoding)
+        self.predictable = common_utils.parse_data(vehicle_data, 'predictable', encoding)
 
     def __repr__(self):
         return '%s:%s-%s' % (self.vehicle_id, self.latitude, self.longitude)

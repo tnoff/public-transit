@@ -52,7 +52,6 @@ class TripPlanner(object):
         return valid_stations[stop_tag]
 
     def __validate_nextbus_stop(self, agency_tag, stop_id, includes=None):
-        # otherwise get a stop prediction now and check for errors
         try:
             predictions = nextbus_client.stop_prediction(agency_tag,
                                                          stop_id)
