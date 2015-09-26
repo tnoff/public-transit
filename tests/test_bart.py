@@ -99,6 +99,16 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
         est = ests[0]
         self.assertEqual(len(est.directions), 1)
 
+    @httpretty.activate
+    def test_url_is_lowered(self):
+        station = 'RICH'
+        test_url = urls.estimated_departures(station)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=estimates.text,
+                               content_type='application/xml')
+        ests = client.station_departures(station)
+        self.assertEqual(len(ests), 1)
 
     @httpretty.activate
     def test_multiple_stations(self):
@@ -159,7 +169,7 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
 
     @httpretty.activate
     def test_route_info(self):
-        route_number = 35
+        route_number = 4
         test_url = urls.route_info(route_number)
         httpretty.register_uri(httpretty.GET,
                                test_url,
@@ -176,14 +186,14 @@ class BartTestClient(utils.BaseTestClient): #pylint: disable=too-many-public-met
 
     @httpretty.activate
     def test_station_info(self):
-        station_abbr = '24th'
+        station_abbr = 'rich'
         test_url = urls.station_info(station_abbr)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=station_info.text,
                                content_type='application/xml')
         station = client.station_info(station_abbr)
-        self.assert_all_variables(station)
+        self.assert_all_variables(station, skip=['north_platforms', 'north_routes'])
 
     @httpretty.activate
     def test_station_access(self):

@@ -14,6 +14,7 @@ from tests.data.nextbus import message_get_multi as message_get_multi
 from tests.data.nextbus import multi_predict_one as multi_one
 from tests.data.nextbus import multi_predict_two as multi_two
 from tests.data.nextbus import route_show as route_show
+from tests.data.nextbus import route_show_muni as route_show_muni
 from tests.data.nextbus import route_list as route_list
 from tests.data.nextbus import schedule_get as schedule_get
 from tests.data.nextbus import stop_predictions as stop_predictions
@@ -60,7 +61,7 @@ class NextBusTestClient(utils.BaseTestClient):
     @httpretty.activate
     def test_route_show(self):
         agency_tag = 'actransit'
-        route_tag = '22'
+        route_tag = '801'
         test_url = urls.route_show(agency_tag, route_tag)
         httpretty.register_uri(httpretty.GET,
                                test_url,
@@ -79,6 +80,18 @@ class NextBusTestClient(utils.BaseTestClient):
         path = r.paths[0]
         path_point = path[0]
         self.assert_all_variables(path_point)
+
+    @httpretty.activate
+    def test_route_case_sensitive(self):
+        agency_tag = 'sf-muni'
+        route_tag = 'n'
+        test_url = urls.route_show(agency_tag, route_tag)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=route_show_muni.text,
+                               content_type='application/xml')
+        r = client.route_get(agency_tag, route_tag)
+        self.assertEqual(r.route_tag, route_tag.upper())
 
     @httpretty.activate
     def test_stop_prediction_no_route(self):

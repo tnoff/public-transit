@@ -75,14 +75,14 @@ def leg_create(args, trip_planner):
     stop_id = args.stop_id.lower()
     new_leg = trip_planner.leg_create(agency_tag, stop_id,
                                       include=args.include)
-    print 'New leg created:', new_leg.id
+    print 'New leg created:', new_leg['id']
 
 def leg_list(_, trip_planner):
     legs = trip_planner.leg_list()
     table = PrettyTable(["Leg ID", "Agency", "Stop ID", "Stop Title",
                          "Routes/Directions"])
-    for leg_id, leg_data in legs.iteritems():
-        table.add_row([leg_id, leg_data['agency'],
+    for leg_data in legs:
+        table.add_row([leg_data['id'], leg_data['agency'],
                        leg_data['stop_id'], leg_data['stop_title'],
                        ', '.join(i for i in leg_data['includes'])])
     print table
@@ -90,7 +90,7 @@ def leg_list(_, trip_planner):
 def __nice_predictions(predictions):
     preds = []
     for pred in predictions:
-        seconds = pred.seconds - (pred.minutes * 60)
+        seconds = int(pred.seconds) - int(pred.minutes * 60)
         t = common_utils.pretty_time(pred.minutes, seconds)
         preds.append(t)
     return ', '.join(i for i in preds)
@@ -136,7 +136,7 @@ def leg_delete(args, trip_planner):
 
 def trip_create(args, trip_planner):
     new_trip = trip_planner.trip_create(args.name, args.leg)
-    print 'Trip created:%s' % new_trip.id
+    print 'Trip created:%s' % new_trip['id']
 
 def trip_list(_, trip_planner):
     trips = trip_planner.trip_list()

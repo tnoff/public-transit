@@ -1,5 +1,4 @@
-text = '''
-<?xml version="1.0" encoding="utf-8" ?> 
+text = '''<?xml version="1.0" encoding="utf-8" ?> 
 <body copyright="All data copyright AC Transit 2015.">
 <predictions agencyTitle="AC Transit" routeTitle="22" routeTag="22" stopTitle="Mission Blvd &amp; Central Blvd" stopTag="9902820">
   <direction title="Counterclockwise to Hayward BART">

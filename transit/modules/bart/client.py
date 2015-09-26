@@ -1,4 +1,5 @@
-'''Bart API Client
+'''
+Bart API Client
 Gather all information using methods
 '''
 from transit.modules.bart import advisories as advisory_client
