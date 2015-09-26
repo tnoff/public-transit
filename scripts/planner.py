@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 
 from transit.common import utils as common_utils
 from transit.exceptions import TransitException
-from trip_planner.client import TripPlanner
+from transit.planner import TripPlanner
 
 FUNCTION_MAPPING = {
     'leg' : {
