@@ -3,58 +3,49 @@ from datetime import datetime
 from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 
-class ScheduleRoute(object):
-    def __init__(self, data, encoding):
-        self.tag = common_utils.parse_data(data, 'tag', encoding)
-        self.title = common_utils.parse_data(data, 'title', encoding)
-        self.schedule_class = common_utils.parse_data(data, 'scheduleclass',
-                                                      encoding)
-        self.service_class = common_utils.parse_data(data, 'serviceclass',
-                                                     encoding)
-        self.direction = common_utils.parse_data(data, 'direction', encoding)
-        self.blocks = []
+def _schedule_route(schedule_data):
+    data = {}
+    data['tag'] = common_utils.parse_data(schedule_data, 'tag')
+    data['title'] = common_utils.parse_data(schedule_data, 'title')
+    data['schedule_class'] = common_utils.parse_data(schedule_data, 'scheduleclass')
+    data['service_class'] = common_utils.parse_data(schedule_data, 'serviceclass')
+    data['direction'] = common_utils.parse_data(schedule_data, 'direction')
+    data['blocks'] = []
 
-        # titles are put in the header for some reason
-        # data: {tag: title, ...}
-        title_data = dict()
-        header = data.find('header')
-        for new_stop in header.find_all('stop'):
-            title_tag = common_utils.parse_data(new_stop, 'tag', encoding)
-            title_data[title_tag] = new_stop.contents[0].encode(encoding)
-        # Then find all blocks and add them in
-        self.blocks = [ScheduleBlock(i, encoding, title_data) \
-            for i in data.find_all('tr')]
+    # titles are put in the header for some reason
+    # data: {tag: title, ...}
+    title_data = dict()
+    header = schedule_data.find('header')
+    for new_stop in header.find_all('stop'):
+        title_tag = common_utils.parse_data(new_stop, 'tag')
+        title_data[title_tag] = new_stop.contents[0]
+    # Then find all blocks and add them in
+    data['blocks'] = [_schedule_block(i, title_data) for i in schedule_data.find_all('tr')]
+    return data
 
-    def __repr__(self):
-        return '%s - %s - %s' % (self.tag, self.direction, self.service_class)
+def _schedule_block(block_data, title_data):
+    data = {}
+    data['block_id'] = common_utils.parse_data(block_data, 'blockid')
+    data['stop_schedules'] = []
+    for new_stop in block_data.find_all('stop'):
+        ss = _stop_schedule(new_stop)
+        ss['title'] = title_data[ss['stop_tag']]
+        data['stop_schedules'].append(ss)
+    return data
 
-class ScheduleBlock(object):
-    def __init__(self, block_data, encoding, title_data):
-        self.block_id = common_utils.parse_data(block_data, 'blockid', encoding)
-        self.stop_schedules = []
-        for new_stop in block_data.find_all('stop'):
-            ss = StopSchedule(new_stop, encoding)
-            ss.title = title_data[ss.stop_tag]
-            self.stop_schedules.append(ss)
-
-    def __repr__(self):
-        return '%s' % self.block_id
-
-class StopSchedule(object):
-    def __init__(self, stop_data, encoding, title=None):
-        self.stop_tag = common_utils.parse_data(stop_data, 'tag', encoding)
-        self.epoch_time = common_utils.parse_data(stop_data, 'epochtime', encoding)
-        self.title = title
-        time_data = stop_data.contents[0].encode(encoding)
-        if time_data == "--":
-            self.time = None
-        else:
-            self.time = datetime.strptime(time_data, "%H:%M:%S")
-
-    def __repr__(self):
-        return '%s - %s' % (self.stop_tag, self.time)
+def _stop_schedule(stop_data, title=None):
+    data = {}
+    data['stop_tag'] = common_utils.parse_data(stop_data, 'tag')
+    data['epoch_time'] = common_utils.parse_data(stop_data, 'epochtime')
+    data['title'] = title
+    time_data = stop_data.contents[0]
+    if time_data == "--":
+        data['time'] = None
+    else:
+        data['time'] = datetime.strptime(time_data, "%H:%M:%S")
+    return data
 
 def schedule_get(agency_tag, route_tag):
     url = urls.schedule_get(agency_tag, route_tag)
     soup, encoding = utils.make_request(url)
-    return [ScheduleRoute(i, encoding) for i in soup.find_all('route')]
+    return [_schedule_route(i) for i in soup.find_all('route')]

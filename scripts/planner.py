@@ -9,21 +9,6 @@ from transit.common import utils as common_utils
 from transit.exceptions import TransitException
 from transit.planner import TripPlanner
 
-FUNCTION_MAPPING = {
-    'leg' : {
-        'create' : 'leg_create',
-        'list' : 'leg_list',
-        'delete' : 'leg_delete',
-        'show' : 'leg_show',
-    },
-    'trip' : {
-        'list' : 'trip_list',
-        'create' : 'trip_create',
-        'show' : 'trip_show',
-        'delete' : 'trip_delete',
-    },
-}
-
 HOME_PATH = os.path.expanduser('~') + '/.trip_planner'
 
 def __create_directory(path):
@@ -90,27 +75,27 @@ def leg_list(_, trip_planner):
 def __nice_predictions(predictions):
     preds = []
     for pred in predictions:
-        seconds = int(pred.seconds) - int(pred.minutes * 60)
-        t = common_utils.pretty_time(pred.minutes, seconds)
+        seconds = int(pred['seconds']) - (int(pred['minutes']) * 60)
+        t = common_utils.pretty_time(pred['minutes'], seconds)
         preds.append(t)
     return ', '.join(i for i in preds)
 
 def __bart_leg(estimates):
     table = PrettyTable(["Station", "Direction", "Estimates(minutes)"])
     for est in estimates:
-        for direct in est.directions:
-            preds = ' ; '.join('%d' % i.minutes for i in direct.estimates)
-            table.add_row([est.name, direct.name, preds])
+        for direct in est['directions']:
+            preds = ' ; '.join('%s' % i['minutes'] for i in direct['estimates'])
+            table.add_row([est['name'], direct['name'], preds])
     return table
 
 def __nextbus_leg(estimates):
     table = PrettyTable(["Route", "Stop Title",
                          "Direction", "Predictions"])
     for est in estimates:
-        base_data = [est.route_title, est.stop_title]
-        for direct in est.directions:
-            data = base_data + [direct.title]
-            data.append(__nice_predictions(direct.predictions))
+        base_data = [est['route_title'], est['stop_title']]
+        for direct in est['directions']:
+            data = base_data + [direct['title']]
+            data.append(__nice_predictions(direct['predictions']))
             table.add_row(data)
     return table
 
@@ -167,10 +152,25 @@ def trip_show(args, trip_planner):
         print agency
         print __nextbus_leg(estimates)
 
+FUNCTION_MAPPING = {
+    'leg' : {
+        'create' : leg_create,
+        'list' : leg_list,
+        'delete' : leg_delete,
+        'show' : leg_show,
+    },
+    'trip' : {
+        'list' : trip_list,
+        'create' : trip_create,
+        'show' : trip_show,
+        'delete' : trip_delete,
+    },
+}
+
 def main():
     args = parse_args()
     __create_directory(HOME_PATH)
     engine = create_engine('sqlite:///' + HOME_PATH + '/trip_db.sql')
     planner = TripPlanner(engine)
-    method = globals()[FUNCTION_MAPPING[args.module][args.command]]
+    method = FUNCTION_MAPPING[args.module][args.command]
     method(args, planner)

@@ -1,4 +1,3 @@
-from datetime import datetime
 import httpretty
 
 from transit.modules.nextbus import client
@@ -21,8 +20,7 @@ from tests.data.nextbus import stop_predictions as stop_predictions
 from tests.data.nextbus import stop_predictions_route as stop_predictions_route
 from tests.data.nextbus import vehicle_locations as vehicle_locations
 
-class NextBusTestClient(utils.BaseTestClient):
-
+class TestNextbus(utils.BaseTestClient):
     @httpretty.activate
     def test_fails(self):
         # Check that failures catch nicely
@@ -44,7 +42,7 @@ class NextBusTestClient(utils.BaseTestClient):
         agencies = client.agency_list()
         # Make sure list generated correctly
         for a in agencies:
-            self.assert_all_variables(a)
+            self.assert_dictionary(a)
 
     @httpretty.activate
     def test_route_list(self):
@@ -56,7 +54,7 @@ class NextBusTestClient(utils.BaseTestClient):
                                content_type='application/xml')
         routes = client.route_list(agency_tag)
         for r in routes:
-            self.assert_all_variables(r)
+            self.assert_dictionary(r)
 
     @httpretty.activate
     def test_route_show(self):
@@ -68,18 +66,14 @@ class NextBusTestClient(utils.BaseTestClient):
                                body=route_show.text,
                                content_type='application/xml')
         r = client.route_get(agency_tag, route_tag)
-        self.assert_all_variables(r)
-        self.assertTrue(isinstance(r.longitude_min, float))
-        stop = r.stops[0]
-        self.assert_all_variables(stop, skip=['short_title'])
-        direction = r.directions[0]
-        self.assertTrue(isinstance(direction.use_for_ui, bool))
-        self.assert_all_variables(direction)
-        tag = direction.stop_tags[0]
-        self.assertTrue(isinstance(tag, str))
-        path = r.paths[0]
+        self.assert_dictionary(r)
+        stop = r['stops'][0]
+        self.assert_dictionary(stop, skip=['short_title'])
+        direction = r['directions'][0]
+        self.assert_dictionary(direction)
+        path = r['paths'][0]
         path_point = path[0]
-        self.assert_all_variables(path_point)
+        self.assert_dictionary(path_point)
 
     @httpretty.activate
     def test_route_case_sensitive(self):
@@ -91,7 +85,7 @@ class NextBusTestClient(utils.BaseTestClient):
                                body=route_show_muni.text,
                                content_type='application/xml')
         r = client.route_get(agency_tag, route_tag)
-        self.assertEqual(r.route_tag, route_tag.upper())
+        self.assertEqual(r['route_tag'], route_tag.upper())
 
     @httpretty.activate
     def test_stop_prediction_no_route(self):
@@ -105,13 +99,11 @@ class NextBusTestClient(utils.BaseTestClient):
         preds = client.stop_prediction(agency_tag, stop_id)
         self.assertEqual(len(preds), 3)
         first_pred = preds[0]
-        self.assert_all_variables(first_pred)
-        direction = first_pred.directions[0]
-        self.assert_all_variables(direction)
-        pred = direction.predictions[0]
-        self.assertTrue(isinstance(pred.seconds, int))
-        self.assertTrue(isinstance(pred.minutes, int))
-        self.assert_all_variables(pred)
+        self.assert_dictionary(first_pred)
+        direction = first_pred['directions'][0]
+        self.assert_dictionary(direction)
+        pred = direction['predictions'][0]
+        self.assert_dictionary(pred)
 
     @httpretty.activate
     def test_stop_prediction_with_route(self):
@@ -128,11 +120,11 @@ class NextBusTestClient(utils.BaseTestClient):
                                        route_tags=route_tag)
         self.assertTrue(len(preds) > 0)
         first_pred = preds[0]
-        self.assert_all_variables(first_pred, skip=['messages'])
-        direction = first_pred.directions[0]
-        self.assert_all_variables(direction)
-        pred = direction.predictions[0]
-        self.assert_all_variables(pred)
+        self.assert_dictionary(first_pred, skip=['messages'])
+        direction = first_pred['directions'][0]
+        self.assert_dictionary(direction)
+        pred = direction['predictions'][0]
+        self.assert_dictionary(pred)
 
     @httpretty.activate
     def test_stop_prediction_with_route_as_list(self):
@@ -149,11 +141,11 @@ class NextBusTestClient(utils.BaseTestClient):
                                        route_tags=route_tag)
         self.assertTrue(len(preds) > 0)
         first_pred = preds[0]
-        self.assert_all_variables(first_pred, skip=['messages'])
-        direction = first_pred.directions[0]
-        self.assert_all_variables(direction)
-        pred = direction.predictions[0]
-        self.assert_all_variables(pred)
+        self.assert_dictionary(first_pred, skip=['messages'])
+        direction = first_pred['directions'][0]
+        self.assert_dictionary(direction)
+        pred = direction['predictions'][0]
+        self.assert_dictionary(pred)
 
     @httpretty.activate
     def test_stop_prediction_with_route_multi(self):
@@ -170,13 +162,11 @@ class NextBusTestClient(utils.BaseTestClient):
                                        route_tags=route_tags)
         self.assertEqual(len(preds), 2)
         first_pred = preds[0]
-        self.assert_all_variables(first_pred)
-        direction = first_pred.directions[0]
-        self.assert_all_variables(direction)
-        pred = direction.predictions[0]
-        self.assertTrue(isinstance(pred.minutes, int))
-        self.assertTrue(isinstance(pred.seconds, int))
-        self.assert_all_variables(pred)
+        self.assert_dictionary(first_pred)
+        direction = first_pred['directions'][0]
+        self.assert_dictionary(direction)
+        pred = direction['predictions'][0]
+        self.assert_dictionary(pred)
 
     @httpretty.activate
     def test_schedule(self):
@@ -189,9 +179,9 @@ class NextBusTestClient(utils.BaseTestClient):
                                content_type='application/xml')
         schedules = client.schedule_get(agency_tag, route_tag)
         first_sched = schedules[0]
-        self.assert_all_variables(first_sched)
-        first_block = first_sched.blocks[0]
-        self.assert_all_variables(first_block)
+        self.assert_dictionary(first_sched)
+        first_block = first_sched['blocks'][0]
+        self.assert_dictionary(first_block)
 
     @httpretty.activate
     def test_vehicle_locations(self):
@@ -205,7 +195,7 @@ class NextBusTestClient(utils.BaseTestClient):
                                content_type='application/xml')
         locations = client.vehicle_location(agency_tag, route_tag, epoch_time)
         location = locations[0]
-        self.assert_all_variables(location)
+        self.assert_dictionary(location)
 
     @httpretty.activate
     def test_message_single(self):
@@ -219,9 +209,7 @@ class NextBusTestClient(utils.BaseTestClient):
                                content_type='application/xml')
         routes = client.message_get(agency_tag, route_tag)
         first_route = routes[0]
-        first_message = first_route.messages[1]
-        self.assertTrue(isinstance(first_message.start_boundary, datetime))
-        self.assert_all_variables(first_route, skip=['agency_tag'])
+        self.assert_dictionary(first_route, skip=['agency_tag'])
 
     @httpretty.activate
     def test_message_multiple(self):
@@ -236,7 +224,7 @@ class NextBusTestClient(utils.BaseTestClient):
         routes = client.message_get(agency_tag, route_tags)
         self.assertTrue(len(routes) > 1)
         first_route = routes[0]
-        self.assert_all_variables(first_route, skip=['agency_tag'])
+        self.assert_dictionary(first_route, skip=['agency_tag'])
 
     @httpretty.activate
     def test_multi_prediction_single(self):
@@ -250,9 +238,9 @@ class NextBusTestClient(utils.BaseTestClient):
                                content_type='application/xml')
         preds = client.multiple_stop_predictions(agency_tag, data)
         first_pred = preds[0]
-        self.assert_all_variables(first_pred)
-        direction = first_pred.directions[0]
-        self.assert_all_variables(direction)
+        self.assert_dictionary(first_pred)
+        direction = first_pred['directions'][0]
+        self.assert_dictionary(direction)
 
     @httpretty.activate
     def test_multi_prediction_multiple(self):
@@ -266,6 +254,6 @@ class NextBusTestClient(utils.BaseTestClient):
                                content_type='application/xml')
         preds = client.multiple_stop_predictions(agency_tag, data)
         first_pred = preds[0]
-        self.assert_all_variables(first_pred)
-        direction = first_pred.directions[0]
-        self.assert_all_variables(direction)
+        self.assert_dictionary(first_pred)
+        direction = first_pred['directions'][0]
+        self.assert_dictionary(direction)

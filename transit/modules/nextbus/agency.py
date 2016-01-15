@@ -1,40 +1,16 @@
 from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 
-from transit.modules.nextbus import route, schedule, stop, vehicle
-
-class Agency(object):
-    def __init__(self, agency_data, encoding):
-        self.tag = common_utils.parse_data(agency_data, 'tag', encoding)
-        self.title = common_utils.parse_data(agency_data, 'title', encoding)
-        self.region = common_utils.parse_data(agency_data, 'regiontitle',
-                                              encoding)
-
-    def route_list(self):
-        return route.route_list(self.tag)
-
-    def route_get(self, route_tag):
-        return route.route_get(self.tag, route_tag)
-
-    def stop_prediction(self, stop_id, route_tags=None):
-        return stop.stop_prediction(self.tag, stop_id, route_tags=route_tags)
-
-    def multiple_stop_prediction(self, stop_data):
-        return stop.multiple_stop_prediction(self.tag, stop_data)
-
-    def schedule_get(self, route_tag):
-        return schedule.schedule_get(self.tag, route_tag)
-
-    def vehicle_location(self, route_tag, epoch_time):
-        return vehicle.vehicle_location(self.tag, route_tag, epoch_time)
-
-    def message_get(self, route_tags):
-        return route.message_get(self.tag, route_tags)
-
-    def __repr__(self):
-        return '%s - %s - %s' % (self.title, self.region, self.tag)
+def _agency(agency_data):
+    data = {}
+    args = ['tag', 'title', 'regiontitle']
+    for arg in args:
+        value = common_utils.parse_data(agency_data, arg)
+        data[arg] = value
+    data['region'] = data.pop('regiontitle', None)
+    return data
 
 def list_all():
     url = urls.agency_list()
     soup, encoding = utils.make_request(url)
-    return [Agency(i, encoding) for i in soup.find_all('agency')]
+    return [_agency(i) for i in soup.find_all('agency')]

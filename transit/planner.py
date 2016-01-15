@@ -9,7 +9,7 @@ from sqlalchemy.orm.exc import UnmappedInstanceError
 
 from transit.modules.bart import client as bart_client
 from transit.modules.nextbus import client as nextbus_client
-from transit.exceptions import TripPlannerException
+from planner.exceptions import TripPlannerException
 
 Base = declarative_base()
 
@@ -68,11 +68,11 @@ class TripPlanner(object):
             # check for all possible routes from station
             # use this to get a list of all possible destinations
             station = bart_client.station_info(stop_tag.lower())
-            all_routes = set(station.north_routes + station.south_routes)
+            all_routes = set(station['north_routes'] + station['south_routes'])
             destinations = set([])
             for route in all_routes:
                 r = bart_client.route_info(route)
-                destinations.add(r.destination.lower())
+                destinations.add(r['destination'].lower())
             include = list(destinations)
 
         return valid_stations[stop_tag], include
@@ -101,21 +101,21 @@ class TripPlanner(object):
             stop_id = int(stop_id)
         except IndexError:
             # use first predictions route tag
-            route_tag = predictions[0].route_tag
+            route_tag = predictions[0]['route_tag']
             route = nextbus_client.route_get(agency_tag, route_tag)
             stop_tag = None
             stop_title = None
-            stop_id = int(stop_id)
-            for i in route.stops:
-                if i.stop_id == stop_id:
-                    stop_tag = i.tag
-                    stop_title = i.title
+            stop_id = stop_id
+            for i in route['stops']:
+                if i['stop_id'] == stop_id:
+                    stop_tag = i['stop_tag']
+                    stop_title = i['title']
                     break
         # also return a list of all possible route_tags from predictions
         # .. this is also needed for the multiple stop logic later
         route_tags = includes
         if not route_tags:
-            route_tags = ['%s' % i.route_tag for i in predictions]
+            route_tags = ['%s' % i['route_tag']for i in predictions]
         return stop_tag, stop_title, route_tags
 
     def leg_create(self, agency_tag, stop_id, include=None):
@@ -131,10 +131,10 @@ class TripPlanner(object):
                                              stop_id,
                                              include)
         # Add new leg object
-        stop_id = ('%s' % stop_id).lower().decode('utf-8')
-        stop_tag = ('%s' % stop_tag).lower().decode('utf-8')
-        stop_title = ('%s' % stop_title).lower().decode('utf-8')
-        agency = ('%s' % agency_tag).lower().decode('utf-8')
+        stop_id = ('%s' % stop_id).lower()
+        stop_tag = ('%s' % stop_tag).lower()
+        stop_title = ('%s' % stop_title).lower()
+        agency = ('%s' % agency_tag).lower()
         new_leg = Leg(stop_id=stop_id,
                       stop_tag=stop_tag,
                       stop_title=stop_title,

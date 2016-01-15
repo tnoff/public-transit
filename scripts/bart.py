@@ -1,23 +1,7 @@
-'''CLI for Bart Client'''
-from transit.modules.bart import client
-
 import argparse
 from prettytable import PrettyTable
 
-MATCH = {
-    'service' : {'advisory' : 'service_advisory',
-                 'train-count': 'train_count',
-                 'elevator-status' : 'elevator_status',},
-    'route': {'list' : 'current_routes',
-              'info' : 'route_info'},
-    'station' : {'list' : 'station_list',
-                 'info' : 'station_info',
-                 'access' : 'station_access',
-                 'departures' : 'estimated_departures',
-                 'schedule' : 'station_schedule',},
-    'schedule' : {'list' : 'schedule_list',
-                  'fare' : 'schedule_fare'},
-}
+from transit.modules.bart import client
 
 def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     p = argparse.ArgumentParser(description='Bart cli')
@@ -100,7 +84,7 @@ def service_advisory(_):
     advisories = client.service_advisory()
     table = PrettyTable(["Station", "Posted", "Description"])
     for advisory in advisories:
-        table.add_row([advisory.station, advisory.posted, advisory.description])
+        table.add_row([advisory['station'], advisory['posted'], advisory['description']])
     print table
 
 def train_count(_):
@@ -108,7 +92,7 @@ def train_count(_):
 
 def elevator_status(_):
     status = client.elevator_status()
-    print status.description
+    print status['description']
 
 def estimated_departures(args):
     estimates = client.station_departures(args.station,
@@ -117,10 +101,10 @@ def estimated_departures(args):
                                           destinations=args.destinations)
     table = PrettyTable(["Station", "Direction", "Estimates"])
     for estimate in estimates:
-        for direction in estimate.directions:
-            data = [estimate.name]
-            data.append(direction.name)
-            data.append(';'.join('%s' % i for i in direction.estimates))
+        for direction in estimate['directions']:
+            data = [estimate['name']]
+            data.append(direction['name'])
+            data.append(';'.join('%s' % i['minutes'] for i in direction['estimates']))
             table.add_row(data)
     print table
 
@@ -129,7 +113,7 @@ def current_routes(args):
                                    date=args.date)
     table = PrettyTable(["Name", "Number", "Color"])
     for route in route_list:
-        table.add_row([route.name, route.number, route.color])
+        table.add_row([route['name'], route['number'], route['color']])
     print table
 
 def route_info(args):
@@ -137,7 +121,7 @@ def route_info(args):
                               schedule=args.schedule,
                               date=args.date)
     table = PrettyTable(["Name", "Number", "Color"])
-    table.add_row([route.name, route.number, route.color])
+    table.add_row([route['name'], route['number'], route['color']])
     print table
 
 def station_list(_):
@@ -151,31 +135,31 @@ def station_list(_):
 
 def station_info(args):
     station = client.station_info(args.station)
-    print 'Station:', station.name
-    print 'Address:', station.address, station.city, station.state
-    print 'North Routes:', ';'.join('%s' % i for i in station.north_routes)
-    print 'South Routes:', ';'.join('%s' % i for i in station.south_routes)
+    print 'Station:', station['name']
+    print 'Address:', station['address'], station['city'], station['state']
+    print 'North Routes:', ';'.join('%s' % i for i in station['north_routes'])
+    print 'South Routes:', ';'.join('%s' % i for i in station['south_routes'])
 
 def station_access(args):
     station = client.station_access(args.station)
-    print 'Station:', station.name
-    print 'Entering:', station.entering
-    print 'Exiting:', station.exiting
+    print 'Station:', station['name']
+    print 'Entering:', station['entering']
+    print 'Exiting:', station['exiting']
 
 def station_schedule(args):
     station = client.station_schedule(args.station, date=args.date)
-    print 'Station:', station.name
-    table = PrettyTable(["Destination", "Origin Time", "Arrival Time"])
-    for item in station.schedule_times:
-        table.add_row([item.destination, item.origin_time.strftime('%H:%M'),
-                       item.destination_time.strftime('%H:%M')])
+    print 'Station:', station['name']
+    table = PrettyTable(["Origin Station", "Origin Time", "Arrival Time"])
+    for item in station['schedule_times']:
+        table.add_row([item['head_station'], item['origin_time'].strftime('%H:%M'),
+                       item['destination_time'].strftime('%H:%M')])
     print table
 
 def schedule_list(_):
     schedules = client.schedule_list()
     table = PrettyTable(["ID", "Effective Date"])
     for sched in schedules:
-        table.add_row([sched.id, sched.effective_date])
+        table.add_row([sched['id'], sched['effective_date']])
     print table
 
 def schedule_fare(args):
@@ -183,17 +167,40 @@ def schedule_fare(args):
                                 args.destination_station,
                                 schedule=args.schedule,
                                 date=args.date)
-    print 'Schedule Number:%s' % fare.schedule_number
-    print 'Fare:%s' % fare.fare
-    print 'Discount:%s' % fare.discount
+    print 'Schedule Number:%s' % fare['schedule_number']
+    print 'Fare:%s' % fare['fare']
+    print 'Discount:%s' % fare['discount']
+
+FUNCTION_MATCH = {
+    'service' : {
+        'advisory' : service_advisory,
+        'train-count': train_count,
+        'elevator-status' : elevator_status,
+    },
+    'route': {
+        'list' : current_routes,
+        'info' : route_info,
+    },
+    'station' : {
+        'list' : station_list,
+        'info' : station_info,
+        'access' : station_access,
+        'departures' : estimated_departures,
+        'schedule' : station_schedule,
+    },
+    'schedule' : {
+        'list' : schedule_list,
+        'fare' : schedule_fare,
+    },
+}
 
 def main():
     args = parse_args()
     # if no subcommand, make none
     try:
-        MATCH[args.command][args.subcommand]
+        FUNCTION_MATCH[args.command][args.subcommand]
     except AttributeError:
         args.subcommand = None
-    function = MATCH[args.command][args.subcommand]
+    function = FUNCTION_MATCH[args.command][args.subcommand]
     # call local function that matches name
-    globals()[function](args)
+    function(args)
