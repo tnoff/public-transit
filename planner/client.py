@@ -117,8 +117,8 @@ class TripPlanner(object):
         return stop_tag, stop_title, route_tags
 
     def leg_create(self, agency_tag, stop_id, include=None):
-        log.info("Creating leg for agency:%s, stop:%s, including:%s" % \
-            (agency_tag, stop_id, include))
+        log.info("Creating leg for agency:%s, stop:%s, including:%s",
+                 agency_tag, stop_id, include)
         if agency_tag == 'bart':
             stop_title, route_tags = self.__validate_bart_station(stop_id,
                                                                   include)
@@ -167,11 +167,11 @@ class TripPlanner(object):
             for leg_include in includes:
                 leg_cleaned['includes'].append(leg_include.tag.encode('utf-8'))
             legs.append(leg_cleaned)
-        log.info("Legs:%s" % legs)
+        log.info("Legs:%s", legs)
         return legs
 
     def leg_delete(self, leg_id):
-        log.info("Deleting Leg:%s" % leg_id)
+        log.info("Deleting Leg:%s", leg_id)
         trip_legs = self.db_session.query(TripLeg).\
             filter(TripLeg.leg_id == leg_id)
         for leg in trip_legs:
@@ -182,7 +182,7 @@ class TripPlanner(object):
             filter(LegInclude.leg_id == leg_id).delete()
         self.db_session.commit()
 
-        log.debug("Now deleting leg object:%s" % leg_id)
+        log.debug("Now deleting leg object:%s", leg_id)
         leg = self.db_session.query(Leg).get(leg_id)
         if not leg:
             raise TripPlannerException("No leg with this ID:%s" % leg_id)
@@ -191,7 +191,7 @@ class TripPlanner(object):
         return True
 
     def leg_show(self, leg_id):
-        log.info("Grabbing web data for leg:%s" % leg_id)
+        log.info("Grabbing web data for leg:%s", leg_id)
         leg = self.db_session.query(Leg).get(leg_id)
         if not leg:
             raise TripPlannerException("No Leg with this ID:%s" % leg_id)
@@ -205,7 +205,7 @@ class TripPlanner(object):
             preds = nextbus_client.stop_prediction(leg.agency,
                                                    leg.stop_id,
                                                    includes)
-        log.info("Found preds:%s" % preds)
+        log.info("Found preds:%s", preds)
         return leg.agency, preds
 
     def trip_create(self, name, legs):
