@@ -1,5 +1,3 @@
-'''Use CLI Tool To Configure Shortcuts For Common Routes'''
-
 import logging
 
 from sqlalchemy import Column, ForeignKey, Integer, String

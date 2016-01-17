@@ -1,13 +1,11 @@
-'''Use CLI Tool To Configure Shortcuts For Common Routes'''
-
 import argparse
 import os
 from prettytable import PrettyTable
 from sqlalchemy import create_engine
 
+from planner.client import TripPlanner
 from transit.common import utils as common_utils
 from transit.exceptions import TransitException
-from transit.planner import TripPlanner
 
 HOME_PATH = os.path.expanduser('~') + '/.trip_planner'
 
