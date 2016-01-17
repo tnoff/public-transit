@@ -72,7 +72,6 @@ class TripPlanner(object):
                 r = bart_client.route_info(route)
                 destinations.add(r['destination'].lower())
             include = list(destinations)
-
         return valid_stations[stop_tag], include
 
     def __validate_nextbus_stop(self, agency_tag, stop_id, includes):
@@ -112,6 +111,8 @@ class TripPlanner(object):
         # also return a list of all possible route_tags from predictions
         # .. this is also needed for the multiple stop logic later
         route_tags = includes
+        if route_tags and not isinstance(route_tags, list):
+            route_tags = [route_tags]
         if not route_tags:
             route_tags = ['%s' % i['route_tag']for i in predictions]
         return stop_tag, stop_title, route_tags
@@ -204,7 +205,7 @@ class TripPlanner(object):
         else:
             preds = nextbus_client.stop_prediction(leg.agency,
                                                    leg.stop_id,
-                                                   includes)
+                                                   route_tags=includes)
         log.info("Found preds:%s", preds)
         return leg.agency, preds
 

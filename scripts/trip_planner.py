@@ -23,7 +23,7 @@ def parse_args():
 
     subparsers = p.add_subparsers(dest='module', help='Module')
 
-    leg = subparsers.add_parser('leg', help='Lget of a trip')
+    leg = subparsers.add_parser('leg', help='Let of a trip')
     leg_parsers = leg.add_subparsers(dest='command',
                                      help='Command')
     leg_createy = leg_parsers.add_parser('create',

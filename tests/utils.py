@@ -12,7 +12,7 @@ def random_string(length=10, prefix='', suffix=''):
 
 @contextmanager
 def temp_database(db_name=None):
-    db_name = db_name or random_string(prefix='db-', suffix='.sql')
+    db_name = db_name or random_string(prefix='/tmp/db-', suffix='.sql')
     engine = create_engine('sqlite:///' + db_name, encoding='utf-8')
     try:
         yield engine

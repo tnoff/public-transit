@@ -1,5 +1,4 @@
-text = '''
-<?xml version="1.0" encoding="utf-8" ?> 
+text = '''<?xml version="1.0" encoding="utf-8" ?>
 <body copyright="All data copyright AC Transit 2015.">
 <route tag="22" title="22" color="8071b3" oppositeColor="000000" latMin="37.6308399" latMax="37.6707999" lonMin="-122.1086899" lonMax="-122.05466">
 <stop tag="0801430" title="D St &amp; Meek Av" lat="37.66447" lon="-122.08751" stopId="55390"/>

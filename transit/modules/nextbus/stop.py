@@ -71,7 +71,7 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     tags = None
     if isinstance(route_tags, list):
         if len(route_tags) == 1:
-            route_tags = route_tags[0]
+            route_tags = route_tags[0].lower()
         else:
             tags = [i.lower() for i in route_tags]
 
