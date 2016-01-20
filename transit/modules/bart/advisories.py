@@ -1,30 +1,24 @@
-from datetime import datetime
-
 from transit.common import utils as common_utils
 from transit.modules.bart import urls, utils
 
 datetime_format = '%a %b %d %Y %I:%M %p %Z'
 
-def _service_advisory(bsa_data):
+def _service_advisory(bsa_data, encoding):
     data = {}
-    args = ['id', 'station', 'type', 'description']
+    args = ['id', 'station', 'type', 'description', 'posted', 'expires']
     for arg in args:
         value = common_utils.parse_data(bsa_data, arg)
-        data[arg] = value
-    args = ['posted', 'expires']
-    for arg in args:
-        value = common_utils.parse_data(bsa_data, arg)
-        try:
-            date_value = datetime.strptime(value, datetime_format)
-        except TypeError:
-            date_value = None
-        data[arg] = date_value
+        data[arg] = common_utils.clean_value(value, encoding, datetime_format=datetime_format)
     return data
 
 def service_advisory():
     url = urls.service_advisory()
     soup, encoding = utils.make_request(url)
-    return [_service_advisory(bsa) for bsa in soup.find_all('bsa')]
+    service_advisories = []
+    for bsa in soup.find_all('bsa'):
+        service_data = _service_advisory(bsa, encoding)
+        service_advisories.append(service_data)
+    return service_advisories
 
 def train_count():
     url = urls.train_count()
@@ -34,4 +28,5 @@ def train_count():
 def elevator_status():
     url = urls.elevator_status()
     soup, encoding = utils.make_request(url)
-    return _service_advisory(soup.find('bsa'))
+    service_data = _service_advisory(soup.find('bsa'), encoding)
+    return service_data
