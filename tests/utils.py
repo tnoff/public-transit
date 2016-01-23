@@ -2,8 +2,9 @@ from contextlib import contextmanager
 import os
 import random
 import string
-from sqlalchemy import create_engine
 import unittest
+
+from planner import utils
 
 def random_string(length=10, prefix='', suffix=''):
     chars = string.ascii_lowercase + string.digits
@@ -13,7 +14,7 @@ def random_string(length=10, prefix='', suffix=''):
 @contextmanager
 def temp_database(db_name=None):
     db_name = db_name or random_string(prefix='/tmp/db-', suffix='.sql')
-    engine = create_engine('sqlite:///' + db_name, encoding='utf-8')
+    engine = utils.database_engine(db_name)
     try:
         yield engine
     finally:

@@ -1,8 +1,8 @@
 import argparse
 import os
 from prettytable import PrettyTable
-from sqlalchemy import create_engine
 
+from planner import utils
 from planner.client import TripPlanner
 from transit.common import utils as common_utils
 from transit.exceptions import TransitException
@@ -168,7 +168,8 @@ FUNCTION_MAPPING = {
 def main():
     args = parse_args()
     __create_directory(HOME_PATH)
-    engine = create_engine('sqlite:///' + HOME_PATH + '/trip_db.sql')
+    db_name = HOME_PATH + '/trip_db.sql'
+    engine = utils.database_engine(db_name)
     planner = TripPlanner(engine)
     method = FUNCTION_MAPPING[args.module][args.command]
     method(args, planner)

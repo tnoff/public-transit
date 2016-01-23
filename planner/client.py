@@ -93,9 +93,9 @@ class TripPlanner(object):
             leg = self.db_session.query(Leg).\
                 filter(Leg.stop_id == stop_id).\
                 filter(Leg.agency == agency_tag)[0]
-            stop_tag = leg.stop_tag
-            stop_title = leg.stop_title
-            stop_id = int(stop_id)
+            stop_tag = leg.stop_tag.encode('utf-8')
+            stop_title = leg.stop_title.encode('utf-8')
+            stop_id = stop_id.encode('utf-8')
         except IndexError:
             # use first predictions route tag
             route_tag = predictions[0]['route_tag']
@@ -103,10 +103,10 @@ class TripPlanner(object):
             stop_tag = None
             stop_title = None
             stop_id = stop_id
-            for i in route['stops']:
-                if i['stop_id'] == stop_id:
-                    stop_tag = i['stop_tag']
-                    stop_title = i['title']
+            for stop in route['stops']:
+                if stop['stop_id'] == stop_id:
+                    stop_tag = stop['stop_tag']
+                    stop_title = stop['title']
                     break
         # also return a list of all possible route_tags from predictions
         # .. this is also needed for the multiple stop logic later
@@ -130,10 +130,10 @@ class TripPlanner(object):
                                              stop_id,
                                              include)
         # Add new leg object
-        stop_id = ('%s' % stop_id).lower()
-        stop_tag = ('%s' % stop_tag).lower()
-        stop_title = ('%s' % stop_title).lower()
-        agency = ('%s' % agency_tag).lower()
+        stop_id = ('%s' % stop_id).lower().decode('utf-8')
+        stop_tag = ('%s' % stop_tag).lower().decode('utf-8')
+        stop_title = ('%s' % stop_title).lower().decode('utf-8')
+        agency = ('%s' % agency_tag).lower().decode('utf-8')
         new_leg = Leg(stop_id=stop_id,
                       stop_tag=stop_tag,
                       stop_title=stop_title,
@@ -196,21 +196,21 @@ class TripPlanner(object):
         leg = self.db_session.query(Leg).get(leg_id)
         if not leg:
             raise TripPlannerException("No Leg with this ID:%s" % leg_id)
-        includes = [i.tag for i in self.db_session.query(LegInclude).\
+        includes = [include.tag.encode('utf-8') for include in self.db_session.query(LegInclude).\
             filter(LegInclude.leg_id == leg_id)]
         preds = None
         if leg.agency == 'bart':
-            preds = bart_client.station_departures(leg.stop_id,
+            preds = bart_client.station_departures(leg.stop_id.encode('utf-8'),
                                                    destinations=includes)
         else:
-            preds = nextbus_client.stop_prediction(leg.agency,
-                                                   leg.stop_id,
+            preds = nextbus_client.stop_prediction(leg.agency.encode('utf-8'),
+                                                   leg.stop_id.encode('utf-8'),
                                                    route_tags=includes)
         log.info("Found preds:%s", preds)
         return leg.agency, preds
 
     def trip_create(self, name, legs):
-        new_trip = Trip(name=name)
+        new_trip = Trip(name=name.decode('utf-8'))
         self.db_session.add(new_trip)
         self.db_session.commit()
 
@@ -252,6 +252,7 @@ class TripPlanner(object):
 
         legs = self.db_session.query(TripLeg).\
             filter(TripLeg.trip_id == trip_id)
+
         for trip_leg in legs:
             includes = self.db_session.query(LegInclude).\
                 filter(LegInclude.leg_id == trip_leg.leg_id)
@@ -261,11 +262,14 @@ class TripPlanner(object):
                 for leg_include in includes:
                     station_data[leg.stop_id].append(leg_include.tag)
             else:
-                nextbus_data.setdefault(leg.agency, {})
-                agency_data = nextbus_data[leg.agency]
+                agency = leg.agency.encode('utf-8')
+                nextbus_data.setdefault(agency, {})
+
                 for leg_include in includes:
-                    agency_data.setdefault(leg_include.tag, [])
-                    agency_data[leg_include.tag].append(leg.stop_tag)
+                    leg_tag = leg_include.tag.encode('utf-8')
+                    stop_tag = leg.stop_tag.encode('utf-8')
+                    nextbus_data[agency].setdefault(leg_tag, [])
+                    nextbus_data[agency][leg_tag].append(stop_tag)
         trip_data = {
             'bart' : None,
             'nextbus' : {},
@@ -273,7 +277,7 @@ class TripPlanner(object):
         if station_data:
             trip_data['bart'] = bart_client.station_multiple_departures(station_data)
         for agency, data in nextbus_data.iteritems():
-            trip_data['nextbus'][agency] = nextbus_client.multiple_stop_predictions(agency,
+            trip_data['nextbus'][agency] = nextbus_client.stop_multiple_predictions(agency,
                                                                                     data)
         return trip_data
 
