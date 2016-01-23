@@ -1,7 +1,12 @@
-from bs4 import BeautifulSoup
+import re
 import requests
+from bs4 import BeautifulSoup
 
 from transit.exceptions import TransitException
+
+# matches to mm/dd/yyyy
+DATE_MATCH_REGEX = r'[0-1][0-9]/[0-3][0-9]/[0-9][0-9][0-9][0-9]'
+DATE_MATCH = re.compile(DATE_MATCH_REGEX)
 
 def make_request(url, markup="html.parser"):
     headers = {'accept-encoding' : 'gzip, deflate'}

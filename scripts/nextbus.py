@@ -27,6 +27,10 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     rg.add_argument('agency_tag', help='Agency tag')
     rg.add_argument('route_tag', help='Route tag')
 
+    rm = rsp.add_parser('messages', help='Get route alert messages')
+    rm.add_argument('agency_tag', help='Agency tag')
+    rm.add_argument('route_tag', nargs='+', help='Route tag(s)')
+
     stop = sub_parser.add_parser('stop', help='Stop commands')
     ssp = stop.add_subparsers(help='Sub-command',
                               dest='subcommand')
@@ -45,10 +49,6 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     vehicle.add_argument('agency_tag', help='Agency tag')
     vehicle.add_argument('route_tag', help='Route tag')
     vehicle.add_argument('epoch_time', type=int, help='Epoch Time')
-
-    message = sub_parser.add_parser('message', help='Messages')
-    message.add_argument('agency_tag', help='Agency tag')
-    message.add_argument('route_tag', nargs='+', help='Route tag(s)')
 
     return p.parse_args()
 
@@ -116,6 +116,7 @@ def schedule_get(args):
         table = PrettyTable(["Stop Title", "Expected Time"])
         for rt in route_times:
             for time in route_times[rt]:
+                # TODO this should be using datetime probably
                 table.add_row([rt, '%s-%s-%s' % \
                     (time.hour, time.minute, time.second)])
         print table
@@ -131,8 +132,8 @@ def vehicle_location(args):
                        l['speedkmhr'], l['seconds_since_last_report']])
     print table
 
-def message_get(args):
-    routes = client.message_get(args.agency_tag, args.route_tag)
+def route_messages(args):
+    routes = client.route_messages(args.agency_tag, args.route_tag)
     for route in routes:
         print 'Route:', route['route_tag']
         table = PrettyTable(["Message Text", "Priority", "Send to Buses",
@@ -149,6 +150,7 @@ FUNCTION_MATCH = {
     'route' : {
         'list' : route_list,
         'get' : route_get,
+        'messages' : route_messages,
     },
     'stop' : {
         'prediction' : stop_prediction,
@@ -158,9 +160,6 @@ FUNCTION_MATCH = {
     },
     'vehicle' : {
         None : vehicle_location,
-    },
-    'message' : {
-        None : message_get,
     },
 }
 

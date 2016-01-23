@@ -1,5 +1,6 @@
 from datetime import datetime
 
+#TODO stuff thats using this should probably just be using datetime
 def pretty_time(minutes, seconds):
     stringy = ''
     if minutes < 10:
@@ -10,6 +11,7 @@ def pretty_time(minutes, seconds):
     stringy += '%s' % str(seconds)
     return stringy
 
+#TODO this should probably just call clean value directly
 def parse_data(data, key_name):
     # some values are part of the object such as
     # .. <foo bar=1>
@@ -29,6 +31,7 @@ def parse_data(data, key_name):
         except IndexError:
             return None
     return value
+
 def clean_value(value, encoding, datetime_format=None):
     # clean string to whatever type it should be
     if value is None:

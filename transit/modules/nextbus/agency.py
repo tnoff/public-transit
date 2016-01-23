@@ -10,7 +10,8 @@ def _agency(agency_data, encoding):
     data['region'] = data.pop('regiontitle', None)
     return data
 
-def list_all():
+def agency_list():
+    '''List all nextbus agencies'''
     url = urls.agency_list()
     soup, encoding = utils.make_request(url)
     return [_agency(ag, encoding) for ag in soup.find_all('agency')]

@@ -2,21 +2,20 @@ from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 from transit.modules.nextbus import stop
 
-def _route_base(route_data, encoding, agency_tag=None):
+def _route_base(route_data, encoding):
     data = {}
-    data['agency_tag'] = agency_tag
     route_tag = common_utils.parse_data(route_data, 'tag')
     data['route_tag'] = common_utils.clean_value(route_tag, encoding)
     return data
 
-def _route(route_data, encoding, agency_tag=None):
-    data = _route_base(route_data, encoding, agency_tag=agency_tag)
+def _route(route_data, encoding):
+    data = _route_base(route_data, encoding)
     title = common_utils.parse_data(route_data, 'title')
     data['title'] = common_utils.clean_value(title, encoding)
     return data
 
-def _route_info(route_data, encoding, agency_tag=None):
-    data = _route_base(route_data, encoding, agency_tag=agency_tag)
+def _route_info(route_data, encoding):
+    data = _route_base(route_data, encoding)
     args = ['title', 'color', 'oppositecolor', 'latmin', 'latmax', 'lonmin', 'lonmax']
     for arg in args:
         value = common_utils.parse_data(route_data, arg)
@@ -84,25 +83,42 @@ def _message(message_data, encoding):
         data['text'].append(common_utils.clean_value(text.contents[0], encoding))
     return data
 
-def _route_message(route_data, encoding, agency_tag=None):
-    data = _route_base(route_data, encoding, agency_tag=agency_tag)
+def _route_message(route_data, encoding):
+    data = _route_base(route_data, encoding)
     data['messages'] = [_message(mes, encoding) for mes in route_data.find_all('message')]
     return data
 
 def route_list(agency_tag):
+    '''Get list of agency routes
+       agency_tag: agency tag
+    '''
+    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     url = urls.route_list(agency_tag)
     soup, encoding = utils.make_request(url)
     return_data = []
     for route in soup.find_all('route'):
-        return_data.append(_route(route, encoding, agency_tag=agency_tag))
+        return_data.append(_route(route, encoding))
     return return_data
 
 def route_get(agency_tag, route_tag):
+    '''Get information about route
+       agency_tag: agency tag
+       route_tag : route_tag
+    '''
+    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
+    assert isinstance(route_tag, basestring), 'route tag must be string type'
     url = urls.route_show(agency_tag, route_tag)
     soup, encoding = utils.make_request(url)
-    return _route_info(soup.find('route'), encoding, agency_tag=agency_tag)
+    return _route_info(soup.find('route'), encoding)
 
-def message_get(agency_tag, route_tags):
+def route_messages(agency_tag, route_tags):
+    '''Get alert messages for routes
+       agency_tag : agency tag
+       route_tags : either single route tag, or list of tags
+    '''
+    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
+    assert isinstance(route_tags, basestring) or isinstance(route_tags, list),\
+        'route tag must be string type or list of string types'
     url = urls.message_get(agency_tag, route_tags)
     soup, encoding = utils.make_request(url)
     return [_route_message(route, encoding) for route in soup.find_all('route')]

@@ -33,9 +33,8 @@ def _route_prediction(route_data, encoding, route_tags=None):
 
     # Raise exception here for multiple stop excludes
     # .. that way you dont get a bunch of data you dont care about
-    if route_tags:
-        if route_tag.lower() not in route_tags:
-            raise TransitException("Tag not allowed:%s" % data['route_tag'])
+    if route_tags and route_tag.lower() not in route_tags:
+        raise TransitException("Tag not allowed:%s" % data['route_tag'])
 
     agency_title = common_utils.parse_data(route_data, 'agencytitle')
     data['agency_title'] = common_utils.clean_value(agency_title, encoding)
@@ -87,29 +86,38 @@ def _route_stop_prediction(pred_data, encoding):
     return data
 
 def stop_prediction(agency_tag, stop_id, route_tags=None):
-    # Treat this two different ways for route tags
-    # .. if route tag is only a single route, it will make the call directly
-    # .. and you dont have to do anything fancy
-    # .. if there is a list of route tags, get all route tags and strip
-    # .. during the call
-    tags = None
-    if isinstance(route_tags, list):
-        if len(route_tags) == 1:
-            route_tags = route_tags[0].lower()
-        else:
-            tags = [i.lower() for i in route_tags]
-
+    '''Get arrival predictions for stops
+       agency_tag: agency tag
+       stop_id: stop id
+       route_tags: list of routes or single route to limit search
+    '''
+    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
+    assert isinstance(stop_id, basestring), 'stop id must be string type'
+    assert route_tags is None or isinstance(route_tags, basestring)\
+        or isinstance(route_tags, list), \
+            'route tags must be string, list or null type'
     url = urls.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
     soup, encoding = utils.make_request(url)
     routes = []
+    # if only a single route was entered into url, only single result with that
+    # .. route will be returned. if multiple routes, use routes here to strip
+    # .. the data
+    if route_tags and isinstance(route_tags, list):
+        route_tags = [item.lower() for item in route_tags]
     for pred in soup.find_all('predictions'):
         try:
-            routes.append(_route_prediction(pred, encoding, route_tags=tags))
+            routes.append(_route_prediction(pred, encoding, route_tags=route_tags))
         except TransitException:
             continue
     return routes
 
-def multiple_stop_prediction(agency_tag, data):
+def stop_multiple_predictions(agency_tag, data):
+    '''Get predictions for multiple stops
+       agency_tag: agency tag
+       stop_data:{route_tag : [stoptag, stoptag, ..], ...}
+    '''
+    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
+    # TODO assert stopdata with jsonschema
     url = urls.multiple_stop_prediction(agency_tag, data)
     soup, encoding = utils.make_request(url)
     return [_route_prediction(pred, encoding) for pred in soup.find_all('predictions')]

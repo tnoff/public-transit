@@ -47,7 +47,7 @@ class TestNextbus(utils.BaseTestClient):
     @httpretty.activate
     def test_route_list(self):
         agency_tag = 'sf-muni'
-        test_url = urls.route_list(agency_list)
+        test_url = urls.route_list(agency_tag)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=route_list.text,
@@ -187,7 +187,7 @@ class TestNextbus(utils.BaseTestClient):
     def test_vehicle_locations(self):
         agency_tag = 'sf-muni'
         route_tag = 'N'
-        epoch_time = '1144953500233'
+        epoch_time = 1144953500233
         test_url = urls.vehicle_location(agency_tag, route_tag, epoch_time)
         httpretty.register_uri(httpretty.GET,
                                test_url,
@@ -207,7 +207,7 @@ class TestNextbus(utils.BaseTestClient):
                                test_url,
                                body=message_get.text,
                                content_type='application/xml')
-        routes = client.message_get(agency_tag, route_tag)
+        routes = client.route_messages(agency_tag, route_tag)
         first_route = routes[0]
         self.assert_dictionary(first_route, skip=['agency_tag'])
 
@@ -221,7 +221,7 @@ class TestNextbus(utils.BaseTestClient):
                                test_url,
                                body=message_get_multi.text,
                                content_type='application/xml')
-        routes = client.message_get(agency_tag, route_tags)
+        routes = client.route_messages(agency_tag, route_tags)
         self.assertTrue(len(routes) > 1)
         first_route = routes[0]
         self.assert_dictionary(first_route, skip=['agency_tag'])
@@ -236,7 +236,7 @@ class TestNextbus(utils.BaseTestClient):
                                test_url,
                                body=multi_one.text,
                                content_type='application/xml')
-        preds = client.multiple_stop_predictions(agency_tag, data)
+        preds = client.stop_multiple_predictions(agency_tag, data)
         first_pred = preds[0]
         self.assert_dictionary(first_pred)
         direction = first_pred['directions'][0]
@@ -252,7 +252,7 @@ class TestNextbus(utils.BaseTestClient):
                                test_url,
                                body=multi_two.text,
                                content_type='application/xml')
-        preds = client.multiple_stop_predictions(agency_tag, data)
+        preds = client.stop_multiple_predictions(agency_tag, data)
         first_pred = preds[0]
         self.assert_dictionary(first_pred)
         direction = first_pred['directions'][0]

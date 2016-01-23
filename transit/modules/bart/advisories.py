@@ -12,6 +12,7 @@ def _service_advisory(bsa_data, encoding):
     return data
 
 def service_advisory():
+    '''System wide service advisory'''
     url = urls.service_advisory()
     soup, encoding = utils.make_request(url)
     service_advisories = []
@@ -21,11 +22,13 @@ def service_advisory():
     return service_advisories
 
 def train_count():
+    '''System wide train count'''
     url = urls.train_count()
     soup, encoding = utils.make_request(url)
     return int(soup.find('traincount').string.encode(encoding))
 
 def elevator_status():
+    '''System wide elevator status'''
     url = urls.elevator_status()
     soup, encoding = utils.make_request(url)
     service_data = _service_advisory(soup.find('bsa'), encoding)

@@ -1,3 +1,4 @@
+from transit.exceptions import TransitException
 from transit.common import utils as common_utils
 from transit.modules.bart import urls, utils
 
@@ -30,6 +31,7 @@ def _schedule_fare(schedule_data, encoding):
     return data
 
 def schedule_list():
+    '''List bart schedules'''
     url = urls.schedule_list()
     soup, encoding = utils.make_request(url)
     schedules = []
@@ -40,6 +42,18 @@ def schedule_list():
 
 def schedule_fare(origin_station, destination_station,
                   date=None, schedule=None):
+    '''Get the scheduled fare
+        origin_station: station you'll onbard at
+        destination_station: station you'll offboard at
+        schedule: schedule number
+        date: mm/dd/yyyy format
+    '''
+    assert isinstance(origin_station, basestring), 'origin station must be string type'
+    assert isinstance(destination_station, basestring), 'destination station must be string type'
+    assert schedule is None or isinstance(schedule, int),\
+        'schedule number must be int or None type'
+    if date and not utils.DATE_MATCH.match(date):
+        raise TransitException('date must match pattern:%s' % utils.DATE_MATCH_REGEX)
     url = urls.schedule_fare(origin_station, destination_station,
                              date=date, schedule=schedule)
     soup, encoding = utils.make_request(url)

@@ -271,7 +271,7 @@ class TripPlanner(object):
             'nextbus' : {},
         }
         if station_data:
-            trip_data['bart'] = bart_client.multiple_station_departures(station_data)
+            trip_data['bart'] = bart_client.station_multiple_departures(station_data)
         for agency, data in nextbus_data.iteritems():
             trip_data['nextbus'][agency] = nextbus_client.multiple_stop_predictions(agency,
                                                                                     data)

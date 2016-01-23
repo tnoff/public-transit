@@ -1,97 +1,21 @@
-'''
-Bart API Client
-Gather all information using methods
-'''
-from transit.modules.bart import advisories as advisory_client
-from transit.modules.bart import routes as route_client
-from transit.modules.bart import schedules as schedule_client
-from transit.modules.bart import stations as station_client
+from transit.modules.bart import advisories
+from transit.modules.bart import routes
+from transit.modules.bart import schedules
+from transit.modules.bart import stations
 
-def service_advisory():
-    '''Bart Service Advisory (For All Stations)'''
-    return advisory_client.service_advisory()
+elevator_status = advisories.elevator_status
+service_advisory = advisories.service_advisory
+train_count = advisories.train_count
 
-def train_count():
-    '''Current number of Bart Trains'''
-    return advisory_client.train_count()
+route_info = routes.route_info
+route_list = routes.route_list
 
-def elevator_status():
-    '''Elevator Status for all stations'''
-    return advisory_client.elevator_status()
+schedule_fare = schedules.schedule_fare
+schedule_list = schedules.schedule_list
 
-def route_list(schedule=None, date=None):
-    '''List of current routes
-       schedule: schedule number
-       date: mm/dd/yyyy format
-    '''
-    return route_client.route_list(schedule=schedule, date=date)
-
-def route_info(route_number, schedule=None, date=None):
-    '''Show information for specific route
-       route_number: number of route to show
-       schedule: schedule number
-       date: mm/dd/yyyy format
-    '''
-    return route_client.route_info(route_number, schedule=schedule,
-                                   date=date)
-
-def station_list():
-    '''List of stations'''
-    return station_client.station_list()
-
-def station_info(station):
-    '''Get station info
-       station: station abbreviation
-    '''
-    return station_client.station_info(station)
-
-def station_access(station):
-    '''Access information for station
-       station: station abbreviation
-    '''
-    return station_client.station_access(station)
-
-def multiple_station_departures(station_data):
-    '''
-    Get estimated departures for mutliple stations
-    station_data:
-        {'station_abbrevation' : [destination1, destination2],
-         'station_abbreviation2' : [], # empty for all possible destinations}
-    '''
-    return station_client.multiple_station_departures(station_data)
-
-def station_departures(station, platform=None, direction=None,
-                       destinations=None):
-    '''Get estimated station departures
-       station: station abbreviation
-       plaform: platfrom number
-       direction: (n)orth or (s)outh
-       destinatons: List of abbreviated destinations, exclude all others
-    '''
-    return station_client.station_departures(station, platform=platform,
-                                             direction=direction,
-                                             destinations=destinations)
-
-def station_schedule(station, date=None):
-    '''Get a stations schedule
-       station: station abbreviation
-       date: mm/dd/yyyy format
-    '''
-    return station_client.station_schedule(station, date=date)
-
-def schedule_list():
-    '''Get a list of current schedules'''
-    return schedule_client.schedule_list()
-
-def schedule_fare(origin_station, destination_station,
-                  date=None, schedule=None):
-    '''Get the scheduled fare
-       origin_station: station you'll onbard at
-       destination_station: station you'll offboard at
-       schedule: schedule number
-       date: mm/dd/yyyy format
-    '''
-    return schedule_client.schedule_fare(origin_station,
-                                         destination_station,
-                                         date=date,
-                                         schedule=schedule)
+station_access = stations.station_access
+station_departures = stations.station_departures
+station_info = stations.station_info
+station_list = stations.station_list
+station_multiple_departures = stations.station_multiple_departures
+station_schedule = stations.station_schedule

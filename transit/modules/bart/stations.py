@@ -184,19 +184,35 @@ def _station_schedule(station_data, encoding):
     return data
 
 def station_list():
+    '''List all bart stations'''
     return STATION_MAPPING
 
 def station_info(station):
+    '''Station information
+        station: station abbreviation
+    '''
+    assert isinstance(station, basestring), 'station must be string type'
     url = urls.station_info(station)
     soup, encoding = utils.make_request(url)
     return _station_info(soup.find('station'), encoding)
 
 def station_access(station):
+    '''Station Access information
+        station: station abbreviation
+    '''
+    assert isinstance(station, basestring), 'station must be string type'
     url = urls.station_access(station)
     soup, encoding = utils.make_request(url)
     return _station_access(soup.find('station'), encoding)
 
-def multiple_station_departures(station_data):
+def station_multiple_departures(station_data):
+    '''
+    Get estimated departures for mutliple stations
+    station_data:
+        {'station_abbrevation' : [destination1, destination2],
+        'station_abbreviation2' : [], # empty for all possible destinations}
+    '''
+    # TODO assert station data with json schema here
     url = urls.estimated_departures('all')
     soup, encoding = utils.make_request(url)
     # make all keys lower case
@@ -216,6 +232,19 @@ def multiple_station_departures(station_data):
 
 def station_departures(station, platform=None, direction=None,
                        destinations=None):
+    '''Get estimated station departures
+        station: station abbreviation
+        plaform: platfrom number
+        direction: (n)orth or (s)outh
+        destinatons: List of abbreviated destinations, exclude all others
+    '''
+    assert isinstance(station, basestring), 'station must be string type'
+    assert platform is None or isinstance(platform, int),\
+        'platform must be int or null type'
+    assert direction is None or isinstance(direction, basestring),\
+        'direction must be string or null type'
+    assert destinations is None or isinstance(destinations, list), \
+        'destinations must be list or null type'
     url = urls.estimated_departures(station, platform=platform,
                                     direction=direction)
     soup, encoding = utils.make_request(url)
@@ -228,6 +257,13 @@ def station_departures(station, platform=None, direction=None,
     return departs
 
 def station_schedule(station, date=None):
+    '''Get a stations schedule
+        station: station abbreviation
+        date: mm/dd/yyyy format
+    '''
+    assert isinstance(station, basestring), 'station must be string type'
+    if date and not utils.DATE_MATCH.match(date):
+        raise TransitException('date must match pattern:%s' % utils.DATE_MATCH_REGEX)
     url = urls.station_schedule(station, date=date)
     soup, encoding = utils.make_request(url)
     return _station_schedule(soup.find('station'), encoding)

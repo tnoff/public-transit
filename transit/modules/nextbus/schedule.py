@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 
@@ -40,18 +42,27 @@ def _schedule_block(block_data, encoding, title_data):
         data['stop_schedules'].append(ss)
     return data
 
-def _stop_schedule(stop_data, encoding, title=None):
+def _stop_schedule(stop_data, encoding):
     data = {}
     stop_tag = common_utils.parse_data(stop_data, 'tag')
     data['stop_tag'] = common_utils.clean_value(stop_tag, encoding)
     epoch_time = common_utils.parse_data(stop_data, 'epochtime')
     data['epoch_time'] = common_utils.clean_value(epoch_time, encoding)
-    data['title'] = title
-    data['time'] = common_utils.clean_value(stop_data.contents[0], encoding,
-                                            datetime_format=datetime_format)
+    # TODO figure out why clean value isnt working here
+    time = common_utils.clean_value(stop_data.contents[0], encoding)
+    if time == '--':
+        data['time'] = None
+    else:
+        data['time'] = datetime.strptime(time, datetime_format)
     return data
 
 def schedule_get(agency_tag, route_tag):
+    '''Get schedule information for route
+       agency_tag : agency tag
+       route_tag : route tag
+    '''
+    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
+    assert isinstance(route_tag, basestring), 'route tag must be string type'
     url = urls.schedule_get(agency_tag, route_tag)
     soup, encoding = utils.make_request(url)
     return [_schedule_route(route, encoding) for route in soup.find_all('route')]

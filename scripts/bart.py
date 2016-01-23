@@ -31,7 +31,7 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
 
     route_show = routes_sp.add_parser('info',
                                       help='Route Information')
-    route_show.add_argument('route_number', help='Route number')
+    route_show.add_argument('route_number', type=int, help='Route number')
     route_show.add_argument('--schedule', type=int,
                             help='Schedule Number')
     route_show.add_argument('--date', help='MM/DD/YYYY format')

@@ -138,7 +138,7 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
             'mont' : ['dubl', 'pitt'],
             'bayf' : [],
         }
-        ests = client.multiple_station_departures(station_data)
+        ests = client.station_multiple_departures(station_data)
         for est in ests:
             if est['abbreviation'].lower() == 'mont':
                 self.assertEqual(len(est['directions']), 2)
@@ -152,7 +152,7 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
             self.assert_dictionary(direction_estimate)
 
     @httpretty.activate
-    def test_current_route(self):
+    def test_route_list(self):
         # some args only in route info for scheduled routes
         route_skip = ['origin', 'destination', 'holidays', 'number_stations']
         test_url = urls.route_list()
