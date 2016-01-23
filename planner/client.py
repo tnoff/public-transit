@@ -50,6 +50,7 @@ def clean_sql(sql_object):
             new_data[key] = data[key]
     return new_data
 
+# TODO planner functions should assert inputs
 class TripPlanner(object):
     def __init__(self, engine):
         Base.metadata.create_all(engine)
@@ -62,6 +63,7 @@ class TripPlanner(object):
         if stop_tag.lower() not in [i for i in valid_stations]:
             raise TripPlannerException('Bart station not valid:%s' % stop_tag)
 
+        # TODO this should check destinations are valid if not None
         if not include:
             # check for all possible routes from station
             # use this to get a list of all possible destinations
@@ -110,6 +112,7 @@ class TripPlanner(object):
                     break
         # also return a list of all possible route_tags from predictions
         # .. this is also needed for the multiple stop logic later
+        # TODO to some verification that the route tags are valid
         route_tags = includes
         if route_tags and not isinstance(route_tags, list):
             route_tags = [route_tags]
@@ -130,10 +133,10 @@ class TripPlanner(object):
                                              stop_id,
                                              include)
         # Add new leg object
-        stop_id = ('%s' % stop_id).lower().decode('utf-8')
-        stop_tag = ('%s' % stop_tag).lower().decode('utf-8')
-        stop_title = ('%s' % stop_title).lower().decode('utf-8')
-        agency = ('%s' % agency_tag).lower().decode('utf-8')
+        stop_id = ('%s' % stop_id).decode('utf-8')
+        stop_tag = ('%s' % stop_tag).decode('utf-8')
+        stop_title = ('%s' % stop_title).decode('utf-8')
+        agency = ('%s' % agency_tag).decode('utf-8')
         new_leg = Leg(stop_id=stop_id,
                       stop_tag=stop_tag,
                       stop_title=stop_title,
@@ -144,7 +147,7 @@ class TripPlanner(object):
         # Add all routes in leg includes
         route_tags = route_tags or []
         for tag in route_tags:
-            cleaned_tag = ('%s' % tag).lower().decode('utf-8')
+            cleaned_tag = ('%s' % tag).decode('utf-8')
             leg_include = LegInclude(leg_id=new_leg.id,
                                      tag=cleaned_tag)
             self.db_session.add(leg_include)

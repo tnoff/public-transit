@@ -2,7 +2,7 @@ import argparse
 from prettytable import PrettyTable
 
 from transit.modules.nextbus import client
-from transit.common import utils
+from transit.modules.nextbus import utils as bus_utils
 
 def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     p = argparse.ArgumentParser(description='Nextbus CLI')
@@ -96,10 +96,10 @@ def stop_prediction(args):
             route_string = '%s-%s' % (route['route_title'], direction['title'])
             preds = []
             for pred in direction['predictions']:
-                time = utils.pretty_time(int(pred['minutes']),
-                                         (int(pred['seconds'])- (int(pred['minutes']) * 60)))
-                preds.append('%s' % time)
-            predictions = ', '.join(i for i in preds)
+                minutes = int(pred['minutes'])
+                seconds = int(pred['seconds'])
+                preds.append(bus_utils.prediction_time(minutes, seconds))
+            predictions = ' ; '.join(i for i in preds)
             table.add_row([route_string, predictions])
     print table
 
@@ -116,9 +116,9 @@ def schedule_get(args):
         table = PrettyTable(["Stop Title", "Expected Time"])
         for rt in route_times:
             for time in route_times[rt]:
-                # TODO this should be using datetime probably
-                table.add_row([rt, '%s-%s-%s' % \
-                    (time.hour, time.minute, time.second)])
+                time_str = time.strftime('%H:%M:%S')
+
+                table.add_row([rt, time_str])
         print table
 
 def vehicle_location(args):

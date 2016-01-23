@@ -3,23 +3,20 @@ from transit.modules.nextbus import urls, utils
 from transit.modules.nextbus import stop
 
 def _route_base(route_data, encoding):
-    data = {}
-    route_tag = common_utils.parse_data(route_data, 'tag')
-    data['route_tag'] = common_utils.clean_value(route_tag, encoding)
+    data = common_utils.parse_page(route_data, ['tag'], encoding)
+    data['route_tag'] = data.pop('tag', None)
     return data
 
 def _route(route_data, encoding):
     data = _route_base(route_data, encoding)
-    title = common_utils.parse_data(route_data, 'title')
-    data['title'] = common_utils.clean_value(title, encoding)
+    data.update(common_utils.parse_page(route_data, ['title'], encoding))
     return data
 
 def _route_info(route_data, encoding):
     data = _route_base(route_data, encoding)
     args = ['title', 'color', 'oppositecolor', 'latmin', 'latmax', 'lonmin', 'lonmax']
-    for arg in args:
-        value = common_utils.parse_data(route_data, arg)
-        data[arg] = common_utils.clean_value(value, encoding)
+    additional_data = common_utils.parse_page(route_data, args, encoding)
+    data.update(additional_data)
     data['opposite_color'] = data.pop('oppositecolor', None)
     data['latitude_min'] = data.pop('latmin', None)
     data['latitude_max'] = data.pop('latmax', None)
@@ -53,31 +50,22 @@ def _route_info(route_data, encoding):
     return data
 
 def _route_direction(direction_data, encoding):
-    data = {}
     args = ['tag', 'name', 'title', 'useforui']
-    for arg in args:
-        value = common_utils.parse_data(direction_data, arg)
-        data[arg] = common_utils.clean_value(value, encoding)
+    data = common_utils.parse_page(direction_data, args, encoding)
     data['use_for_ui'] = data.pop('useforui', None)
     data['stop_tags'] = []
     return data
 
 def _message(message_data, encoding):
-    data = {}
-    message_id = common_utils.parse_data(message_data, 'id')
-    data['message_id'] = common_utils.clean_value(message_id, encoding)
-    priority = common_utils.parse_data(message_data, 'priority')
-    data['priority'] = common_utils.clean_value(priority, encoding)
-    start_boundary = common_utils.parse_data(message_data, 'startboundary')
-    data['start_boundary_epoch'] = common_utils.clean_value(start_boundary, encoding)
-    end_boundary = common_utils.parse_data(message_data, 'endboundary')
-    data['end_boundary_epoch'] = common_utils.clean_value(end_boundary, encoding)
-    start = common_utils.parse_data(message_data, 'startboundarystr')
-    data['start_boundary'] = common_utils.clean_value(start, encoding)
-    end = common_utils.parse_data(message_data, 'endboundarystr')
-    data['end_boundary'] = common_utils.clean_value(end, encoding)
-    bus = common_utils.parse_data(message_data, 'senttobuses')
-    data['send_to_buses'] = common_utils.clean_value(bus, encoding)
+    args = ['id', 'priority', 'startboundary', 'endboundary', 'startboundarystr',
+            'endboundarystr', 'senttobuses']
+    data = common_utils.parse_page(message_data, args, encoding)
+    data['message_id'] = data.pop('id', None)
+    data['start_boundary_epoch'] = data.pop('startboundary', None)
+    data['end_boundary_epoch'] = data.pop('endboundary', None)
+    data['start_boundary'] = data.pop('startboundarystr', None)
+    data['end_boundary'] = data.pop('endboundarystr', None)
+    data['send_to_buses'] = data.pop('senttobuses', None)
     data['text'] = []
     for text in message_data.find_all('text'):
         data['text'].append(common_utils.clean_value(text.contents[0], encoding))

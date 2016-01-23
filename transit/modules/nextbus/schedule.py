@@ -1,22 +1,13 @@
-from datetime import datetime
-
 from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 
 datetime_format = '%H:%M:%S'
 
 def _schedule_route(schedule_data, encoding):
-    data = {}
-    tag = common_utils.parse_data(schedule_data, 'tag')
-    data['tag'] = common_utils.clean_value(tag, encoding)
-    title = common_utils.parse_data(schedule_data, 'title')
-    data['title'] = common_utils.clean_value(title, encoding)
-    schedule_class = common_utils.parse_data(schedule_data, 'scheduleclass')
-    data['schedule_class'] = common_utils.clean_value(schedule_class, encoding)
-    service_class = common_utils.parse_data(schedule_data, 'serviceclass')
-    data['service_class'] = common_utils.clean_value(service_class, encoding)
-    direction = common_utils.parse_data(schedule_data, 'direction')
-    data['direction'] = common_utils.clean_value(direction, encoding)
+    args = ['tag', 'title', 'scheduleclass', 'serviceclass', 'direction']
+    data = common_utils.parse_page(schedule_data, args, encoding)
+    data['schedule_class'] = data.pop('scheduleclass', None)
+    data['service_class'] = data.pop('serviceclass', None)
     data['blocks'] = []
 
     # titles are put in the header for some reason
@@ -32,9 +23,8 @@ def _schedule_route(schedule_data, encoding):
     return data
 
 def _schedule_block(block_data, encoding, title_data):
-    data = {}
-    block_id = common_utils.parse_data(block_data, 'blockid')
-    data['block_id'] = common_utils.clean_value(block_id, encoding)
+    data = common_utils.parse_page(block_data, ['blockid'], encoding)
+    data['block_id'] = data.pop('blockid', None)
     data['stop_schedules'] = []
     for new_stop in block_data.find_all('stop'):
         ss = _stop_schedule(new_stop, encoding)
@@ -43,17 +33,15 @@ def _schedule_block(block_data, encoding, title_data):
     return data
 
 def _stop_schedule(stop_data, encoding):
-    data = {}
-    stop_tag = common_utils.parse_data(stop_data, 'tag')
-    data['stop_tag'] = common_utils.clean_value(stop_tag, encoding)
-    epoch_time = common_utils.parse_data(stop_data, 'epochtime')
-    data['epoch_time'] = common_utils.clean_value(epoch_time, encoding)
-    # TODO figure out why clean value isnt working here
-    time = common_utils.clean_value(stop_data.contents[0], encoding)
+    args = ['tag', 'epochtime']
+    data = common_utils.parse_page(stop_data, args, encoding)
+    data['stop_tag'] = data.pop('tag', None)
+    data['epoch_time'] = data.pop('epochtime', None)
+    time_data = stop_data.contents[0]
+    time = common_utils.clean_value(time_data, encoding,
+                                    datetime_format=datetime_format)
     if time == '--':
         data['time'] = None
-    else:
-        data['time'] = datetime.strptime(time, datetime_format)
     return data
 
 def schedule_get(agency_tag, route_tag):

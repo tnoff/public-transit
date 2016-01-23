@@ -2,11 +2,8 @@ from transit.common import utils as common_utils
 from transit.modules.nextbus import urls, utils
 
 def _agency(agency_data, encoding):
-    data = {}
     args = ['tag', 'title', 'regiontitle']
-    for arg in args:
-        value = common_utils.parse_data(agency_data, arg)
-        data[arg] = common_utils.clean_value(value, encoding)
+    data = common_utils.parse_page(agency_data, args, encoding)
     data['region'] = data.pop('regiontitle', None)
     return data
 

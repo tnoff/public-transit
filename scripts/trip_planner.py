@@ -4,8 +4,8 @@ from prettytable import PrettyTable
 
 from planner import utils
 from planner.client import TripPlanner
-from transit.common import utils as common_utils
 from transit.exceptions import TransitException
+from transit.modules.nextbus import utils as bus_utils
 
 HOME_PATH = os.path.expanduser('~') + '/.trip_planner'
 
@@ -73,10 +73,10 @@ def leg_list(_, trip_planner):
 def __nice_predictions(predictions):
     preds = []
     for pred in predictions:
-        seconds = int(pred['seconds']) - (int(pred['minutes']) * 60)
-        t = common_utils.pretty_time(pred['minutes'], seconds)
-        preds.append(t)
-    return ', '.join(i for i in preds)
+        minutes = int(pred['minutes'])
+        seconds = int(pred['seconds'])
+        preds.append(bus_utils.prediction_time(minutes, seconds))
+    return ' ; '.join(i for i in preds)
 
 def __bart_leg(estimates):
     table = PrettyTable(["Station", "Direction", "Estimates(minutes)"])

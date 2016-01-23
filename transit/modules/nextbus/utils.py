@@ -24,3 +24,20 @@ def make_request(url, markup="html.parser"):
         error_string = error.string
         raise TransitException("URL:%s returned error:%s" % (url, error_string))
     return soup, encoding
+
+def prediction_time(minutes, seconds):
+    # nextbus returns 1 min 2 seconds as (1 min, 62 seconds), its kinda weird
+    # .. calculate here and return with a nicer datetime
+    seconds = seconds - (60 * minutes)
+    hours = minutes / 60
+    minutes = minutes % 60
+    stringy = ''
+    if hours > 0:
+        stringy += '%s:' % hours
+    if minutes < 10:
+        stringy += '0'
+    stringy += '%s:' % minutes
+    if seconds < 10:
+        stringy += '0'
+    stringy += '%s' % seconds
+    return stringy

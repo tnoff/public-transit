@@ -59,13 +59,10 @@ STATION_MAPPING = {
 # this base class has the very basic stuff that should be in all
 
 def _station_info(station_data, encoding):
-    data = {}
     args = ['name', 'abbr', 'gtfs_latitude', 'gtfs_longitude', 'address', 'city',
             'county', 'state', 'zipcode', 'platform_info', 'intro', 'cross_street',
             'food', 'shopping', 'attraction', 'link']
-    for arg in args:
-        value = common_utils.parse_data(station_data, arg)
-        data[arg] = common_utils.clean_value(value, encoding)
+    data = common_utils.parse_page(station_data, args, encoding)
     data['abbreviation'] = data.pop('abbr', None)
 
     data['north_routes'] = []
@@ -94,13 +91,10 @@ def _station_info(station_data, encoding):
     return data
 
 def _station_access(station_data, encoding):
-    data = {}
     args = ['name', 'abbr', 'parking_flag', 'bike_flag', 'locker_flag',
             'entering', 'exiting', 'parking', 'lockers', 'destinations', 'transit_info',
             'link']
-    for arg in args:
-        value = common_utils.parse_data(station_data, arg)
-        data[arg] = common_utils.clean_value(value, encoding)
+    data = common_utils.parse_page(station_data, args, encoding)
     data['abbreviation'] = data.pop('abbr', None)
     data['parking_flag'] = data.pop('parking_flag', 0) == 1
     data['bike_flag'] = data.pop('bike_flag', 0) == 1
@@ -108,29 +102,21 @@ def _station_access(station_data, encoding):
     return data
 
 def _estimate(estimate_data, encoding):
-    data = {}
-    args = ['platform', 'direction', 'length', 'color', 'bikeflag']
-    for arg in args:
-        value = common_utils.parse_data(estimate_data, arg)
-        data[arg] = common_utils.clean_value(value, encoding)
+    args = ['platform', 'direction', 'length', 'color', 'bikeflag', 'minutes']
+    data = common_utils.parse_page(estimate_data, args, encoding)
     data['bike_flag'] = data.pop('bikeflag', 0) == 1
-    value = common_utils.parse_data(estimate_data, 'minutes')
-    minutes = common_utils.clean_value(value, encoding)
-    if not isinstance(minutes, int) and 'leaving' in minutes.lower():
-        minutes = 0
-    data['minutes'] = minutes
+    if not isinstance(data['minutes'], int) and 'leaving' in data['minutes'].lower():
+        data['minutes'] = 0
     return data
 
 def _direction_estimates(estimate_data, encoding, destinations=None):
-    data = {}
-    abbr = common_utils.parse_data(estimate_data, 'abbreviation')
-    data['abbreviation'] = common_utils.clean_value(abbr, encoding)
+    data = common_utils.parse_page(estimate_data, ['abbreviation'], encoding)
     # if destinations given, check here if valid
     # .. if not valid give up now to save time
     if destinations and data['abbreviation'].lower() not in destinations:
         raise TransitException("Not valid destination:%s" % data['abbreviation'])
-    name = common_utils.parse_data(estimate_data, 'destination')
-    data['name'] = common_utils.clean_value(name, encoding)
+    new_data = common_utils.parse_page(estimate_data, ['destination'], encoding)
+    data['name'] = new_data.pop('destination', None)
     data['estimates'] = []
     for est in estimate_data.find_all('estimate'):
         estimate_data = _estimate(est, encoding)
@@ -138,11 +124,8 @@ def _direction_estimates(estimate_data, encoding, destinations=None):
     return data
 
 def _station_departures(station_data, encoding, destinations=None):
-    data = {}
     args = ['name', 'abbr']
-    for arg in args:
-        value = common_utils.parse_data(station_data, arg)
-        data[arg] = common_utils.clean_value(value, encoding)
+    data = common_utils.parse_page(station_data, args, encoding)
     data['abbreviation'] = data.pop('abbr', None)
     data['directions'] = []
     # if exception was raised then direction not in destinations given
@@ -156,12 +139,10 @@ def _station_departures(station_data, encoding, destinations=None):
     return data
 
 def _schedule_time(schedule_data, encoding):
-    data = {}
     args = ['line', 'trainheadstation', 'origtime', 'desttime', 'trainidx',
             'bikeflag']
-    for arg in args:
-        value = common_utils.parse_data(schedule_data, arg)
-        data[arg] = common_utils.clean_value(value, encoding, datetime_format=datetime_format)
+    data = common_utils.parse_page(schedule_data, args, encoding,
+                                   datetime_format=datetime_format)
     data['line'] = int(data.pop('line', '0').replace('ROUTE ', ''))
     data['head_station'] = data.pop('trainheadstation', None)
     data['origin_time'] = data.pop('origtime', None)
@@ -172,11 +153,8 @@ def _schedule_time(schedule_data, encoding):
     return data
 
 def _station_schedule(station_data, encoding):
-    data = {}
     args = ['name', 'abbr']
-    for arg in args:
-        value = common_utils.parse_data(station_data, arg)
-        data[arg] = common_utils.clean_value(value, encoding)
+    data = common_utils.parse_page(station_data, args, encoding)
     data['abbreviation'] = data.pop('abbr', None)
     data['schedule_times'] = []
     for item in station_data.find_all('item'):

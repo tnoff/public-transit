@@ -1,17 +1,12 @@
 from datetime import datetime
 
-#TODO stuff thats using this should probably just be using datetime
-def pretty_time(minutes, seconds):
-    stringy = ''
-    if minutes < 10:
-        stringy += '0'
-    stringy += '%s:' % str(minutes)
-    if seconds < 10:
-        stringy += '0'
-    stringy += '%s' % str(seconds)
-    return stringy
+def parse_page(page_data, arguments, encoding, datetime_format=None):
+    data = {}
+    for arg in arguments:
+        value = parse_data(page_data, arg)
+        data[arg] = clean_value(value, encoding, datetime_format=datetime_format)
+    return data
 
-#TODO this should probably just call clean value directly
 def parse_data(data, key_name):
     # some values are part of the object such as
     # .. <foo bar=1>
@@ -37,7 +32,6 @@ def clean_value(value, encoding, datetime_format=None):
     if value is None:
         return None
     new_value = value.encode(encoding)
-
     # try to make it a datetime if format given first
     if datetime_format:
         try:
