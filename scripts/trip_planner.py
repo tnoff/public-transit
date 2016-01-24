@@ -32,7 +32,7 @@ def parse_args():
                              help='actransit, bart, sf-muni, etc..')
     leg_createy.add_argument('stop_id',
                              help='ID of stop or station abbreviation')
-    leg_createy.add_argument('--include', nargs='+',
+    leg_createy.add_argument('--destinations', nargs='+',
                              help='Include destination or route tag')
     leg_parsers.add_parser('list', help='List legs')
     leg_deletey = leg_parsers.add_parser('delete', help='Delete Leg')
@@ -47,9 +47,9 @@ def parse_args():
     trips_createy.add_argument('name', help='Trip Name')
     trips_createy.add_argument('leg', type=int, nargs='+', help='Leg IDs')
     trips_showy = trips_parsers.add_parser('show', help='Show trip')
-    trips_showy.add_argument('id', help='Trip ID')
+    trips_showy.add_argument('id', type=int, help='Trip ID')
     trips_deletey = trips_parsers.add_parser('delete', help='Delete trip')
-    trips_deletey.add_argument('id', help='Trip ID')
+    trips_deletey.add_argument('id', type=int, help='Trip ID')
 
     return p.parse_args()
 
@@ -57,7 +57,7 @@ def leg_create(args, trip_planner):
     agency_tag = args.agency_tag.lower()
     stop_id = args.stop_id.lower()
     new_leg = trip_planner.leg_create(agency_tag, stop_id,
-                                      include=args.include)
+                                      destinations=args.include)
     print 'New leg created:', new_leg['id']
 
 def leg_list(_, trip_planner):
@@ -67,7 +67,7 @@ def leg_list(_, trip_planner):
     for leg_data in legs:
         table.add_row([leg_data['id'], leg_data['agency'],
                        leg_data['stop_id'], leg_data['stop_title'],
-                       ', '.join(i for i in leg_data['includes'])])
+                       ' ; '.join(i for i in leg_data['includes'])])
     print table
 
 def __nice_predictions(predictions):
@@ -124,9 +124,9 @@ def trip_create(args, trip_planner):
 def trip_list(_, trip_planner):
     trips = trip_planner.trip_list()
     table = PrettyTable(["ID", "Name", "Legs"])
-    for trip_id, trip_data in trips.iteritems():
-        table.add_row([trip_id, trip_data['name'],
-                       ', '.join('%s' % i for i in trip_data['legs'])])
+    for trip_data in trips:
+        table.add_row([trip_data['id'], trip_data['name'],
+                       ' ; '.join('%s' % i for i in trip_data['legs'])])
     print table
 
 def trip_delete(args, trip_planner):

@@ -2,6 +2,8 @@ import httpretty
 
 from tests import utils
 from tests.data.bart import estimates
+from tests.data.bart import route_info as route_info4
+from tests.data.bart import route_info7
 from tests.data.bart import station_info
 from tests.data.nextbus import stop_predictions
 from tests.data.nextbus import route_show
@@ -29,7 +31,7 @@ class TestPlanner(utils.BaseTestClient):
                                    stop_url,
                                    body=stop_predictions.text,
                                    content_type='application/xml')
-            leg1 = client.leg_create(agency, stop_id, include=route_tags)
+            leg1 = client.leg_create(agency, stop_id, destinations=route_tags)
             self.assert_dictionary(leg1)
             # httpretty can be weird, set it again to make sure
             httpretty.register_uri(httpretty.GET,
@@ -48,8 +50,18 @@ class TestPlanner(utils.BaseTestClient):
                                    station_url,
                                    body=station_info.text,
                                    content_type='application/xml')
-            leg2 = client.leg_create(agency2, bart_stop, include=directions)
-            self.assert_dictionary(leg2)
+            route4_url = bart_urls.route_info('4')
+            httpretty.register_uri(httpretty.GET,
+                                   route4_url,
+                                   body=route_info4.text,
+                                   content_type='application/xml')
+            route7_url = bart_urls.route_info('7')
+            httpretty.register_uri(httpretty.GET,
+                                   route7_url,
+                                   body=route_info7.text,
+                                   content_type='application/xml')
+            leg2 = client.leg_create(agency2, bart_stop, destinations=directions)
+            self.assert_dictionary(leg2, skip=['stop_tag'])
 
             estimate_url = bart_urls.estimated_departures(bart_stop)
             httpretty.register_uri(httpretty.GET,
@@ -67,4 +79,3 @@ class TestPlanner(utils.BaseTestClient):
 
             client.leg_delete(leg1['id'])
             client.leg_delete(leg2['id'])
-
