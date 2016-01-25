@@ -123,10 +123,17 @@ def _direction_estimates(estimate_data, encoding, destinations=None):
         data['estimates'].append(estimate_data)
     return data
 
-def _station_departures(station_data, encoding, destinations=None):
+def _station_departures(station_data, encoding, station_output=None):
     args = ['name', 'abbr']
     data = common_utils.parse_page(station_data, args, encoding)
     data['abbreviation'] = data.pop('abbr', None)
+    destinations = None
+    if station_output:
+        try:
+            destinations = station_output[data['abbreviation'].lower()]
+        except KeyError:
+            raise TransitException("%s not in accepted stations" % data['abbreviation'].lower())
+
     data['directions'] = []
     # if exception was raised then direction not in destinations given
     # .. so skip and dont put it in list
@@ -183,29 +190,39 @@ def station_access(station):
     soup, encoding = utils.make_request(url)
     return _station_access(soup.find('station'), encoding)
 
-def station_multiple_departures(station_data):
+def station_multiple_departures(station_output):
     '''
     Get estimated departures for mutliple stations
-    station_data:
-        {'station_abbrevation' : [destination1, destination2],
-        'station_abbreviation2' : [], # empty for all possible destinations}
+    station_output:
+        {
+            'station_abbrevation' : [destination1, destination2],
+            'station_abbreviation2' : [],
+            # empty for all possible destinations
+        }
     '''
-    # TODO assert station data with json schema here
+    assert isinstance(station_output, dict), 'station output must be dict type'
+    for key in station_output.keys():
+        assert isinstance(key, basestring), 'station output keys must be stringtype'
+        lowered = key.lower()
+        if lowered != key:
+            station_output[lowered] = station_output.pop(key)
+        assert isinstance(station_output[lowered], list),\
+            'station output values must be list type'
+        for item in station_output[lowered]:
+            assert isinstance(item, basestring),\
+                'destination list item must be basestring type'
+
+    # call a list of all departures here, then strip data for only stations requested
     url = urls.estimated_departures('all')
     soup, encoding = utils.make_request(url)
-    # make all keys lower case
-    keys = station_data.keys()
-    for key in keys:
-        if key.lower() == key:
-            continue
-        station_data[key.lower()] = station_data[key]
-        del station_data[key]
-    abbreviations = [i.lower() for i in station_data]
+
     full_data = []
-    for i in soup.find_all('station'):
-        abbr = i.find('abbr').string.encode(encoding).lower()
-        if abbr in abbreviations:
-            full_data.append(_station_departures(i, encoding, destinations=station_data[abbr]))
+    for station in soup.find_all('station'):
+        try:
+            full_data.append(_station_departures(station, encoding,
+                                                 station_output=station_output))
+        except TransitException:
+            continue
     return full_data
 
 def station_departures(station, platform=None, direction=None,
@@ -226,12 +243,18 @@ def station_departures(station, platform=None, direction=None,
     url = urls.estimated_departures(station, platform=platform,
                                     direction=direction)
     soup, encoding = utils.make_request(url)
-    # make destination lower input here to save time
-    if destinations:
-        destinations = [i.lower() for i in destinations]
+
+    station = station.lower()
+    if station.lower() == 'all':
+        station_output = None
+    elif destinations is not None:
+        station_output = {station : [dest.lower() for dest in destinations]}
+    else:
+        station_output = {station : []}
     departs = []
-    for station in soup.find_all('station'):
-        departs.append(_station_departures(station, encoding, destinations=destinations))
+    for station_data in soup.find_all('station'):
+        departs.append(_station_departures(station_data, encoding,
+                                           station_output=station_output))
     return departs
 
 def station_schedule(station, date=None):

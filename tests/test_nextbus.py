@@ -230,7 +230,7 @@ class TestNextbus(utils.BaseTestClient):
     def test_multi_prediction_single(self):
         # Test with one stop/route
         agency_tag = 'sf-muni'
-        data = {'38' : ['13568']}
+        data = {'13568' : ['38']}
         test_url = urls.multiple_stop_prediction(agency_tag, data)
         httpretty.register_uri(httpretty.GET,
                                test_url,
@@ -246,7 +246,7 @@ class TestNextbus(utils.BaseTestClient):
     def test_multi_prediction_multiple(self):
         # Test with multiple stops on same route
         agency_tag = 'sf-muni'
-        data = {'38' : ['13568', '13567']}
+        data = {'13568' : ['38',], '13567' : ['38']}
         test_url = urls.multiple_stop_prediction(agency_tag, data)
         httpretty.register_uri(httpretty.GET,
                                test_url,

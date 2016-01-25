@@ -305,8 +305,8 @@ class TripPlanner(object):
             else:
                 stop_tag = leg.stop_tag.encode('utf-8')
                 nextbus_data.setdefault(agency, {})
-                nextbus_data[agency].setdefault(include_tag, [])
-                nextbus_data[agency][include_tag].append(stop_tag)
+                nextbus_data[agency].setdefault(stop_tag, [])
+                nextbus_data[agency][stop_tag].append(include_tag)
         trip_data = {
             'bart' : None,
             'nextbus' : {},

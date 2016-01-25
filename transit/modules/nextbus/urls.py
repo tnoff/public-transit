@@ -21,15 +21,14 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     return url
 
 def multiple_stop_prediction(agency_tag, stop_data):
-    # stop data: {route_tag : [stop_id, stop_id, ..], ...}
+    # stop data: {stop_tag: [route_tag, route_tag, ..], ...}
     agency_tag = agency_tag.lower()
     url = MAIN_URL + '?command=predictionsForMultiStops&a=%s' % \
         (agency_tag)
-    for route in stop_data:
-        if not isinstance(route, str):
-            route = '%s' % route
-        for stop in stop_data[route]:
-            url += '&stops=%s|%s' % (route.lower(), stop)
+    for stop_tag, routes in stop_data.items():
+        for route in routes:
+            routey = route.lower()
+            url += '&stops=%s|%s' % (routey, stop_tag)
     return url
 
 def schedule_get(agency_tag, route_tag):

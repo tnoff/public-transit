@@ -89,13 +89,30 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
             continue
     return routes
 
-def stop_multiple_predictions(agency_tag, data):
+def stop_multiple_predictions(agency_tag, prediction_data):
     '''Get predictions for multiple stops
        agency_tag: agency tag
-       stop_data:{route_tag : [stoptag, stoptag, ..], ...}
+       prediction_data : {
+            "stop_tag1" : [route1, route2],
+            "stop_tag2" : [route3],
+            # must provide at least one route per stop tag
+       }
     '''
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    # TODO assert stopdata with jsonschema
-    url = urls.multiple_stop_prediction(agency_tag, data)
+    assert isinstance(prediction_data, dict), 'prediction data must be dict type'
+    for key in prediction_data.keys():
+        assert isinstance(key, basestring), 'prediction data key must be string type'
+        lowered = key.lower()
+        if key != lowered:
+            prediction_data[lowered] = prediction_data.pop(key)
+        assert isinstance(prediction_data[lowered], list),\
+            'prediction data value must be list type'
+        assert len(prediction_data[lowered]) > 0,\
+            'prediction data value list must be populated'
+        for item in prediction_data[lowered]:
+            assert isinstance(item, basestring),\
+                'prediction data value item must be string type'
+
+    url = urls.multiple_stop_prediction(agency_tag, prediction_data)
     soup, encoding = utils.make_request(url)
     return [_route_prediction(pred, encoding) for pred in soup.find_all('predictions')]
