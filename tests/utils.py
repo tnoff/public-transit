@@ -4,7 +4,7 @@ import random
 import string
 import unittest
 
-from planner import utils
+from trip_planner import utils
 
 def random_string(length=10, prefix='', suffix=''):
     chars = string.ascii_lowercase + string.digits

@@ -5,7 +5,7 @@ from sqlalchemy.orm.exc import UnmappedInstanceError
 
 from transit.modules.bart import client as bart_client
 from transit.modules.nextbus import client as nextbus_client
-from planner.exceptions import TripPlannerException
+from trip_planner.exceptions import TripPlannerException
 
 Base = declarative_base()
 
@@ -47,10 +47,10 @@ def clean_sql(sql_object):
     return new_data
 
 class TripPlanner(object):
-    def __init__(self, engine):
-        Base.metadata.create_all(engine)
-        Base.metadata.bind = engine
-        self.db_session = sessionmaker(bind=engine)()
+    def __init__(self, database_engine):
+        Base.metadata.create_all(database_engine)
+        Base.metadata.bind = database_engine
+        self.db_session = sessionmaker(bind=database_engine)()
 
     def __validate_bart_station(self, stop_tag, include): #pylint: disable=no-self-use
         # you can check the station list fairly quickly, since its hardcoded

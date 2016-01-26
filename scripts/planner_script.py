@@ -2,8 +2,8 @@ import argparse
 import os
 from prettytable import PrettyTable
 
-from planner import utils
-from planner.client import TripPlanner
+from trip_planner import utils
+from trip_planner.client import TripPlanner
 from transit.exceptions import TransitException
 from transit.modules.nextbus import utils as bus_utils
 
@@ -57,7 +57,7 @@ def leg_create(args, trip_planner):
     agency_tag = args.agency_tag.lower()
     stop_id = args.stop_id.lower()
     new_leg = trip_planner.leg_create(agency_tag, stop_id,
-                                      destinations=args.include)
+                                      destinations=args.destinations)
     print 'New leg created:', new_leg['id']
 
 def leg_list(_, trip_planner):

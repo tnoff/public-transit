@@ -8,7 +8,7 @@ from tests.data.bart import station_info
 from tests.data.nextbus import stop_predictions
 from tests.data.nextbus import route_show
 
-from planner.client import TripPlanner
+from trip_planner.client import TripPlanner
 from transit.modules.bart import urls as bart_urls
 from transit.modules.nextbus import urls as nextbus_urls
 
