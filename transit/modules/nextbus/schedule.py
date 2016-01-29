@@ -1,9 +1,8 @@
 from transit.common import utils as common_utils
-from transit.modules.nextbus import urls, utils
 
 datetime_format = '%H:%M:%S'
 
-def _schedule_route(schedule_data, encoding):
+def schedule_route(schedule_data, encoding):
     args = ['tag', 'title', 'scheduleclass', 'serviceclass', 'direction']
     data = common_utils.parse_page(schedule_data, args, encoding)
     data['schedule_class'] = data.pop('scheduleclass', None)
@@ -19,20 +18,20 @@ def _schedule_route(schedule_data, encoding):
         title_data[title_tag] = common_utils.clean_value(new_stop.contents[0], encoding)
     # Then find all blocks and add them in
     for tr in schedule_data.find_all('tr'):
-        data['blocks'].append(_schedule_block(tr, encoding, title_data))
+        data['blocks'].append(schedule_block(tr, encoding, title_data))
     return data
 
-def _schedule_block(block_data, encoding, title_data):
+def schedule_block(block_data, encoding, title_data):
     data = common_utils.parse_page(block_data, ['blockid'], encoding)
     data['block_id'] = data.pop('blockid', None)
     data['stop_schedules'] = []
     for new_stop in block_data.find_all('stop'):
-        ss = _stop_schedule(new_stop, encoding)
+        ss = stop_schedule(new_stop, encoding)
         ss['title'] = title_data[ss['stop_tag']]
         data['stop_schedules'].append(ss)
     return data
 
-def _stop_schedule(stop_data, encoding):
+def stop_schedule(stop_data, encoding):
     args = ['tag', 'epochtime']
     data = common_utils.parse_page(stop_data, args, encoding)
     data['stop_tag'] = data.pop('tag', None)
@@ -43,14 +42,3 @@ def _stop_schedule(stop_data, encoding):
     if time == '--':
         data['time'] = None
     return data
-
-def schedule_get(agency_tag, route_tag):
-    '''Get schedule information for route
-       agency_tag : agency tag
-       route_tag : route tag
-    '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    assert isinstance(route_tag, basestring), 'route tag must be string type'
-    url = urls.schedule_get(agency_tag, route_tag)
-    soup, encoding = utils.make_request(url)
-    return [_schedule_route(route, encoding) for route in soup.find_all('route')]

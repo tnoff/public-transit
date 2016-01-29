@@ -1,8 +1,7 @@
 from transit.common import utils as common_utils
-from transit.modules.nextbus import urls, utils
 from transit.exceptions import TransitException
 
-def _stop(stop_data, encoding):
+def stop(stop_data, encoding):
     args = ['tag', 'title', 'lat', 'lon', 'stopid', 'shortttile']
     data = common_utils.parse_page(stop_data, args, encoding)
     data['stop_tag'] = data.pop('tag', None)
@@ -12,14 +11,14 @@ def _stop(stop_data, encoding):
     data['short_title'] = data.pop('shortttile', None)
     return data
 
-def _point(point_data, encoding):
+def point(point_data, encoding):
     args = ['lat', 'lon']
     data = common_utils.parse_page(point_data, args, encoding)
     data['latitude'] = data.pop('lat', None)
     data['longitude'] = data.pop('lon', None)
     return data
 
-def _route_prediction(route_data, encoding, route_tags=None):
+def route_prediction(route_data, encoding, route_tags=None):
     data = common_utils.parse_page(route_data, ['routetag'], encoding)
     data['route_tag'] = data.pop('routetag', None)
     # Raise exception here for multiple stop excludes
@@ -37,20 +36,20 @@ def _route_prediction(route_data, encoding, route_tags=None):
 
     # All directions in route
     for direction in route_data.find_all('direction'):
-        data['directions'].append(_route_direction_prediction(direction, encoding))
+        data['directions'].append(route_direction_prediction(direction, encoding))
     for message in route_data.find_all('message'):
         data['messages'].append(common_utils.parse_page(message, ['text'], encoding)['text'])
     return data
 
-def _route_direction_prediction(direction_data, encoding):
+def route_direction_prediction(direction_data, encoding):
     data = common_utils.parse_page(direction_data, ['title'], encoding)
     data['predictions'] = []
     # Find all predictions in direction
     for pred in direction_data.find_all('prediction'):
-        data['predictions'].append(_route_stop_prediction(pred, encoding))
+        data['predictions'].append(route_stop_prediction(pred, encoding))
     return data
 
-def _route_stop_prediction(pred_data, encoding):
+def route_stop_prediction(pred_data, encoding):
     args = ['seconds', 'minutes', 'block', 'vehicle', 'epochtime', 'triptag',
             'dirtag', 'isdeparture', 'affectedbylayover']
     data = common_utils.parse_page(pred_data, args, encoding)
@@ -62,57 +61,3 @@ def _route_stop_prediction(pred_data, encoding):
     if not data['affected_by_layover']:
         data['affected_by_layover'] = False
     return data
-
-def stop_prediction(agency_tag, stop_id, route_tags=None):
-    '''Get arrival predictions for stops
-       agency_tag: agency tag
-       stop_id: stop id
-       route_tags: list of routes or single route to limit search
-    '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    assert isinstance(stop_id, basestring), 'stop id must be string type'
-    assert route_tags is None or isinstance(route_tags, basestring)\
-        or isinstance(route_tags, list), \
-            'route tags must be string, list or null type'
-    url = urls.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
-    soup, encoding = utils.make_request(url)
-    routes = []
-    # if only a single route was entered into url, only single result with that
-    # .. route will be returned. if multiple routes, use routes here to strip
-    # .. the data
-    if route_tags and isinstance(route_tags, list):
-        route_tags = [item.lower() for item in route_tags]
-    for pred in soup.find_all('predictions'):
-        try:
-            routes.append(_route_prediction(pred, encoding, route_tags=route_tags))
-        except TransitException:
-            continue
-    return routes
-
-def stop_multiple_predictions(agency_tag, prediction_data):
-    '''Get predictions for multiple stops
-       agency_tag: agency tag
-       prediction_data : {
-            "stop_tag1" : [route1, route2],
-            "stop_tag2" : [route3],
-            # must provide at least one route per stop tag
-       }
-    '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    assert isinstance(prediction_data, dict), 'prediction data must be dict type'
-    for key in prediction_data.keys():
-        assert isinstance(key, basestring), 'prediction data key must be string type'
-        lowered = key.lower()
-        if key != lowered:
-            prediction_data[lowered] = prediction_data.pop(key)
-        assert isinstance(prediction_data[lowered], list),\
-            'prediction data value must be list type'
-        assert len(prediction_data[lowered]) > 0,\
-            'prediction data value list must be populated'
-        for item in prediction_data[lowered]:
-            assert isinstance(item, basestring),\
-                'prediction data value item must be string type'
-
-    url = urls.multiple_stop_prediction(agency_tag, prediction_data)
-    soup, encoding = utils.make_request(url)
-    return [_route_prediction(pred, encoding) for pred in soup.find_all('predictions')]
