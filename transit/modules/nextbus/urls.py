@@ -4,7 +4,6 @@ def agency_list():
     return MAIN_URL + '?command=agencyList'
 
 def route_list(agency_tag):
-    print agency_tag
     tag = agency_tag.lower()
     return MAIN_URL + '?command=routeList&a=%s' % tag
 
