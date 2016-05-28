@@ -1,7 +1,7 @@
 import argparse
 from prettytable import PrettyTable
 
-from transit.modules.nextbus import client
+from transit import nextbus as client
 from transit.modules.nextbus import utils as bus_utils
 
 def parse_args(): #pylint: disable=too-many-locals, too-many-statements

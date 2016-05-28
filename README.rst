@@ -43,7 +43,7 @@ From the help page.
 
 .. code::
 
-    >>> help(transit.modules.bart.client)
+    >>> help(transit.bart)
 
     elevator_status()
         System wide elevator status
@@ -114,7 +114,7 @@ From the help page.
 
 .. code::
 
-    >>> help(transit.modules.nextbus.client)
+    >>> help(transit.nextbus)
 
     agency_list()
         List all nextbus agencies

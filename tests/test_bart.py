@@ -1,7 +1,7 @@
 from datetime import datetime
 import httpretty
 
-from transit.modules.bart import client
+from transit import bart as client
 from transit.modules.bart import urls
 from tests import utils
 

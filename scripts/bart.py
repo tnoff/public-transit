@@ -1,7 +1,7 @@
 import argparse
 from prettytable import PrettyTable
 
-from transit.modules.bart import client
+from transit import bart as client
 
 def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     p = argparse.ArgumentParser(description='Bart cli')

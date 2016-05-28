@@ -1,1 +1,1 @@
-from transit.modules.bart import advisories, client, stations, schedules
+from transit.modules.bart import advisories, stations, schedules

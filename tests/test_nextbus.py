@@ -1,6 +1,6 @@
 import httpretty
 
-from transit.modules.nextbus import client
+from transit import nextbus as client
 from transit.exceptions import TransitException
 from transit.modules.nextbus import urls
 from transit.modules.nextbus import utils as common_utils

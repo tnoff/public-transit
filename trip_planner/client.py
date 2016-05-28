@@ -3,8 +3,8 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
-from transit.modules.bart import client as bart_client
-from transit.modules.nextbus import client as nextbus_client
+from transit import bart as bart_client
+from transit import nextbus as nextbus_client
 from trip_planner.exceptions import TripPlannerException
 
 Base = declarative_base()

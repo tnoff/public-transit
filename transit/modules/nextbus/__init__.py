@@ -1,1 +1,1 @@
-from transit.modules.nextbus import agency, client, route, schedule, stop, vehicle
+from transit.modules.nextbus import agency, route, schedule, stop, vehicle
