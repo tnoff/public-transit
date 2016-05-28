@@ -10,7 +10,6 @@ setuptools.setup(
     install_requires=[
         'beautifulsoup4 >= 4.4.0',
         'httpretty >= 0.8.4',
-        'nose >= 1.3.4',
         'prettytable >= 0.7.2',
         'requests == 2.5.1',
         'SQLAlchemy == 1.0.8',

@@ -186,3 +186,9 @@ One note: The 'destinations' specified when creating a leg correspond to:
 
 - The last station of the bart route, such as "DUBL" (dublin/pleasenton) or "FRMT" (fremont)
 - The route you will board at the nextbus stop, such as the "M" Line on sf-muni.
+
+
+=====
+Tests
+=====
+Tests require extra pip modules to be installed, they reside in the ``tests/requirements.txt`` file.
