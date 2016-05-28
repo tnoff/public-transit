@@ -1,20 +1,20 @@
-from transit.common import utils as common_utils
+from transit import utils
 from transit.modules.nextbus import stop
 
 def route_base(route_data, encoding):
-    data = common_utils.parse_page(route_data, ['tag'], encoding)
+    data = utils.parse_page(route_data, ['tag'], encoding)
     data['route_tag'] = data.pop('tag', None)
     return data
 
 def route(route_data, encoding):
     data = route_base(route_data, encoding)
-    data.update(common_utils.parse_page(route_data, ['title'], encoding))
+    data.update(utils.parse_page(route_data, ['title'], encoding))
     return data
 
 def route_info(route_data, encoding):
     data = route_base(route_data, encoding)
     args = ['title', 'color', 'oppositecolor', 'latmin', 'latmax', 'lonmin', 'lonmax']
-    additional_data = common_utils.parse_page(route_data, args, encoding)
+    additional_data = utils.parse_page(route_data, args, encoding)
     data.update(additional_data)
     data['opposite_color'] = data.pop('oppositecolor', None)
     data['latitude_min'] = data.pop('latmin', None)
@@ -50,7 +50,7 @@ def route_info(route_data, encoding):
 
 def route_direction(direction_data, encoding):
     args = ['tag', 'name', 'title', 'useforui']
-    data = common_utils.parse_page(direction_data, args, encoding)
+    data = utils.parse_page(direction_data, args, encoding)
     data['use_for_ui'] = data.pop('useforui', None)
     data['stop_tags'] = []
     return data
@@ -58,7 +58,7 @@ def route_direction(direction_data, encoding):
 def message(message_data, encoding):
     args = ['id', 'priority', 'startboundary', 'endboundary', 'startboundarystr',
             'endboundarystr', 'senttobuses']
-    data = common_utils.parse_page(message_data, args, encoding)
+    data = utils.parse_page(message_data, args, encoding)
     data['message_id'] = data.pop('id', None)
     data['start_boundary_epoch'] = data.pop('startboundary', None)
     data['end_boundary_epoch'] = data.pop('endboundary', None)
@@ -67,7 +67,7 @@ def message(message_data, encoding):
     data['send_to_buses'] = data.pop('senttobuses', None)
     data['text'] = []
     for text in message_data.find_all('text'):
-        data['text'].append(common_utils.clean_value(text.contents[0], encoding))
+        data['text'].append(utils.clean_value(text.contents[0], encoding))
     return data
 
 def route_message(route_data, encoding):

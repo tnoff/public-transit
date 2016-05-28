@@ -1,9 +1,9 @@
-from transit.common import utils as common_utils
+from transit import utils
 from transit.exceptions import TransitException
 
 def stop(stop_data, encoding):
     args = ['tag', 'title', 'lat', 'lon', 'stopid', 'shortttile']
-    data = common_utils.parse_page(stop_data, args, encoding)
+    data = utils.parse_page(stop_data, args, encoding)
     data['stop_tag'] = data.pop('tag', None)
     data['latitude'] = data.pop('lat', None)
     data['longitude'] = data.pop('lon', None)
@@ -13,13 +13,13 @@ def stop(stop_data, encoding):
 
 def point(point_data, encoding):
     args = ['lat', 'lon']
-    data = common_utils.parse_page(point_data, args, encoding)
+    data = utils.parse_page(point_data, args, encoding)
     data['latitude'] = data.pop('lat', None)
     data['longitude'] = data.pop('lon', None)
     return data
 
 def route_prediction(route_data, encoding, route_tags=None):
-    data = common_utils.parse_page(route_data, ['routetag'], encoding)
+    data = utils.parse_page(route_data, ['routetag'], encoding)
     data['route_tag'] = data.pop('routetag', None)
     # Raise exception here for multiple stop excludes
     # .. that way you dont get a bunch of data you dont care about
@@ -27,7 +27,7 @@ def route_prediction(route_data, encoding, route_tags=None):
         raise TransitException("Tag not allowed:%s" % data['route_tag'])
 
     args = ['agencytitle', 'routetitle', 'stoptitle']
-    additional_data = common_utils.parse_page(route_data, args, encoding)
+    additional_data = utils.parse_page(route_data, args, encoding)
     data['agency_title'] = additional_data.pop('agencytitle', None)
     data['route_title'] = additional_data.pop('routetitle', None)
     data['stop_title'] = additional_data.pop('stoptitle', None)
@@ -38,11 +38,11 @@ def route_prediction(route_data, encoding, route_tags=None):
     for direction in route_data.find_all('direction'):
         data['directions'].append(route_direction_prediction(direction, encoding))
     for message in route_data.find_all('message'):
-        data['messages'].append(common_utils.parse_page(message, ['text'], encoding)['text'])
+        data['messages'].append(utils.parse_page(message, ['text'], encoding)['text'])
     return data
 
 def route_direction_prediction(direction_data, encoding):
-    data = common_utils.parse_page(direction_data, ['title'], encoding)
+    data = utils.parse_page(direction_data, ['title'], encoding)
     data['predictions'] = []
     # Find all predictions in direction
     for pred in direction_data.find_all('prediction'):
@@ -52,7 +52,7 @@ def route_direction_prediction(direction_data, encoding):
 def route_stop_prediction(pred_data, encoding):
     args = ['seconds', 'minutes', 'block', 'vehicle', 'epochtime', 'triptag',
             'dirtag', 'isdeparture', 'affectedbylayover']
-    data = common_utils.parse_page(pred_data, args, encoding)
+    data = utils.parse_page(pred_data, args, encoding)
     data['epoch_time'] = data.pop('epochtime', None)
     data['trip_tag'] = data.pop('triptag', None)
     data['dir_tag'] = data.pop('dirtag', None)
