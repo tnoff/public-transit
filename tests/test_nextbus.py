@@ -3,7 +3,6 @@ import httpretty
 from transit import nextbus as client
 from transit.exceptions import TransitException
 from transit.modules.nextbus import urls
-from transit.modules.nextbus import utils as common_utils
 
 from tests import utils
 from tests.data.nextbus import agency_list as agency_list
@@ -30,7 +29,8 @@ class TestNextbus(utils.BaseTestClient):
                                test_url,
                                body=error.text,
                                content_type='application/xml')
-        self.assertRaises(TransitException, common_utils.make_request, test_url)
+        with self.assertRaises(TransitException):
+            client.agency_list()
 
     @httpretty.activate
     def test_agency_list(self):

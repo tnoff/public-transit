@@ -1,12 +1,35 @@
-from transit.exceptions import SkipException
-from transit.modules.nextbus import urls, utils
+from bs4 import BeautifulSoup
+import requests
+
+from transit.exceptions import SkipException, TransitException
+from transit.modules.nextbus import urls
 from transit.modules.nextbus import agency, route, stop, schedule, vehicle
 
+def _make_request(url, markup="html.parser"):
+    headers = {'accept-encoding' : 'gzip, deflate'}
+    r = requests.get(url, headers=headers)
+
+    if r.status_code != 200:
+        raise TransitException("URL:%s does not return 200" % url)
+
+    soup = BeautifulSoup(r.text, markup)
+    # Get encoding from top of XML data
+    contents = soup.contents
+    if str(contents[0]) == '\n':
+        del contents[0]
+    encoding = str(soup.contents[0].split('encoding')[1])
+    encoding = encoding.lstrip('="').rstrip('"')
+    # check for errors
+    error = soup.find('error')
+    if error:
+        # nextbus just gives error message in error
+        raise TransitException(error.string)
+    return soup, encoding
 
 def agency_list():
     '''List all nextbus agencies'''
     url = urls.agency_list()
-    soup, encoding = utils.make_request(url)
+    soup, encoding = _make_request(url)
     return [agency.agency(ag, encoding) for ag in soup.find_all('agency')]
 
 def route_list(agency_tag):
@@ -15,7 +38,7 @@ def route_list(agency_tag):
     '''
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     url = urls.route_list(agency_tag)
-    soup, encoding = utils.make_request(url)
+    soup, encoding = _make_request(url)
     return_data = []
     for route_data in soup.find_all('route'):
         return_data.append(route.route(route_data, encoding))
@@ -29,7 +52,7 @@ def route_get(agency_tag, route_tag):
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     assert isinstance(route_tag, basestring), 'route tag must be string type'
     url = urls.route_show(agency_tag, route_tag)
-    soup, encoding = utils.make_request(url)
+    soup, encoding = _make_request(url)
     return route.route_info(soup.find('route'), encoding)
 
 def route_messages(agency_tag, route_tags):
@@ -41,7 +64,7 @@ def route_messages(agency_tag, route_tags):
     assert isinstance(route_tags, basestring) or isinstance(route_tags, list),\
         'route tag must be string type or list of string types'
     url = urls.message_get(agency_tag, route_tags)
-    soup, encoding = utils.make_request(url)
+    soup, encoding = _make_request(url)
     return [route.route_message(r, encoding) for r in soup.find_all('route')]
 
 def schedule_get(agency_tag, route_tag):
@@ -52,7 +75,7 @@ def schedule_get(agency_tag, route_tag):
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     assert isinstance(route_tag, basestring), 'route tag must be string type'
     url = urls.schedule_get(agency_tag, route_tag)
-    soup, encoding = utils.make_request(url)
+    soup, encoding = _make_request(url)
     return [schedule.schedule_route(r, encoding) for r in soup.find_all('route')]
 
 def stop_multiple_predictions(agency_tag, prediction_data):
@@ -80,7 +103,7 @@ def stop_multiple_predictions(agency_tag, prediction_data):
                 'prediction data value item must be string type'
 
     url = urls.multiple_stop_prediction(agency_tag, prediction_data)
-    soup, encoding = utils.make_request(url)
+    soup, encoding = _make_request(url)
     return [stop.route_prediction(pred, encoding) for pred in soup.find_all('predictions')]
 
 def stop_prediction(agency_tag, stop_id, route_tags=None):
@@ -95,7 +118,7 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
         or isinstance(route_tags, list), \
             'route tags must be string, list or null type'
     url = urls.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
-    soup, encoding = utils.make_request(url)
+    soup, encoding = _make_request(url)
     routes = []
     # if only a single route was entered into url, only single result with that
     # .. route will be returned. if multiple routes, use routes here to strip
@@ -119,5 +142,5 @@ def vehicle_location(agency_tag, route_tag, epoch_time):
     assert isinstance(route_tag, basestring), 'route tag must be string type'
     assert isinstance(epoch_time, int), 'epoch time must be int type'
     url = urls.vehicle_location(agency_tag, route_tag, epoch_time)
-    soup, encoding = utils.make_request(url)
+    soup, encoding = _make_request(url)
     return [vehicle.vehicle_location(veh, encoding) for veh in soup.find_all('vehicle')]
