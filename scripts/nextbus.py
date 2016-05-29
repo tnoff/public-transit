@@ -1,8 +1,9 @@
 import argparse
+from datetime import datetime
+
 from prettytable import PrettyTable
 
 from transit import nextbus as client
-from transit.modules.nextbus import utils as bus_utils
 
 def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     p = argparse.ArgumentParser(description='Nextbus CLI')
@@ -96,9 +97,8 @@ def stop_prediction(args):
             route_string = '%s-%s' % (route['route_title'], direction['title'])
             preds = []
             for pred in direction['predictions']:
-                minutes = int(pred['minutes'])
-                seconds = int(pred['seconds'])
-                preds.append(bus_utils.prediction_time(minutes, seconds))
+                dater = datetime(2016, 1, 1, 1, 1, int(pred['minutes']), int(pred['seconds']))
+                preds.append(dater.strftime('%M:%S'))
             predictions = ' ; '.join(i for i in preds)
             table.add_row([route_string, predictions])
     print table

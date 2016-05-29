@@ -1,11 +1,12 @@
 import argparse
+from datetime import datetime
 import os
+
 from prettytable import PrettyTable
 
 from trip_planner import utils
 from trip_planner.client import TripPlanner
 from transit.exceptions import TransitException
-from transit.modules.nextbus import utils as bus_utils
 
 HOME_PATH = os.path.expanduser('~') + '/.trip_planner'
 
@@ -70,14 +71,6 @@ def leg_list(_, trip_planner):
                        ' ; '.join(i for i in leg_data['includes'])])
     print table
 
-def __nice_predictions(predictions):
-    preds = []
-    for pred in predictions:
-        minutes = int(pred['minutes'])
-        seconds = int(pred['seconds'])
-        preds.append(bus_utils.prediction_time(minutes, seconds))
-    return ' ; '.join(i for i in preds)
-
 def __bart_leg(estimates):
     table = PrettyTable(["Station", "Direction", "Estimates(minutes)"])
     for est in estimates:
@@ -93,7 +86,11 @@ def __nextbus_leg(estimates):
         base_data = [est['route_title'], est['stop_title']]
         for direct in est['directions']:
             data = base_data + [direct['title']]
-            data.append(__nice_predictions(direct['predictions']))
+            preds = []
+            for pred in direct['predictions']:
+                dater = datetime(2016, 1, 1, 1, 1, int(pred['minutes']), int(pred['seconds']))
+                preds.append(dater.strftime('%M:%S'))
+            data.append(' ; '.join(i for i in preds))
             table.add_row(data)
     return table
 
