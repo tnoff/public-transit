@@ -10,6 +10,7 @@ from tests.data.bart import bsa
 from tests.data.bart import bsa_no_delay
 from tests.data.bart import train_count
 from tests.data.bart import elevator
+from tests.data.bart import error
 from tests.data.bart import estimates
 from tests.data.bart import estimate_all
 from tests.data.bart import current_routes
@@ -33,6 +34,28 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
         # bad with random strings
         with self.assertRaises(TransitException):
             client._check_datetime('foo-bar-thing') #pylint:disable=protected-access
+
+    @httpretty.activate
+    def test_non_200_error(self):
+        test_url = urls.service_advisory()
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=bsa.text,
+                               content_type='application/xml',
+                               status=500)
+        with self.assertRaises(TransitException):
+            client.service_advisory()
+
+    @httpretty.activate
+    def test_error_string(self):
+        test_url = urls.service_advisory()
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=error.text,
+                               content_type='application/xml')
+        with self.assertRaises(TransitException) as e:
+            client.service_advisory()
+        self.assertEqual(str(e.exception), 'Invalid key:The api key was missing or invalid.')
 
     @httpretty.activate
     def test_bsa(self):
