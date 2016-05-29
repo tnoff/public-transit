@@ -3,72 +3,69 @@ DEFAULT_KEY = 'MW9S-E7SL-26DU-VV8V'
 
 # service urls
 def service_advisory(date='today', key=DEFAULT_KEY):
-    return MAIN_URL + 'bsa.aspx?cmd=bsa&key=%s&date=%s' % (key, date)
+    return '%sbsa.aspx?cmd=bsa&key=%s&date=%s' % (MAIN_URL, key, date)
 
 def train_count(key=DEFAULT_KEY):
-    return MAIN_URL + 'bsa.aspx?cmd=count&key=%s' % key
+    return '%sbsa.aspx?cmd=count&key=%s' % (MAIN_URL, key)
 
 def elevator_status(key=DEFAULT_KEY):
-    return MAIN_URL + 'bsa.aspx?cmd=elev&key=%s' % key
+    return '%sbsa.aspx?cmd=elev&key=%s' % (MAIN_URL, key)
 
 # route urls
 def route_list(key=DEFAULT_KEY, schedule=None, date=None):
-    url = MAIN_URL + 'route.aspx?cmd=routes&key=%s' % key
+    url = '%sroute.aspx?cmd=routes&key=%s' % (MAIN_URL, key)
     if schedule:
-        url += '&sched=%s' % schedule
+        url = '%s&sched=%s' % (url, schedule)
     if date:
-        url += '&date=%s' % date
+        url = '%s&date=%s' % (url, date)
     return url
 
 def route_info(route_number, schedule=None, date=None, key=DEFAULT_KEY):
-    url = MAIN_URL + 'route.aspx?cmd=routeinfo&route=%s&key=%s' % \
-        (route_number, key)
+    url = '%sroute.aspx?cmd=routeinfo&route=%s&key=%s' % \
+        (MAIN_URL, route_number, key)
     if schedule:
-        url += '&sched=%s' % schedule
+        url = '%s&sched=%s' % (url, schedule)
     if date:
-        url += '&date=%s' % date
+        url = '%s&date=%s' % (url, date)
     return url
 
 # station urls
 def station_info(station, key=DEFAULT_KEY):
     station = station.lower()
-    url = MAIN_URL + 'stn.aspx?cmd=stninfo&orig=%s&key=%s' % (station, key)
-    return url
+    return '%sstn.aspx?cmd=stninfo&orig=%s&key=%s' % (MAIN_URL, station, key)
 
 def station_access(station, key=DEFAULT_KEY):
     station = station.lower()
-    url = MAIN_URL + 'stn.aspx?cmd=stnaccess&orig=%s&key=%s' % (station, key)
-    return url
+    return '%sstn.aspx?cmd=stnaccess&orig=%s&key=%s' % (MAIN_URL, station, key)
 
 def estimated_departures(station, platform=None, direction=None,
                          key=DEFAULT_KEY):
-    url = MAIN_URL + 'etd.aspx?cmd=etd&orig=%s&key=%s' % (station, key)
+    url = '%setd.aspx?cmd=etd&orig=%s&key=%s' % (MAIN_URL, station, key)
     if platform:
-        url += '&plat=%s' % platform
+        url = '%s&plat=%s' % (url, platform)
     if direction:
-        url += '&dir=%s' % direction.lower()
+        url = '%s&dir=%s' % (url, direction.lower())
     return url
 
 def station_schedule(station, date=None, key=DEFAULT_KEY):
     station = station.lower()
-    url = MAIN_URL + 'sched.aspx?cmd=stnsched&orig=%s&key=%s' % (station, key)
+    url = '%ssched.aspx?cmd=stnsched&orig=%s&key=%s' % (MAIN_URL, station, key)
     if date:
-        url += '&date=%s' % date
+        url = '%s&date=%s' % (url, date)
     return url
 
 # schedule urls
 def schedule_list(key=DEFAULT_KEY):
-    url = MAIN_URL + 'sched.aspx?cmd=scheds&key=%s' % key
-    return url
+    return '%ssched.aspx?cmd=scheds&key=%s' % (MAIN_URL, key)
 
 def schedule_fare(origin_station, destination_station, date=None,
                   schedule=None, key=DEFAULT_KEY):
     origin_station = origin_station.lower()
     destination_station = destination_station.lower()
-    url = MAIN_URL + 'sched.aspx?cmd=fare&orig=%s&dest=%s&key=%s' % \
-        (origin_station, destination_station, key)
+    url = '%ssched.aspx?cmd=fare&orig=%s&dest=%s&key=%s' % \
+        (MAIN_URL, origin_station, destination_station, key)
     if date:
-        url += '&date=%s' % date
+        url = '%s&date=%s' % (url, date)
     if schedule:
-        url += '&sched=%s' % schedule
+        url = '%s&sched=%s' % (url, schedule)
     return url
