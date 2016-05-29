@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from transit.exceptions import TransitException, SkipException
 from transit.modules.bart import urls, utils
 
@@ -6,6 +8,11 @@ from transit.modules.bart import routes
 from transit.modules.bart import schedules
 from transit.modules.bart import stations
 
+def _check_datetime(datetime_str):
+    try:
+        datetime.strptime(datetime_str, '%m/%d/%Y')
+    except ValueError:
+        raise TransitException("Datetime string invalid:%s" % datetime_str)
 
 def service_advisory():
     '''System wide service advisory'''
@@ -38,8 +45,8 @@ def route_list(schedule=None, date=None):
         'schedule number must be int or null type'
     assert date is None or isinstance(date, basestring), \
         'date must be string or null type'
-    if date and not utils.DATE_MATCH.match(date):
-        raise TransitException('date must match pattern:%s' % utils.DATE_MATCH_REGEX)
+    if date is not None:
+        _check_datetime(date)
     url = urls.route_list(schedule=schedule, date=date)
     soup, encoding = utils.make_request(url)
     new_routes = []
@@ -58,8 +65,8 @@ def route_info(route_number, schedule=None, date=None):
         'schedule number must be int or None type'
     assert date is None or isinstance(date, basestring), \
         'date must be string or null type'
-    if date and not utils.DATE_MATCH.match(date):
-        raise TransitException('date must match pattern:%s' % utils.DATE_MATCH_REGEX)
+    if date is not None:
+        _check_datetime(date)
     url = urls.route_info(route_number, schedule=schedule, date=date)
     soup, encoding = utils.make_request(url)
     return routes.route_info(soup.find('route'), encoding)
@@ -85,8 +92,10 @@ def schedule_fare(origin_station, destination_station,
     assert isinstance(destination_station, basestring), 'destination station must be string type'
     assert schedule is None or isinstance(schedule, int),\
         'schedule number must be int or None type'
-    if date and not utils.DATE_MATCH.match(date):
-        raise TransitException('date must match pattern:%s' % utils.DATE_MATCH_REGEX)
+    assert date is None or isinstance(date, basestring), \
+        'date must be string or null type'
+    if date is not None:
+        _check_datetime(date)
     url = urls.schedule_fare(origin_station, destination_station,
                              date=date, schedule=schedule)
     soup, encoding = utils.make_request(url)
@@ -152,8 +161,10 @@ def station_schedule(station, date=None):
         date: mm/dd/yyyy format
     '''
     assert isinstance(station, basestring), 'station must be string type'
-    if date and not utils.DATE_MATCH.match(date):
-        raise TransitException('date must match pattern:%s' % utils.DATE_MATCH_REGEX)
+    assert date is None or isinstance(date, basestring), \
+        'date must be string or null type'
+    if date is not None:
+        _check_datetime(date)
     url = urls.station_schedule(station, date=date)
     soup, encoding = utils.make_request(url)
     return stations.station_schedule(soup.find('station'), encoding)

@@ -2,6 +2,7 @@ from datetime import datetime
 import httpretty
 
 from transit import bart as client
+from transit.exceptions import TransitException
 from transit.modules.bart import urls
 from tests import utils
 
@@ -20,6 +21,18 @@ from tests.data.bart import station_info
 from tests.data.bart import station_schedule
 
 class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
+    def test_bart_check_datetime(self):
+        client._check_datetime('03/16/1991') #pylint:disable=protected-access
+        # bad types of dates
+        with self.assertRaises(TransitException):
+            client._check_datetime('13/01/1991') #pylint:disable=protected-access
+        with self.assertRaises(TransitException):
+            client._check_datetime('12/41/1991') #pylint:disable=protected-access
+        with self.assertRaises(TransitException):
+            client._check_datetime('12/11/91') #pylint:disable=protected-access
+        # bad with random strings
+        with self.assertRaises(TransitException):
+            client._check_datetime('foo-bar-thing') #pylint:disable=protected-access
 
     @httpretty.activate
     def test_bsa(self):
