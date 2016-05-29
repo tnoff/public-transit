@@ -1,4 +1,4 @@
-from transit.exceptions import TransitException
+from transit.exceptions import SkipException
 from transit.modules.nextbus import urls, utils
 from transit.modules.nextbus import agency, route, stop, schedule, vehicle
 
@@ -105,7 +105,7 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     for pred in soup.find_all('predictions'):
         try:
             routes.append(stop.route_prediction(pred, encoding, route_tags=route_tags))
-        except TransitException:
+        except SkipException:
             continue
     return routes
 

@@ -1,5 +1,5 @@
 from transit import utils
-from transit.exceptions import TransitException
+from transit.exceptions import SkipException
 
 datetime_format = '%I:%M %p'
 
@@ -113,7 +113,7 @@ def direction_estimates(estimate_data, encoding, destinations=None):
     # if destinations given, check here if valid
     # .. if not valid give up now to save time
     if destinations and data['abbreviation'].lower() not in destinations:
-        raise TransitException("Not valid destination:%s" % data['abbreviation'])
+        raise SkipException("Not valid destination:%s" % data['abbreviation'])
     new_data = utils.parse_page(estimate_data, ['destination'], encoding)
     data['name'] = new_data.pop('destination', None)
     data['estimates'] = []
@@ -131,7 +131,7 @@ def station_departures(station_data, encoding, station_output=None):
         try:
             destinations = station_output[data['abbreviation'].lower()]
         except KeyError:
-            raise TransitException("%s not in accepted stations" % data['abbreviation'].lower())
+            raise SkipException("%s not in accepted stations" % data['abbreviation'].lower())
 
     data['directions'] = []
     # if exception was raised then direction not in destinations given
@@ -140,7 +140,7 @@ def station_departures(station_data, encoding, station_output=None):
         try:
             direction_data = direction_estimates(etd, encoding, destinations=destinations)
             data['directions'].append(direction_data)
-        except TransitException:
+        except SkipException:
             continue
     return data
 

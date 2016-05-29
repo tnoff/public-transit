@@ -1,4 +1,4 @@
-from transit.exceptions import TransitException
+from transit.exceptions import TransitException, SkipException
 from transit.modules.bart import urls, utils
 
 from transit.modules.bart import advisories
@@ -189,6 +189,6 @@ def station_multiple_departures(station_output):
         try:
             full_data.append(stations.station_departures(station, encoding,
                                                          station_output=station_output))
-        except TransitException:
+        except SkipException:
             continue
     return full_data
