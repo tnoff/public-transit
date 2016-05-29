@@ -10,7 +10,7 @@ def _make_request(url, markup="html.parser"):
     r = requests.get(url, headers=headers)
 
     if r.status_code != 200:
-        raise TransitException("URL:%s does not return 200" % url)
+        raise TransitException("Non-200 status code returned")
 
     soup = BeautifulSoup(r.text, markup)
     # Get encoding from top of XML data
@@ -21,9 +21,12 @@ def _make_request(url, markup="html.parser"):
     encoding = encoding.lstrip('="').rstrip('"')
     # check for errors
     error = soup.find('error')
+    # nextbus just gives error message in error
     if error:
-        # nextbus just gives error message in error
-        raise TransitException(error.string)
+        error_string = error.string
+        error_string = error_string.lstrip('\n').rstrip('\n')
+        error_string = error_string.lstrip(' ').rstrip(' ')
+        raise TransitException(error_string)
     return soup, encoding
 
 def agency_list():

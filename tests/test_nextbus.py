@@ -21,7 +21,7 @@ from tests.data.nextbus import vehicle_locations as vehicle_locations
 
 class TestNextbus(utils.BaseTestClient):
     @httpretty.activate
-    def test_fails(self):
+    def test_fails_error(self):
         # Check that failures catch nicely
         # Failure xml format in nextbus docs
         test_url = urls.agency_list()
@@ -29,8 +29,21 @@ class TestNextbus(utils.BaseTestClient):
                                test_url,
                                body=error.text,
                                content_type='application/xml')
-        with self.assertRaises(TransitException):
+        with self.assertRaises(TransitException) as e:
             client.agency_list()
+        self.assertEqual(str(e.exception), 'agency parameter "a" must be specified in query string')
+
+    @httpretty.activate
+    def test_fails_invalid_code(self):
+        test_url = urls.agency_list()
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=agency_list.text,
+                               content_type='application/xml',
+                               status=500)
+        with self.assertRaises(TransitException) as e:
+            client.agency_list()
+        self.assertEqual(str(e.exception), 'Non-200 status code returned')
 
     @httpretty.activate
     def test_agency_list(self):
