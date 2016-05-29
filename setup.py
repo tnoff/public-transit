@@ -21,6 +21,6 @@ setuptools.setup(
             'trip-planner = scripts.planner_script:main',
         ]
     },
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=["*tests"]),
     version='0.2.3',
 )
