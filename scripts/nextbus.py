@@ -97,8 +97,17 @@ def stop_prediction(args):
             route_string = '%s-%s' % (route['route_title'], direction['title'])
             preds = []
             for pred in direction['predictions']:
-                dater = datetime(2016, 1, 1, 1, 1, int(pred['minutes']), int(pred['seconds']))
-                preds.append(dater.strftime('%M:%S'))
+                seconds = int(pred['seconds'])
+                minutes = seconds / 60
+                seconds = seconds % 60
+                hours = minutes / 60
+                minutes = minutes % 60
+                dater = datetime(2016, 1, 1, hours, minutes, seconds)
+                if hours < 1:
+                    preds.append(dater.strftime('%M:%S'))
+                else:
+                    preds.append(dater.strftime('%H:%M:%S'))
+
             predictions = ' ; '.join(i for i in preds)
             table.add_row([route_string, predictions])
     print table

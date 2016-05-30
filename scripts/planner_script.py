@@ -88,8 +88,16 @@ def __nextbus_leg(estimates):
             data = base_data + [direct['title']]
             preds = []
             for pred in direct['predictions']:
-                dater = datetime(2016, 1, 1, 1, 1, int(pred['minutes']), int(pred['seconds']))
-                preds.append(dater.strftime('%M:%S'))
+                seconds = int(pred['seconds'])
+                minutes = seconds / 60
+                seconds = seconds % 60
+                hours = minutes / 60
+                minutes = minutes % 60
+                dater = datetime(2016, 1, 1, hours, minutes, seconds)
+                if hours < 1:
+                    preds.append(dater.strftime('%M:%S'))
+                else:
+                    preds.append(dater.strftime('%H:%M:%S'))
             data.append(' ; '.join(i for i in preds))
             table.add_row(data)
     return table
