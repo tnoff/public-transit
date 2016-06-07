@@ -84,7 +84,8 @@ def service_advisory(_):
     advisories = client.service_advisory()
     table = PrettyTable(["Station", "Posted", "Description"])
     for advisory in advisories:
-        table.add_row([advisory['station'], advisory['posted'], advisory['description']])
+        table.add_row([advisory['station'], advisory['posted'].strftime('%m/%d/%Y %H:%M:%S'),
+                       advisory['description']])
     print table
 
 def train_count(_):

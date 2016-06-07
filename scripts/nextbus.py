@@ -117,8 +117,8 @@ def schedule_get(args):
     for r in schedules:
         print r['title'], '-', r['direction'], '-', r['service_class']
         route_times = dict()
-        for b in r['blocks']:
-            for ss in b['stop_schedules']:
+        for block in r['blocks']:
+            for ss in block['stop_schedules']:
                 route_times.setdefault(ss['title'], [])
                 if ss['time']:
                     route_times[ss['title']].append(ss['time'])

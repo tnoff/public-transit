@@ -23,11 +23,15 @@ def temp_database(db_name=None):
 class BaseTestClient(unittest.TestCase): #pylint: disable=too-many-public-methods
 
     def assert_dictionary(self, obj, skip=[]): #pylint: disable=dangerous-default-value
-        # assert all variables in object are not none
-        keys = obj.keys()
-        real_keys = list(set(keys) - set(skip))
-        for key in real_keys:
-            self.assertNotEqual(obj[key], None)
+        if not isinstance(obj, list):
+            obj_list = [obj]
+        else:
+            obj_list = obj
+        for obj in obj_list:
+            for key, value in obj.items():
+                if key in skip:
+                    continue
+                self.assertNotEqual(value, None)
 
     def assertLength(self, item, length):
         self.assertEqual(len(item), length)

@@ -37,8 +37,7 @@ def stop_schedule(stop_data, encoding):
     data['stop_tag'] = data.pop('tag', None)
     data['epoch_time'] = data.pop('epochtime', None)
     time_data = stop_data.contents[0]
-    time = utils.clean_value(time_data, encoding,
-                                    datetime_format=datetime_format)
-    if time == '--':
+    data['time'] = utils.clean_value(time_data, encoding, datetime_format=datetime_format)
+    if data['time'] == '--':
         data['time'] = None
     return data

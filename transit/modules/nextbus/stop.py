@@ -23,7 +23,7 @@ def route_prediction(route_data, encoding, route_tags=None):
     data['route_tag'] = data.pop('routetag', None)
     # Raise exception here for multiple stop excludes
     # .. that way you dont get a bunch of data you dont care about
-    if route_tags and data['route_tag'].lower() not in route_tags:
+    if route_tags and data['route_tag'] not in route_tags:
         raise SkipException("Tag not allowed:%s" % data['route_tag'])
 
     args = ['agencytitle', 'routetitle', 'stoptitle']

@@ -175,12 +175,13 @@ def station_departures(station, platform=None, direction=None,
     soup, encoding = _make_request(url)
 
     station = station.lower()
-    if station.lower() == 'all':
+    if station == 'all':
         station_output = None
     elif destinations is not None:
         station_output = {station : [dest.lower() for dest in destinations]}
     else:
         station_output = {station : []}
+
     departs = []
     for station_data in soup.find_all('station'):
         departs.append(stations.station_departures(station_data, encoding,
@@ -214,19 +215,18 @@ def station_multiple_departures(station_output):
     assert isinstance(station_output, dict), 'station output must be dict type'
     for key in station_output.keys():
         assert isinstance(key, basestring), 'station output keys must be stringtype'
-        lowered = key.lower()
-        if lowered != key:
-            station_output[lowered] = station_output.pop(key)
-        assert isinstance(station_output[lowered], list),\
+        assert isinstance(station_output[key], list),\
             'station output values must be list type'
-        for item in station_output[lowered]:
+        for item in station_output[key]:
             assert isinstance(item, basestring),\
                 'destination list item must be basestring type'
+        station_data = station_output.pop(key)
+        directions = [direct.lower() for direct in station_data]
+        station_output[key.lower()] = directions
 
     # call a list of all departures here, then strip data for only stations requested
     url = urls.estimated_departures('all')
     soup, encoding = _make_request(url)
-
     full_data = []
     for station in soup.find_all('station'):
         try:

@@ -7,7 +7,6 @@ from transit.modules.bart import urls
 from tests import utils
 
 from tests.data.bart import bsa
-from tests.data.bart import bsa_no_delay
 from tests.data.bart import train_count
 from tests.data.bart import elevator
 from tests.data.bart import error
@@ -65,26 +64,10 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                body=bsa.text,
                                content_type='application/xml')
         advisories = client.service_advisory()
-        # should only be one advisory in data anyway
-        adv = advisories[0]
-        self.assert_dictionary(adv)
-        self.assertTrue(isinstance(adv['expires'], datetime))
-
-    @httpretty.activate
-    def test_bsa_delay(self):
-        test_url = urls.service_advisory()
-        httpretty.register_uri(httpretty.GET,
-                               test_url,
-                               body=bsa_no_delay.text,
-                               content_type='application/xml')
-        advisories = client.service_advisory()
-        # should only be one advisory in data anyway
-        adv = advisories[0]
-        self.assert_dictionary(adv, skip=['station', 'type', 'posted',
-                                          'expires', 'id'])
-        # find first description, make sure its a string
-        desc = adv['description']
-        self.assertTrue(isinstance(desc, basestring))
+        for advisory in advisories:
+            self.assert_dictionary(advisory)
+            self.assertTrue(isinstance(advisory['posted'], datetime))
+            self.assertTrue(isinstance(advisory['expires'], datetime))
 
     @httpretty.activate
     def test_train_count(self):
@@ -105,8 +88,7 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                content_type='application/xml')
         status = client.elevator_status()
         self.assert_dictionary(status, skip=['expires'])
-        desc = status['description']
-        self.assertTrue(isinstance(desc, basestring))
+        self.assertTrue(isinstance(status['posted'], datetime))
 
     @httpretty.activate
     def test_estimated_departures(self):
@@ -116,22 +98,47 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                test_url,
                                body=estimates.text,
                                content_type='application/xml')
-        ests = client.station_departures(station)
-        est = ests[0]
-        self.assert_dictionary(est)
-        self.assertEqual(station.lower(), est['abbreviation'].lower())
-        self.assertTrue(len(est['directions']) > 1)
-        direction = est['directions'][0]
-        self.assert_dictionary(direction)
-        self.assertTrue(len(direction['estimates']) > 0)
-        direction_estimate = direction['estimates'][0]
-        self.assert_dictionary(direction_estimate)
+        estimations = client.station_departures(station)
+        self.assert_dictionary(estimations)
+        for estimate in estimations:
+            self.assertEqual(station.lower(), estimate['abbreviation'].lower())
+            self.assertTrue(len(estimate['directions']) > 1)
+            for direction in estimate['directions']:
+                self.assert_dictionary(direction)
+                self.assertTrue(len(direction['estimates']) > 0)
+                for dir_estimate in direction['estimates']:
+                    self.assert_dictionary(dir_estimate)
 
-        # test with destinations
-        ests = client.station_departures(station,
-                                         destinations=['frmt'])
-        est = ests[0]
-        self.assertEqual(len(est['directions']), 1)
+    @httpretty.activate
+    def test_estimated_departues_with_departures(self):
+        station = 'rich'
+        test_url = urls.estimated_departures(station)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=estimates.text,
+                               content_type='application/xml')
+        estimations = client.station_departures(station, destinations=['frmt'])
+        for estimate in estimations:
+            self.assertEqual(station.lower(), estimate['abbreviation'].lower())
+            self.assertLength(estimate['directions'], 1)
+            for direction in estimate['directions']:
+                self.assert_dictionary(direction)
+                self.assertTrue(len(direction['estimates']) > 0)
+                for dir_estimate in direction['estimates']:
+                    self.assert_dictionary(dir_estimate)
+
+    @httpretty.activate
+    def test_estimated_departues_with_departures_case_sensitive(self):
+        station = 'rich'
+        test_url = urls.estimated_departures(station)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=estimates.text,
+                               content_type='application/xml')
+        estimations = client.station_departures(station, destinations=['FRMT'])
+        for estimate in estimations:
+            self.assertEqual(station.lower(), estimate['abbreviation'].lower())
+            self.assertLength(estimate['directions'], 1)
 
     @httpretty.activate
     def test_url_is_lowered(self):
@@ -152,15 +159,13 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                test_url,
                                body=estimate_all.text,
                                content_type='application/xml')
-        ests = client.station_departures(station)
-        self.assertTrue(len(ests) > 0)
-        for est in ests:
-            self.assert_dictionary(est)
-            direction = est['directions'][0]
-            self.assert_dictionary(direction)
-            self.assertTrue(len(direction['estimates']) > 0)
-            direction_estimate = direction['estimates'][0]
-            self.assert_dictionary(direction_estimate)
+        estimations = client.station_departures(station)
+        for estimate in estimations:
+            for direction in estimate['directions']:
+                self.assert_dictionary(direction)
+                self.assertTrue(len(direction['estimates']) > 0)
+                for dir_estimate in direction['estimates']:
+                    self.assert_dictionary(dir_estimate)
 
     @httpretty.activate
     def test_multiple_stations_custom(self):
@@ -171,8 +176,10 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                body=estimate_all.text,
                                content_type='application/xml')
         station_data = {
-            'mont' : ['dubl', 'pitt'],
+            # test station is lowered as well
+            'mont' : ['dubl', 'Pitt'],
             'bayf' : [],
+            'HAYW' : ['DALY'],
         }
         ests = client.station_multiple_departures(station_data)
         for est in ests:
@@ -180,25 +187,19 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                 self.assertEqual(len(est['directions']), 2)
             elif est['abbreviation'].lower() == 'bayf':
                 self.assertTrue(len(est['directions']) > 0)
+            elif est['abbreviation'].lower() == 'hayw':
+                self.assertTrue(len(est['directions']) > 0)
             self.assert_dictionary(est)
-            direction = est['directions'][0]
-            self.assert_dictionary(direction)
-            self.assertTrue(len(direction['estimates']) > 0)
-            direction_estimate = direction['estimates'][0]
-            self.assert_dictionary(direction_estimate)
 
     @httpretty.activate
     def test_route_list(self):
-        # some args only in route info for scheduled routes
-        route_skip = ['origin', 'destination', 'holidays', 'number_stations']
         test_url = urls.route_list()
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=current_routes.text,
                                content_type='application/xml')
         routes = client.route_list()
-        route = routes[0]
-        self.assert_dictionary(route, skip=route_skip)
+        self.assert_dictionary(routes)
 
     @httpretty.activate
     def test_route_info(self):
@@ -210,12 +211,10 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                content_type='application/xml')
         route = client.route_info(route_number)
         self.assert_dictionary(route)
-        self.assertTrue(len(route['stations']) > 0)
-        station = route['stations'][0]
-        self.assertTrue(isinstance(station, basestring))
 
-    def test_station_list(self): #pylint: disable=no-self-use
-        client.station_list()
+    def test_station_list(self):
+        stations = client.station_list()
+        self.assert_dictionary(stations)
 
     @httpretty.activate
     def test_station_info(self):
@@ -226,7 +225,11 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                body=station_info.text,
                                content_type='application/xml')
         station = client.station_info(station_abbr)
-        self.assert_dictionary(station, skip=['north_platforms', 'north_routes'])
+        self.assert_dictionary(station)
+        self.assertTrue(len(station['north_routes']) > 0)
+        self.assertTrue(len(station['south_routes']) > 0)
+        self.assertTrue(len(station['south_platforms']) > 0)
+        self.assertTrue(len(station['north_platforms']) > 0)
 
     @httpretty.activate
     def test_station_access(self):
@@ -250,8 +253,10 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
         station = client.station_schedule(station_abbr)
         self.assert_dictionary(station)
         self.assertTrue(len(station['schedule_times']) > 0)
-        first_time = station['schedule_times'][0]
-        self.assert_dictionary(first_time)
+        for times in station['schedule_times']:
+            self.assert_dictionary(times)
+            self.assertTrue(isinstance(times['origin_time'], datetime))
+            self.assertTrue(isinstance(times['destination_time'], datetime))
 
     @httpretty.activate
     def test_schedule(self):
@@ -261,9 +266,9 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                body=schedule_list.text,
                                content_type='application/xml')
         schedules = client.schedule_list()
-        self.assertTrue(len(schedules) > 0)
-        sched = schedules[0]
-        self.assert_dictionary(sched)
+        self.assert_dictionary(schedules)
+        for sched in schedules:
+            self.assert_dictionary(sched)
 
     @httpretty.activate
     def test_schedule_fare(self):

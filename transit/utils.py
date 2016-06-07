@@ -28,11 +28,11 @@ def parse_data(data, key_name):
     return value
 
 def clean_value(value, encoding, datetime_format=None):
-    # clean string to whatever type it should be
     if value is None:
         return None
+
     new_value = value.encode(encoding)
-    # try to make it a datetime if format given first
+
     if datetime_format:
         try:
             new_value = datetime.strptime(new_value, datetime_format)

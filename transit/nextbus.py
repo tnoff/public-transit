@@ -94,16 +94,6 @@ def stop_multiple_predictions(agency_tag, prediction_data):
     assert isinstance(prediction_data, dict), 'prediction data must be dict type'
     for key in prediction_data.keys():
         assert isinstance(key, basestring), 'prediction data key must be string type'
-        lowered = key.lower()
-        if key != lowered:
-            prediction_data[lowered] = prediction_data.pop(key)
-        assert isinstance(prediction_data[lowered], list),\
-            'prediction data value must be list type'
-        assert len(prediction_data[lowered]) > 0,\
-            'prediction data value list must be populated'
-        for item in prediction_data[lowered]:
-            assert isinstance(item, basestring),\
-                'prediction data value item must be string type'
 
     url = urls.multiple_stop_prediction(agency_tag, prediction_data)
     soup, encoding = _make_request(url)
@@ -126,8 +116,8 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     # if only a single route was entered into url, only single result with that
     # .. route will be returned. if multiple routes, use routes here to strip
     # .. the data
-    if route_tags and isinstance(route_tags, list):
-        route_tags = [item.lower() for item in route_tags]
+    if route_tags and not isinstance(route_tags, list):
+        route_tags = [route_tags]
     for pred in soup.find_all('predictions'):
         try:
             routes.append(stop.route_prediction(pred, encoding, route_tags=route_tags))

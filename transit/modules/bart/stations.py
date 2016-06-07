@@ -125,13 +125,13 @@ def direction_estimates(estimate_data, encoding, destinations=None):
 def station_departures(station_data, encoding, station_output=None):
     args = ['name', 'abbr']
     data = utils.parse_page(station_data, args, encoding)
-    data['abbreviation'] = data.pop('abbr', None)
+    data['abbreviation'] = data.pop('abbr').lower()
     destinations = None
     if station_output:
         try:
-            destinations = station_output[data['abbreviation'].lower()]
+            destinations = station_output[data['abbreviation']]
         except KeyError:
-            raise SkipException("%s not in accepted stations" % data['abbreviation'].lower())
+            raise SkipException("%s not in accepted stations" % data['abbreviation'])
 
     data['directions'] = []
     # if exception was raised then direction not in destinations given
@@ -148,7 +148,7 @@ def schedule_time(schedule_data, encoding):
     args = ['line', 'trainheadstation', 'origtime', 'desttime', 'trainidx',
             'bikeflag']
     data = utils.parse_page(schedule_data, args, encoding,
-                                   datetime_format=datetime_format)
+                            datetime_format=datetime_format)
     data['line'] = int(data.pop('line', '0').replace('ROUTE ', ''))
     data['head_station'] = data.pop('trainheadstation', None)
     data['origin_time'] = data.pop('origtime', None)
