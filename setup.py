@@ -11,8 +11,9 @@ setuptools.setup(
         'beautifulsoup4 >= 4.4.0',
         'httpretty >= 0.8.4',
         'prettytable >= 0.7.2',
-        'requests == 2.5.1',
-        'SQLAlchemy == 1.0.8',
+        'pytz >= 2016.4',
+        'requests >= 2.5.1',
+        'SQLAlchemy >= 1.0.8',
     ],
     entry_points={
         'console_scripts' : [
