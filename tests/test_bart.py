@@ -12,7 +12,8 @@ from tests.data.bart import elevator
 from tests.data.bart import error
 from tests.data.bart import estimates
 from tests.data.bart import estimate_all
-from tests.data.bart import current_routes
+from tests.data.bart import route_list
+from tests.data.bart import route_list_with_schedule
 from tests.data.bart import route_info
 from tests.data.bart import schedule_fare
 from tests.data.bart import schedule_list
@@ -196,10 +197,27 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
         test_url = urls.route_list()
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=current_routes.text,
+                               body=route_list.text,
                                content_type='application/xml')
-        routes = client.route_list()
-        self.assert_dictionary(routes)
+        route_data = client.route_list()
+        self.assert_dictionary(route_data)
+        self.assertTrue('schedule_number' in route_data.keys())
+        for route in route_data['routes']:
+            self.assert_dictionary(route)
+
+    @httpretty.activate
+    def test_route_list_with_schedule(self):
+        schedule_number = 36
+        test_url = urls.route_list(schedule=schedule_number)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=route_list_with_schedule.text,
+                               content_type='application/xml')
+        route_data = client.route_list()
+        self.assert_dictionary(route_data)
+        self.assertEqual(route_data['schedule_number'], schedule_number)
+        for route in route_data['routes']:
+            self.assert_dictionary(route)
 
     @httpretty.activate
     def test_route_info(self):

@@ -4,8 +4,9 @@ from bs4 import BeautifulSoup
 import requests
 
 from transit.exceptions import TransitException, SkipException
-from transit.modules.bart import urls
+from transit import utils
 
+from transit.modules.bart import urls
 from transit.modules.bart import advisories
 from transit.modules.bart import routes
 from transit.modules.bart import schedules
@@ -81,10 +82,15 @@ def route_list(schedule=None, date=None):
         _check_datetime(date)
     url = urls.route_list(schedule=schedule, date=date)
     soup, encoding = _make_request(url)
-    new_routes = []
-    for route_data in soup.find_all('route'):
-        new_routes.append(routes.route(route_data, encoding))
-    return new_routes
+
+    route_data = {}
+    schedule_number = utils.parse_data(soup, 'sched_num')
+    route_data['schedule_number'] = int(schedule_number)
+
+    route_data['routes'] = []
+    for route_xml in soup.find_all('route'):
+        route_data['routes'].append(routes.route(route_xml, encoding))
+    return route_data
 
 def route_info(route_number, schedule=None, date=None):
     '''Show information for specific route

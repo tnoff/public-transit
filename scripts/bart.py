@@ -24,10 +24,10 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     routes = sub_parser.add_parser('route', help='Route commands')
     routes_sp = routes.add_subparsers(help='Sub-command',
                                       dest='subcommand')
-    route_list = routes_sp.add_parser('list', help="List routes")
-    route_list.add_argument('--schedule', type=int,
-                            help='Schedule Number')
-    route_list.add_argument('--date', help='MM/DD/YYYY format')
+    route_listy = routes_sp.add_parser('list', help="List routes")
+    route_listy.add_argument('--schedule', type=int,
+                             help='Schedule Number')
+    route_listy.add_argument('--date', help='MM/DD/YYYY format')
 
     route_show = routes_sp.add_parser('info',
                                       help='Route Information')
@@ -111,11 +111,12 @@ def estimated_departures(args):
             table.add_row(data)
     print table
 
-def current_routes(args):
-    route_list = client.route_list(schedule=args.schedule,
-                                   date=args.date)
+def route_list(args):
+    rl = client.route_list(schedule=args.schedule,
+                           date=args.date)
+    print 'Schedule number:', rl['schedule_number']
     table = PrettyTable(["Name", "Number", "Color"])
-    for route in route_list:
+    for route in rl['routes']:
         table.add_row([route['name'], route['number'], route['color']])
     print table
 
@@ -181,7 +182,7 @@ FUNCTION_MATCH = {
         'elevator-status' : elevator_status,
     },
     'route': {
-        'list' : current_routes,
+        'list' : route_list,
         'info' : route_info,
     },
     'station' : {
