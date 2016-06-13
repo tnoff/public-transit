@@ -62,12 +62,11 @@ def leg_create(args, trip_planner):
 
 def leg_list(_, trip_planner):
     legs = trip_planner.leg_list()
-    table = PrettyTable(["Leg ID", "Agency", "Stop ID", "Stop Title",
-                         "Routes/Directions"])
-    for leg_data in legs:
-        table.add_row([leg_data['id'], leg_data['agency'],
+    table = PrettyTable(["Leg ID", "Agency", "Stop ID", "Stop Title", "Routes/Directions"])
+    for leg_id, leg_data in legs.items():
+        table.add_row([leg_id, leg_data['agency'],
                        leg_data['stop_id'], leg_data['stop_title'],
-                       ' ; '.join(i for i in leg_data['includes'])])
+                       ' ; '.join(i for i in sorted(leg_data['includes']))])
     print table
 
 def __bart_leg(estimates):
@@ -128,9 +127,10 @@ def trip_create(args, trip_planner):
 def trip_list(_, trip_planner):
     trips = trip_planner.trip_list()
     table = PrettyTable(["ID", "Name", "Legs"])
-    for trip_data in trips:
-        table.add_row([trip_data['id'], trip_data['name'],
-                       ' ; '.join('%s' % i for i in trip_data['legs'])])
+    for trip_id, trip_data in trips.items():
+        print 'legs:', trip_data['legs']
+        table.add_row([trip_id, trip_data['name'],
+                       ' ; '.join(str(i) for i in trip_data['legs'])])
     print table
 
 def trip_delete(args, trip_planner):
