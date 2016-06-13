@@ -1,50 +1,12 @@
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
+
 from transit import bart as bart_client
 from transit import nextbus as nextbus_client
+
+from trip_planner.database.tables import Base, Leg, LegDestination, Trip, TripLeg
 from trip_planner.exceptions import TripPlannerException
-
-Base = declarative_base()
-
-class Leg(Base): #pylint:disable=no-init
-    __tablename__ = 'leg'
-    id = Column(Integer, primary_key=True)
-    agency = Column(String(128))
-    stop_id = Column(String(64))
-    stop_tag = Column(String(64))
-    stop_title = Column(String(128))
-
-class LegDestination(Base): #pylint:disable=no-init
-    __tablename__ = 'leg_destination'
-    id = Column(Integer, primary_key=True)
-    leg_id = Column(Integer, ForeignKey('leg.id'))
-    tag = Column(String(64))
-
-class Trip(Base): #pylint:disable=no-init
-    __tablename__ = 'trip'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(128))
-
-class TripLeg(Base): #pylint:disable=no-init
-    __tablename__ = 'trip_leg'
-    id = Column(Integer, primary_key=True)
-    trip_id = Column(Integer, ForeignKey('trip.id'))
-    leg_id = Column(Integer, ForeignKey('leg.id'))
-
-def clean_sql(sql_object):
-    new_data = {}
-    data = sql_object.__dict__
-    for key in data.keys():
-        if key.startswith("_"):
-            continue
-        if isinstance(data[key], unicode):
-            new_data[key] = data[key].encode('utf-8')
-        else:
-            new_data[key] = data[key]
-    return new_data
 
 class TripPlanner(object):
     def __init__(self, database_engine):
@@ -169,7 +131,7 @@ class TripPlanner(object):
 
         # refresh here for better return
         new_leg = self.db_session.query(Leg).get(new_leg.id)
-        leg = clean_sql(new_leg)
+        leg = new_leg.as_dict()
         leg['includes'] = route_tags
         return leg
 
@@ -181,7 +143,7 @@ class TripPlanner(object):
         for leg, leg_include in all_legs:
             tag = leg_include.tag.encode('utf-8')
             if last_leg is None or last_leg['id'] != leg.id: #pylint:disable=unsubscriptable-object
-                clean_leg = clean_sql(leg)
+                clean_leg = leg.as_dict()
                 clean_leg['includes'] = [tag]
                 leg_data.append(clean_leg)
                 last_leg = clean_leg
@@ -224,7 +186,7 @@ class TripPlanner(object):
         includes = []
         for leg, leg_include in leg_query:
             if not leggy:
-                leggy = clean_sql(leg)
+                leggy = leg.as_dict()
             includes.append(leg_include.tag.encode('utf-8'))
         preds = None
         if leggy['agency'] == 'bart':
@@ -260,7 +222,7 @@ class TripPlanner(object):
         self.db_session.commit()
 
         new_trip = self.db_session.query(Trip).get(new_trip.id)
-        return clean_sql(new_trip)
+        return new_trip.as_dict()
 
     def trip_list(self):
         '''List all trips'''
@@ -269,7 +231,7 @@ class TripPlanner(object):
         last_trip = None
         for trip, trip_leg in all_trips:
             if last_trip is None or last_trip['id'] != trip.id: #pylint:disable=unsubscriptable-object
-                clean_trip = clean_sql(trip)
+                clean_trip = trip.as_dict()
                 clean_trip['legs'] = [trip_leg.leg_id]
                 trip_data.append(clean_trip)
                 last_trip = clean_trip
