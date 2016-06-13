@@ -1,3 +1,4 @@
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
@@ -9,7 +10,11 @@ from trip_planner.database.tables import Base, Leg, LegDestination, Trip, TripLe
 from trip_planner.exceptions import TripPlannerException
 
 class TripPlanner(object):
-    def __init__(self, database_engine):
+    def __init__(self, database_path=None):
+        if database_path is not None:
+            database_engine = create_engine('sqlite:///%s' % database_path)
+        else:
+            database_engine = create_engine('sqlite:///')
         Base.metadata.create_all(database_engine)
         Base.metadata.bind = database_engine
         self.db_session = sessionmaker(bind=database_engine)()

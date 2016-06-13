@@ -4,7 +4,6 @@ import os
 
 from prettytable import PrettyTable
 
-from trip_planner import utils
 from trip_planner.client import TripPlanner
 from transit.exceptions import TransitException
 
@@ -174,7 +173,6 @@ def main():
     args = parse_args()
     __create_directory(HOME_PATH)
     db_name = HOME_PATH + '/trip_db.sql'
-    engine = utils.database_engine(db_name)
-    planner = TripPlanner(engine)
+    planner = TripPlanner(database_path=db_name)
     method = FUNCTION_MAPPING[args.module][args.command]
     method(args, planner)
