@@ -281,6 +281,28 @@ class TestPlanner(utils.BaseTestClient):
         self.assertEqual(len(legs), 0)
 
     @httpretty.activate
+    def test_leg_delete_with_trip_is_invalid(self):
+        client = TripPlanner()
+        agency = 'actransit'
+        stop = '51303'
+        route = '22'
+        route_url = nextbus_urls.route_show(agency, route)
+        stop_url = nextbus_urls.stop_prediction(agency, stop)
+        httpretty.register_uri(httpretty.GET,
+                               route_url,
+                               body=nextbus_route_22.text,
+                               content_type='text/xml')
+        httpretty.register_uri(httpretty.GET,
+                               stop_url,
+                               body=nextbus_stop_51303.text,
+                               content_type='text/xml')
+        leg = client.leg_create(agency, stop)
+        client.trip_create('foo', [leg['id']])
+        with self.assertRaises(TripPlannerException) as error:
+            client.leg_delete(leg['id'])
+        self.assertTrue('Cannot delete leg, being used by a Trip:1' in error.exception)
+
+    @httpretty.activate
     def test_leg_show_nextbus(self):
         client = TripPlanner()
         agency = 'actransit'
