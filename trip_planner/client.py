@@ -198,6 +198,7 @@ class TripPlanner(object):
             raise TripPlannerException("no leg found with id:%s" % leg_id)
         self.db_session.delete(leg)
         self.db_session.commit()
+        self.db_session.execute("VACUUM")
         return True
 
     def leg_show(self, leg_id):
@@ -333,4 +334,5 @@ class TripPlanner(object):
         for leg in legs:
             self.db_session.delete(leg)
         self.db_session.commit()
+        self.db_session.execute("VACUUM")
         return True
