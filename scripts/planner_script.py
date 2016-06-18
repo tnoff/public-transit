@@ -128,7 +128,6 @@ def trip_list(_, trip_planner):
     trips = trip_planner.trip_list()
     table = PrettyTable(["ID", "Name", "Legs"])
     for trip_id, trip_data in trips.items():
-        print 'legs:', trip_data['legs']
         table.add_row([trip_id, trip_data['name'],
                        ' ; '.join(str(i) for i in trip_data['legs'])])
     print table
