@@ -79,7 +79,7 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags):
     else:
         found_route = False
         for route_tag in sorted(possible_routes):
-            route = nextbus_client.route_get(agency_tag, route_tag)
+            route = nextbus_client.route_show(agency_tag, route_tag)
             for stop in route['stops']:
                 if stop['stop_id'] == stop_id:
                     stop_tag = stop['stop_tag']

@@ -23,7 +23,7 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     rl = rsp.add_parser('list', help='List routes by agency')
     rl.add_argument('agency_tag', help='Agency tag')
 
-    rg = rsp.add_parser('get',\
+    rg = rsp.add_parser('show',
                     help='Get information about specific route')
     rg.add_argument('agency_tag', help='Agency tag')
     rg.add_argument('route_tag', help='Route tag')
@@ -68,8 +68,8 @@ def route_list(args):
         table.add_row([route['title'], route['route_tag']])
     print table
 
-def route_get(args):
-    route = client.route_get(args.agency_tag, args.route_tag)
+def route_show(args):
+    route = client.route_show(args.agency_tag, args.route_tag)
     table = PrettyTable(["Stop Title", "Stop Tag", "Latitude", "Longitude",
                          "Stop ID"])
     stops = sorted(route['stops'], key=lambda k: k['title'])
@@ -158,7 +158,7 @@ FUNCTION_MATCH = {
     },
     'route' : {
         'list' : route_list,
-        'get' : route_get,
+        'get' : route_show,
         'messages' : route_messages,
     },
     'stop' : {

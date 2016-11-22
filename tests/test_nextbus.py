@@ -79,7 +79,7 @@ class TestNextbus(utils.BaseTestClient):
                                test_url,
                                body=route_show.text,
                                content_type='application/xml')
-        route = client.route_get(agency_tag, route_tag)
+        route = client.route_show(agency_tag, route_tag)
         self.assert_dictionary(route)
         for stop in route['stops']:
             self.assert_dictionary(stop, skip=['short_title'])

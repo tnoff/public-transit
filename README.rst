@@ -119,7 +119,7 @@ From the help page.
     agency_list()
         List all nextbus agencies
 
-    route_get(agency_tag, route_tag)
+    route_show(agency_tag, route_tag)
         Get information about route
         agency_tag: agency tag
         route_tag : route_tag

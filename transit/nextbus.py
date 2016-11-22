@@ -47,7 +47,7 @@ def route_list(agency_tag):
         return_data.append(route.route(route_data, encoding))
     return return_data
 
-def route_get(agency_tag, route_tag):
+def route_show(agency_tag, route_tag):
     '''Get information about route
        agency_tag: agency tag
        route_tag : route_tag
