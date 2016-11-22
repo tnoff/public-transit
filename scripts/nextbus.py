@@ -24,7 +24,7 @@ def parse_args(): #pylint: disable=too-many-locals, too-many-statements
     rl.add_argument('agency_tag', help='Agency tag')
 
     rg = rsp.add_parser('show',
-                    help='Get information about specific route')
+                        help='Get information about specific route')
     rg.add_argument('agency_tag', help='Agency tag')
     rg.add_argument('route_tag', help='Route tag')
 
@@ -70,20 +70,27 @@ def route_list(args):
 
 def route_show(args):
     route = client.route_show(args.agency_tag, args.route_tag)
-    table = PrettyTable(["Stop Title", "Stop Tag", "Latitude", "Longitude",
-                         "Stop ID"])
-    stops = sorted(route['stops'], key=lambda k: k['title'])
-    for stop in stops:
-        table.add_row([stop['title'], stop['stop_tag'], stop['latitude'], stop['longitude'],
-                       stop['stop_id']])
-    print 'Stops'
-    print table
 
-    table = PrettyTable(["Direction Title", "Direction Tag", "Stop Tags"])
+    stop_data = {}
+    for stop in route['stops']:
+        tag = stop.pop('stop_tag')
+        stop['directions'] = []
+        stop_data[tag] = stop
+
     for direction in route['directions']:
-        table.add_row([direction['title'], direction['tag'],
-                       ", ".join(i for i in direction['stop_tags'])])
-    print 'Directions'
+        for stop_tag in direction['stop_tags']:
+            try:
+                stop_data[stop_tag]['directions'].append(direction["title"])
+            except KeyError:
+                continue
+
+    table = PrettyTable(["Stop ID", "Stop Title",
+                         "Latitude", "Longitude", "Directions"])
+    for _, stop in stop_data.items():
+        table.add_row([stop["stop_id"], stop["title"], stop["latitude"], stop["longitude"],
+                       ", ".join(i for i in stop["directions"])])
+
+    print 'Stops'
     print table
 
 def stop_prediction(args):
@@ -158,7 +165,7 @@ FUNCTION_MATCH = {
     },
     'route' : {
         'list' : route_list,
-        'get' : route_show,
+        'show' : route_show,
         'messages' : route_messages,
     },
     'stop' : {

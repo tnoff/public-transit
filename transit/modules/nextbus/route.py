@@ -72,5 +72,6 @@ def message(message_data, encoding):
 
 def route_message(route_data, encoding):
     data = route_base(route_data, encoding)
-    data['messages'] = [message(mes, encoding) for mes in route_data.find_all('message')]
+    data['messages'] = [message(mes, encoding)
+                        for mes in route_data.find_all('message')]
     return data
