@@ -49,6 +49,7 @@ STATION_MAPPING = {
     "shay" : "South Hayward",
     "ssan" : "South San Francisco",
     "ucty" : "Union City",
+    "warm" : "Warm Springs",
     "wcrk" : "Walnut Creek",
     "wdub" : "West Dublin",
     "woak" : "West Oakland",
