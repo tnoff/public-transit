@@ -14,7 +14,7 @@ Install
 
 .. code::
 
-    git clone git@github.com:tylernorth/public-transit.git
+    git clone https://github.com/tnoff/public-transit.git
     pip install public-transit/
 
 ====================
