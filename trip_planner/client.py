@@ -12,7 +12,9 @@ from trip_planner.database.tables import Base, Leg, LegDestination, Trip, TripLe
 from trip_planner.exceptions import TripPlannerException
 
 def validate_bart_station(stop_tag, destinations, verify_destinations=True):
-    '''validate bart station with destinations'''
+    '''
+    Validate bart station with destinations
+    '''
     # first check station is valid from list
     valid_stations = bart_client.station_list()
     if stop_tag.lower() not in [i for i in valid_stations]:
@@ -44,6 +46,9 @@ def validate_bart_station(stop_tag, destinations, verify_destinations=True):
     return station_name, destinations
 
 def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_route_tags=True):
+    '''
+    Validate nextbus stop with route tags (destinations)
+    '''
     try:
         predictions = nextbus_client.stop_prediction(agency_tag,
                                                      stop_id)
@@ -105,6 +110,10 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
 
 class TripPlanner(object):
     def __init__(self, database_path=None):
+        '''
+        Trip planner client
+        database_path   :   Path to sqlite database
+        '''
         if database_path is not None:
             database_engine = create_engine('sqlite:///%s' % database_path)
         else:
@@ -116,10 +125,9 @@ class TripPlanner(object):
     def leg_create(self, agency_tag, stop_id, destinations=None, force=False):
         '''
         Create a new leg with a given stop id and routes/destinations
-           agency_tag : agency tag
-           stop_id : identifier of stop
-           include: include only destinations
-        returns: dict of newly created leg
+        agency_tag      :   agency tag
+        stop_id         :   identifier of stop
+        include         :   include only destinations
         '''
         assert isinstance(agency_tag, basestring), 'agency tag must be string type'
         assert isinstance(stop_id, basestring), 'stop id must be string type'
@@ -170,7 +178,6 @@ class TripPlanner(object):
     def leg_list(self):
         '''
         List all legs, along with their given routes/destinations
-        returns: ordered dict of all routes
         '''
         all_legs = self.db_session.query(Leg, LegDestination).join(LegDestination).all()
         leg_data = OrderedDict()
@@ -186,8 +193,7 @@ class TripPlanner(object):
     def leg_delete(self, leg_id):
         '''
         Delete leg with given id
-           leg_id : leg integer id
-        returns: True if leg deleted
+        leg_id      :   leg integer id
         '''
         assert isinstance(leg_id, int), 'leg id must be int type'
         trip_leg = self.db_session.query(TripLeg).filter(TripLeg.leg_id == leg_id).first()
@@ -209,8 +215,7 @@ class TripPlanner(object):
     def leg_show(self, leg_id):
         '''
         Get predictions for leg with given id
-           leg_id : leg integer id
-        returns: tuple of (agency, prediction data)
+        leg_id      :   leg integer id
         '''
         assert isinstance(leg_id, int), 'leg id must be int type'
         leg_query = self.db_session.query(Leg, LegDestination).join(LegDestination)
@@ -233,9 +238,8 @@ class TripPlanner(object):
     def trip_create(self, name, legs):
         '''
         Create a new trip with one or more legs
-            name: name of new trip
-            legs: one or more legs for trip to use
-        returns: dict of newly created trip with legs
+        name        :   name of new trip
+        legs        :   one or more legs for trip to use
         '''
         assert isinstance(name, basestring), 'name must be string type'
         assert isinstance(legs, (list, int)), 'legs must be list or int type'
@@ -263,7 +267,6 @@ class TripPlanner(object):
     def trip_list(self):
         '''
         List all trips
-        returns: OrderedDict of all trips
         '''
         all_trips = self.db_session.query(Trip, TripLeg).join(TripLeg).all()
         trip_data = OrderedDict()
@@ -279,8 +282,7 @@ class TripPlanner(object):
     def trip_show(self, trip_id):
         '''
         Show all legs for a trip with given id
-           trip_id: trip id
-        returns: dict data of expected departures
+        trip_id     :   trip id
         '''
         assert isinstance(trip_id, int), 'trip id must be int type'
         try:
@@ -321,8 +323,9 @@ class TripPlanner(object):
         return trip_data
 
     def trip_delete(self, trip_id):
-        '''Delete trip with given id
-           trip_id : trip id
+        '''
+        Delete trip with given id
+        trip_id     :   trip id
         '''
         assert isinstance(trip_id, int), 'trip id must be int type'
         try:

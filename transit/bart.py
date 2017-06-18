@@ -48,7 +48,9 @@ def _check_datetime(datetime_str):
         raise TransitException("Datetime string invalid:%s" % datetime_str)
 
 def service_advisory():
-    '''System wide service advisory'''
+    '''
+    System wide service advisory
+    '''
     url = urls.service_advisory()
     soup, encoding = _make_request(url)
     service_advisories = []
@@ -58,21 +60,26 @@ def service_advisory():
     return service_advisories
 
 def train_count():
-    '''System wide train count'''
+    '''
+    System wide train count
+    '''
     url = urls.train_count()
     soup, encoding = _make_request(url)
     return int(soup.find('traincount').string.encode(encoding))
 
 def elevator_status():
-    '''System wide elevator status'''
+    '''
+    System wide elevator status
+    '''
     url = urls.elevator_status()
     soup, encoding = _make_request(url)
     return advisories.service_advisory(soup.find('bsa'), encoding)
 
 def route_list(schedule=None, date=None):
-    '''Show information for specific route
-       schedule: schedule number
-       date: mm/dd/yyyy format
+    '''
+    Show information for specific route
+    schedule    :   schedule number
+    date        :   mm/dd/yyyy format
     '''
     assert schedule is None or isinstance(schedule, int),\
         'schedule number must be int or null type'
@@ -93,10 +100,11 @@ def route_list(schedule=None, date=None):
     return route_data
 
 def route_info(route_number, schedule=None, date=None):
-    '''Show information for specific route
-       route_number: number of route to show
-       schedule: schedule number
-       date: mm/dd/yyyy format
+    '''
+    Show information for specific route
+    route_number    :   number of route to show
+    schedule        :   schedule number
+    date            :   mm/dd/yyyy format
     '''
     assert isinstance(route_number, int), 'route number must be int type'
     assert schedule is None or isinstance(schedule, int),\
@@ -110,7 +118,9 @@ def route_info(route_number, schedule=None, date=None):
     return routes.route_info(soup.find('route'), encoding)
 
 def schedule_list():
-    '''List bart schedules'''
+    '''
+    List bart schedules
+    '''
     url = urls.schedule_list()
     soup, encoding = _make_request(url)
     new_schedules = []
@@ -120,11 +130,12 @@ def schedule_list():
 
 def schedule_fare(origin_station, destination_station,
                   date=None, schedule=None):
-    '''Get the scheduled fare
-        origin_station: station you'll onbard at
-        destination_station: station you'll offboard at
-        schedule: schedule number
-        date: mm/dd/yyyy format
+    '''
+    Get the scheduled fare
+    origin_station          :   station you'll onbard at
+    destination_station     :   station you'll offboard at
+    schedule                :   schedule number
+    date                    :   mm/dd/yyyy format
     '''
     assert isinstance(origin_station, basestring), 'origin station must be string type'
     assert isinstance(destination_station, basestring), 'destination station must be string type'
@@ -140,12 +151,15 @@ def schedule_fare(origin_station, destination_station,
     return schedules.schedule_fare(soup, encoding)
 
 def station_list():
-    '''List all bart stations'''
+    '''
+    List all bart stations
+    '''
     return stations.STATION_MAPPING
 
 def station_info(station):
-    '''Station information
-        station: station abbreviation
+    '''
+    Station information
+    station     :   station abbreviation
     '''
     assert isinstance(station, basestring), 'station must be string type'
     url = urls.station_info(station)
@@ -153,8 +167,9 @@ def station_info(station):
     return stations.station_info(soup.find('station'), encoding)
 
 def station_access(station):
-    '''Station Access information
-        station: station abbreviation
+    '''
+    Station Access information
+    station     :   station abbreviation
     '''
     assert isinstance(station, basestring), 'station must be string type'
     url = urls.station_access(station)
@@ -163,11 +178,12 @@ def station_access(station):
 
 def station_departures(station, platform=None, direction=None,
                        destinations=None):
-    '''Get estimated station departures
-        station: station abbreviation
-        plaform: platfrom number
-        direction: (n)orth or (s)outh
-        destinatons: List of abbreviated destinations, exclude all others
+    '''
+    Get estimated station departures
+    station     :   station abbreviation
+    plaform     :   platfrom number
+    direction   :   (n)orth or (s)outh
+    destinatons :   List of abbreviated destinations, exclude all others
     '''
     assert isinstance(station, basestring), 'station must be string type'
     assert platform is None or isinstance(platform, int),\
@@ -195,9 +211,10 @@ def station_departures(station, platform=None, direction=None,
     return departs
 
 def station_schedule(station, date=None):
-    '''Get a stations schedule
-        station: station abbreviation
-        date: mm/dd/yyyy format
+    '''
+    Get a stations schedule
+    station     :   station abbreviation
+    date        :   mm/dd/yyyy format
     '''
     assert isinstance(station, basestring), 'station must be string type'
     assert date is None or isinstance(date, basestring), \

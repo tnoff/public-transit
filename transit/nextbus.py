@@ -30,14 +30,17 @@ def _make_request(url, markup="html.parser"):
     return soup, encoding
 
 def agency_list():
-    '''List all nextbus agencies'''
+    '''
+    List all nextbus agencies
+    '''
     url = urls.agency_list()
     soup, encoding = _make_request(url)
     return [agency.agency(ag, encoding) for ag in soup.find_all('agency')]
 
 def route_list(agency_tag):
-    '''Get list of agency routes
-       agency_tag: agency tag
+    '''
+    Get list of agency routes
+    agency_tag      :   agency tag
     '''
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     url = urls.route_list(agency_tag)
@@ -48,9 +51,10 @@ def route_list(agency_tag):
     return return_data
 
 def route_show(agency_tag, route_tag):
-    '''Get information about route
-       agency_tag: agency tag
-       route_tag : route_tag
+    '''
+    Get information about route
+    agency_tag      :   agency tag
+    route_tag       :   route_tag
     '''
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     assert isinstance(route_tag, basestring), 'route tag must be string type'
@@ -59,9 +63,10 @@ def route_show(agency_tag, route_tag):
     return route.route_info(soup.find('route'), encoding)
 
 def route_messages(agency_tag, route_tags):
-    '''Get alert messages for routes
-       agency_tag : agency tag
-       route_tags : either single route tag, or list of tags
+    '''
+    Get alert messages for routes
+    agency_tag      :   agency tag
+    route_tags      :   either single route tag, or list of tags
     '''
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     assert isinstance(route_tags, basestring) or isinstance(route_tags, list),\
@@ -71,9 +76,10 @@ def route_messages(agency_tag, route_tags):
     return [route.route_message(r, encoding) for r in soup.find_all('route')]
 
 def schedule_get(agency_tag, route_tag):
-    '''Get schedule information for route
-       agency_tag : agency tag
-       route_tag : route tag
+    '''
+    Get schedule information for route
+    agency_tag      :   agency tag
+    route_tag       :   route tag
     '''
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     assert isinstance(route_tag, basestring), 'route tag must be string type'
@@ -82,13 +88,14 @@ def schedule_get(agency_tag, route_tag):
     return [schedule.schedule_route(r, encoding) for r in soup.find_all('route')]
 
 def stop_multiple_predictions(agency_tag, prediction_data):
-    '''Get predictions for multiple stops
-       agency_tag: agency tag
-       prediction_data : {
-            "stop_tag1" : [route1, route2],
-            "stop_tag2" : [route3],
-            # must provide at least one route per stop tag
-       }
+    '''
+    Get predictions for multiple stops
+    agency_tag      :   agency tag
+    prediction_data :   {
+        "stop_tag1" : [route1, route2],
+        "stop_tag2" : [route3],
+        # must provide at least one route per stop tag
+    }
     '''
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     assert isinstance(prediction_data, dict), 'prediction data must be dict type'
@@ -100,10 +107,11 @@ def stop_multiple_predictions(agency_tag, prediction_data):
     return [stop.route_prediction(pred, encoding) for pred in soup.find_all('predictions')]
 
 def stop_prediction(agency_tag, stop_id, route_tags=None):
-    '''Get arrival predictions for stops
-       agency_tag: agency tag
-       stop_id: stop id
-       route_tags: list of routes or single route to limit search
+    '''
+    Get arrival predictions for stops
+    agency_tag      :   agency tag
+    stop_id         :   stop id
+    route_tags      :   list of routes or single route to limit search
     '''
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     assert isinstance(stop_id, basestring), 'stop id must be string type'
@@ -126,10 +134,11 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     return routes
 
 def vehicle_location(agency_tag, route_tag, epoch_time):
-    '''Get vehicle location for route at time
-       agency_tag: agency tag
-       route_tag: route tag
-       epoch_time: epoch time for locations
+    '''
+    Get vehicle location for route at time
+    agency_tag      :   agency tag
+    route_tag       :   route tag
+    epoch_time      :   epoch time for locations
     '''
     assert isinstance(agency_tag, basestring), 'agency tag must be string type'
     assert isinstance(route_tag, basestring), 'route tag must be string type'
