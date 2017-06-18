@@ -192,3 +192,20 @@ One note: The 'destinations' specified when creating a leg correspond to:
 Tests
 =====
 Tests require extra pip modules to be installed, they reside in the ``tests/requirements.txt`` file.
+
+
+======
+TODOs
+======
+
+- Move scripts into each folder
+
+- Change asserts so they throw custom exception
+
+- Allow multi-delete in trip planner
+
+- Improve tests where possible
+
+- Use jsonschema to validate dictionary input in bar/nextbus
+
+- Allow specifying of custom api keys
