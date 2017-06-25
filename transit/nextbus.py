@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 
+from transit import utils
 from transit.exceptions import SkipException, TransitException
 from transit.modules.nextbus import urls
 from transit.modules.nextbus import agency, route, stop, schedule, vehicle
@@ -42,7 +43,7 @@ def route_list(agency_tag):
     Get list of agency routes
     agency_tag      :   agency tag
     '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
+    utils.check_args(agency_tag, [basestring])
     url = urls.route_list(agency_tag)
     soup, encoding = _make_request(url)
     return_data = []
@@ -56,8 +57,8 @@ def route_show(agency_tag, route_tag):
     agency_tag      :   agency tag
     route_tag       :   route_tag
     '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    assert isinstance(route_tag, basestring), 'route tag must be string type'
+    utils.check_args(agency_tag, [basestring])
+    utils.check_args(route_tag, [basestring])
     url = urls.route_show(agency_tag, route_tag)
     soup, encoding = _make_request(url)
     return route.route_info(soup.find('route'), encoding)
@@ -66,11 +67,10 @@ def route_messages(agency_tag, route_tags):
     '''
     Get alert messages for routes
     agency_tag      :   agency tag
-    route_tags      :   either single route tag, or list of tags
+    route_tags      :   list of route tags
     '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    assert isinstance(route_tags, basestring) or isinstance(route_tags, list),\
-        'route tag must be string type or list of string types'
+    utils.check_args(agency_tag, [basestring])
+    utils.check_args(route_tags, [basestring], is_list=True)
     url = urls.message_get(agency_tag, route_tags)
     soup, encoding = _make_request(url)
     return [route.route_message(r, encoding) for r in soup.find_all('route')]
@@ -81,8 +81,8 @@ def schedule_get(agency_tag, route_tag):
     agency_tag      :   agency tag
     route_tag       :   route tag
     '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    assert isinstance(route_tag, basestring), 'route tag must be string type'
+    utils.check_args(agency_tag, [basestring])
+    utils.check_args(route_tag, [basestring])
     url = urls.schedule_get(agency_tag, route_tag)
     soup, encoding = _make_request(url)
     return [schedule.schedule_route(r, encoding) for r in soup.find_all('route')]
@@ -97,11 +97,7 @@ def stop_multiple_predictions(agency_tag, prediction_data):
         # must provide at least one route per stop tag
     }
     '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    assert isinstance(prediction_data, dict), 'prediction data must be dict type'
-    for key in prediction_data.keys():
-        assert isinstance(key, basestring), 'prediction data key must be string type'
-
+    utils.check_args(agency_tag, [basestring])
     url = urls.multiple_stop_prediction(agency_tag, prediction_data)
     soup, encoding = _make_request(url)
     return [stop.route_prediction(pred, encoding) for pred in soup.find_all('predictions')]
@@ -111,21 +107,17 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     Get arrival predictions for stops
     agency_tag      :   agency tag
     stop_id         :   stop id
-    route_tags      :   list of routes or single route to limit search
+    route_tags      :   list of routes
     '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    assert isinstance(stop_id, basestring), 'stop id must be string type'
-    assert route_tags is None or isinstance(route_tags, basestring)\
-        or isinstance(route_tags, list), \
-            'route tags must be string, list or null type'
+    utils.check_args(agency_tag, [basestring])
+    utils.check_args(stop_id, [basestring])
+    utils.check_args(route_tags, [basestring], allow_none=True, is_list=True)
     url = urls.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
     soup, encoding = _make_request(url)
     routes = []
     # if only a single route was entered into url, only single result with that
     # .. route will be returned. if multiple routes, use routes here to strip
     # .. the data
-    if route_tags and not isinstance(route_tags, list):
-        route_tags = [route_tags]
     for pred in soup.find_all('predictions'):
         try:
             routes.append(stop.route_prediction(pred, encoding, route_tags=route_tags))
@@ -140,9 +132,9 @@ def vehicle_location(agency_tag, route_tag, epoch_time):
     route_tag       :   route tag
     epoch_time      :   epoch time for locations
     '''
-    assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-    assert isinstance(route_tag, basestring), 'route tag must be string type'
-    assert isinstance(epoch_time, int), 'epoch time must be int type'
+    utils.check_args(agency_tag, [basestring])
+    utils.check_args(route_tag, [basestring])
+    utils.check_args(epoch_time, [int])
     url = urls.vehicle_location(agency_tag, route_tag, epoch_time)
     soup, encoding = _make_request(url)
     return [vehicle.vehicle_location(veh, encoding) for veh in soup.find_all('vehicle')]

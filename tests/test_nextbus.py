@@ -102,8 +102,8 @@ class TestNextbus(utils.BaseTestClient):
             self.assert_dictionary(prediction)
             for direction in prediction['directions']:
                 self.assert_dictionary(direction)
-                for prediction in direction['predictions']:
-                    self.assert_dictionary(prediction)
+                for pred in direction['predictions']:
+                    self.assert_dictionary(pred)
 
     @httpretty.activate
     def test_stop_prediction_with_route(self):
@@ -117,14 +117,14 @@ class TestNextbus(utils.BaseTestClient):
                                body=stop_predictions_route.text,
                                content_type='application/xml')
         predictions = client.stop_prediction(agency_tag, stop_id,
-                                             route_tags=route_tag)
+                                             route_tags=[route_tag])
         self.assertTrue(len(predictions) > 0)
         for prediction in predictions:
             self.assert_dictionary(prediction)
             for direction in prediction['directions']:
                 self.assert_dictionary(direction)
-                for prediction in direction['predictions']:
-                    self.assert_dictionary(prediction)
+                for pred in direction['predictions']:
+                    self.assert_dictionary(pred)
 
     @httpretty.activate
     def test_stop_prediction_with_route_as_list(self):
@@ -144,8 +144,8 @@ class TestNextbus(utils.BaseTestClient):
             self.assert_dictionary(prediction)
             for direction in prediction['directions']:
                 self.assert_dictionary(direction)
-                for prediction in direction['predictions']:
-                    self.assert_dictionary(prediction)
+                for pred in direction['predictions']:
+                    self.assert_dictionary(pred)
 
     @httpretty.activate
     def test_stop_prediction_with_route_multi(self):
@@ -165,8 +165,8 @@ class TestNextbus(utils.BaseTestClient):
             self.assert_dictionary(prediction)
             for direction in prediction['directions']:
                 self.assert_dictionary(direction)
-                for prediction in direction['predictions']:
-                    self.assert_dictionary(prediction)
+                for pred in direction['predictions']:
+                    self.assert_dictionary(pred)
 
     @httpretty.activate
     def test_schedule(self):
@@ -212,7 +212,7 @@ class TestNextbus(utils.BaseTestClient):
                                test_url,
                                body=message_get.text,
                                content_type='application/xml')
-        routes = client.route_messages(agency_tag, route_tag)
+        routes = client.route_messages(agency_tag, [route_tag])
         for route in routes:
             self.assert_dictionary(route, skip=['agency_tag'])
 

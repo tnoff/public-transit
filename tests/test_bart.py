@@ -8,12 +8,13 @@ from tests import utils
 
 from tests.data.bart import bsa
 from tests.data.bart import train_count
+from tests.data.bart import departure_with_platform
+from tests.data.bart import departure_with_direction
 from tests.data.bart import elevator
 from tests.data.bart import error
 from tests.data.bart import estimates
 from tests.data.bart import estimate_all
 from tests.data.bart import route_list
-from tests.data.bart import route_list_with_schedule
 from tests.data.bart import route_info
 from tests.data.bart import schedule_fare
 from tests.data.bart import schedule_list
@@ -22,18 +23,6 @@ from tests.data.bart import station_info
 from tests.data.bart import station_schedule
 
 class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
-    def test_bart_check_datetime(self):
-        client._check_datetime('03/16/1991') #pylint:disable=protected-access
-        # bad types of dates
-        with self.assertRaises(TransitException):
-            client._check_datetime('13/01/1991') #pylint:disable=protected-access
-        with self.assertRaises(TransitException):
-            client._check_datetime('12/41/1991') #pylint:disable=protected-access
-        with self.assertRaises(TransitException):
-            client._check_datetime('12/11/91') #pylint:disable=protected-access
-        # bad with random strings
-        with self.assertRaises(TransitException):
-            client._check_datetime('foo-bar-thing') #pylint:disable=protected-access
 
     @httpretty.activate
     def test_non_200_error(self):
@@ -111,7 +100,37 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                     self.assert_dictionary(dir_estimate)
 
     @httpretty.activate
-    def test_estimated_departues_with_destinations(self):
+    def test_estimated_departures_with_platform(self):
+        station = 'rich'
+        test_url = urls.estimated_departures(station, platform=2)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=departure_with_platform.text,
+                               content_type='application/xml')
+        estimations = client.station_departures(station, platform=2)
+        self.assert_dictionary(estimations)
+        for estimate in estimations:
+            for direct in estimate['directions']:
+                for dir_est in direct['estimates']:
+                    self.assertEqual(dir_est['platform'], 2)
+
+    @httpretty.activate
+    def test_estimated_departures_with_direction(self):
+        station = 'rich'
+        test_url = urls.estimated_departures(station, direction="s")
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=departure_with_direction.text,
+                               content_type='application/xml')
+        estimations = client.station_departures(station, direction="s")
+        self.assert_dictionary(estimations)
+        for estimate in estimations:
+            for direct in estimate['directions']:
+                for dir_est in direct['estimates']:
+                    self.assertEqual(dir_est['direction'], 'South')
+
+    @httpretty.activate
+    def test_estimated_departues_with_departures(self):
         station = 'rich'
         test_url = urls.estimated_departures(station)
         httpretty.register_uri(httpretty.GET,
@@ -187,9 +206,9 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
             if est['abbreviation'].lower() == 'mont':
                 self.assertEqual(len(est['directions']), 2)
             elif est['abbreviation'].lower() == 'bayf':
-                self.assertTrue(len(est['directions']) > 0)
+                self.assertTrue(len(est['directions']) > 0) #pylint:disable=len-as-condition
             elif est['abbreviation'].lower() == 'hayw':
-                self.assertTrue(len(est['directions']) > 0)
+                self.assertTrue(len(est['directions']) > 0) #pylint:disable=len-as-condition
             self.assert_dictionary(est)
 
     @httpretty.activate
@@ -207,15 +226,27 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
 
     @httpretty.activate
     def test_route_list_with_schedule(self):
-        schedule_number = 36
-        test_url = urls.route_list(schedule=schedule_number)
+        test_url = urls.route_list(schedule=35)
         httpretty.register_uri(httpretty.GET,
                                test_url,
-                               body=route_list_with_schedule.text,
+                               body=route_list.text,
                                content_type='application/xml')
-        route_data = client.route_list()
+        route_data = client.route_list(schedule=35)
         self.assert_dictionary(route_data)
-        self.assertEqual(route_data['schedule_number'], schedule_number)
+        self.assertTrue('schedule_number' in route_data.keys())
+        for route in route_data['routes']:
+            self.assert_dictionary(route)
+
+    @httpretty.activate
+    def test_route_list_with_date(self):
+        test_url = urls.route_list(date="03/17/2017")
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=route_list.text,
+                               content_type='application/xml')
+        route_data = client.route_list(date="03/17/2017")
+        self.assert_dictionary(route_data)
+        self.assertTrue('schedule_number' in route_data.keys())
         for route in route_data['routes']:
             self.assert_dictionary(route)
 
@@ -228,6 +259,28 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                body=route_info.text,
                                content_type='application/xml')
         route = client.route_info(route_number)
+        self.assert_dictionary(route)
+
+    @httpretty.activate
+    def test_route_info_with_schedule(self):
+        route_number = 4
+        test_url = urls.route_info(route_number, schedule=35)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=route_info.text,
+                               content_type='application/xml')
+        route = client.route_info(route_number, schedule=35)
+        self.assert_dictionary(route)
+
+    @httpretty.activate
+    def test_route_info_with_date(self):
+        route_number = 4
+        test_url = urls.route_info(route_number, date="03/17/2017")
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=route_info.text,
+                               content_type='application/xml')
+        route = client.route_info(route_number, date="03/17/2017")
         self.assert_dictionary(route)
 
     def test_station_list(self):
@@ -277,6 +330,22 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
             self.assertTrue(isinstance(times['destination_time'], datetime))
 
     @httpretty.activate
+    def test_station_schedule_with_date(self):
+        station_abbr = '12th'
+        test_url = urls.station_schedule(station_abbr, date="03/17/2017")
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=station_schedule.text,
+                               content_type='application/xml')
+        station = client.station_schedule(station_abbr, date="03/17/2017")
+        self.assert_dictionary(station)
+        self.assertTrue(len(station['schedule_times']) > 0)
+        for times in station['schedule_times']:
+            self.assert_dictionary(times)
+            self.assertTrue(isinstance(times['origin_time'], datetime))
+            self.assertTrue(isinstance(times['destination_time'], datetime))
+
+    @httpretty.activate
     def test_schedule(self):
         test_url = urls.schedule_list()
         httpretty.register_uri(httpretty.GET,
@@ -298,4 +367,28 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                body=schedule_fare.text,
                                content_type='application/xml')
         fare = client.schedule_fare(origin, dest)
+        self.assert_dictionary(fare)
+
+    @httpretty.activate
+    def test_schedule_fare_with_schedule(self):
+        origin = '12th'
+        dest = 'embr'
+        test_url = urls.schedule_fare(origin, dest, schedule=35)
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=schedule_fare.text,
+                               content_type='application/xml')
+        fare = client.schedule_fare(origin, dest, schedule=35)
+        self.assert_dictionary(fare)
+
+    @httpretty.activate
+    def test_schedule_fare_with_date(self):
+        origin = '12th'
+        dest = 'embr'
+        test_url = urls.schedule_fare(origin, dest, date="03/17/2017")
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=schedule_fare.text,
+                               content_type='application/xml')
+        fare = client.schedule_fare(origin, dest, date="03/17/2017")
         self.assert_dictionary(fare)

@@ -107,6 +107,7 @@ def estimate(estimate_data, encoding):
     data['bike_flag'] = data.pop('bikeflag', 0) == 1
     if not isinstance(data['minutes'], int) and 'leaving' in data['minutes'].lower():
         data['minutes'] = 0
+    data['platform'] = int(data['platform'])
     return data
 
 def direction_estimates(estimate_data, encoding, destinations=None):

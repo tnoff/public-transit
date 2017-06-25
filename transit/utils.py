@@ -1,4 +1,33 @@
 from datetime import datetime
+import re
+
+from transit.exceptions import TransitException
+
+def check_args(value, valid_types, allow_none=False, is_list=False, regex=None):
+    '''
+    Check arguments and throw exceptions when needed
+    value       :   Value to check against types
+    valid_types :   Valid types which will not throw exceptions
+    allow_none  :   Allow None value
+    is_list     :   Check that value is list, and then check valid_types against items in list
+    regex       :   If value is basestring, check against regex
+    '''
+    if allow_none and value is None:
+        return
+
+    if is_list:
+        if not isinstance(value, list):
+            raise TransitException("Invalid value:%s, must be list type" % value)
+        for item in value:
+            if not isinstance(item, tuple(valid_types)):
+                raise TransitException("Invalid value:%s, not one of %s" % (item, valid_types))
+    elif not isinstance(value, tuple(valid_types)):
+        raise TransitException("Invalid value:%s, not one of %s" % (value, valid_types))
+
+    if isinstance(value, basestring) and regex is not None:
+        checker = re.compile(regex)
+        if not checker.match(value):
+            raise TransitException("Invalid value:%s, does not match regex %s" % (value, regex))
 
 def parse_page(page_data, arguments, encoding, datetime_format=None):
     data = {}

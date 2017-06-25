@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from bs4 import BeautifulSoup
 import requests
 
@@ -11,6 +9,8 @@ from transit.modules.bart import advisories
 from transit.modules.bart import routes
 from transit.modules.bart import schedules
 from transit.modules.bart import stations
+
+DATE_REGEX = "^[0-9]{2}/[0-9]{2}/[0-9]{4}"
 
 def _make_request(url, markup="html.parser"):
     headers = {'accept-encoding' : 'gzip, deflate'}
@@ -40,12 +40,6 @@ def _make_request(url, markup="html.parser"):
             error_string = '%s:%s' % (error_string1, error_string2)
         raise TransitException(error_string)
     return soup, encoding
-
-def _check_datetime(datetime_str):
-    try:
-        datetime.strptime(datetime_str, '%m/%d/%Y')
-    except ValueError:
-        raise TransitException("Datetime string invalid:%s" % datetime_str)
 
 def service_advisory():
     '''
@@ -81,12 +75,8 @@ def route_list(schedule=None, date=None):
     schedule    :   schedule number
     date        :   mm/dd/yyyy format
     '''
-    assert schedule is None or isinstance(schedule, int),\
-        'schedule number must be int or null type'
-    assert date is None or isinstance(date, basestring), \
-        'date must be string or null type'
-    if date is not None:
-        _check_datetime(date)
+    utils.check_args(schedule, [int], allow_none=True)
+    utils.check_args(date, [basestring], allow_none=True, regex=DATE_REGEX)
     url = urls.route_list(schedule=schedule, date=date)
     soup, encoding = _make_request(url)
 
@@ -106,13 +96,9 @@ def route_info(route_number, schedule=None, date=None):
     schedule        :   schedule number
     date            :   mm/dd/yyyy format
     '''
-    assert isinstance(route_number, int), 'route number must be int type'
-    assert schedule is None or isinstance(schedule, int),\
-        'schedule number must be int or None type'
-    assert date is None or isinstance(date, basestring), \
-        'date must be string or null type'
-    if date is not None:
-        _check_datetime(date)
+    utils.check_args(route_number, [int])
+    utils.check_args(schedule, [int], allow_none=True)
+    utils.check_args(date, [basestring], allow_none=True, regex=DATE_REGEX)
     url = urls.route_info(route_number, schedule=schedule, date=date)
     soup, encoding = _make_request(url)
     return routes.route_info(soup.find('route'), encoding)
@@ -137,14 +123,10 @@ def schedule_fare(origin_station, destination_station,
     schedule                :   schedule number
     date                    :   mm/dd/yyyy format
     '''
-    assert isinstance(origin_station, basestring), 'origin station must be string type'
-    assert isinstance(destination_station, basestring), 'destination station must be string type'
-    assert schedule is None or isinstance(schedule, int),\
-        'schedule number must be int or None type'
-    assert date is None or isinstance(date, basestring), \
-        'date must be string or null type'
-    if date is not None:
-        _check_datetime(date)
+    utils.check_args(origin_station, [basestring])
+    utils.check_args(destination_station, [basestring])
+    utils.check_args(schedule, [int], allow_none=True)
+    utils.check_args(date, [basestring], allow_none=True, regex=DATE_REGEX)
     url = urls.schedule_fare(origin_station, destination_station,
                              date=date, schedule=schedule)
     soup, encoding = _make_request(url)
@@ -161,7 +143,7 @@ def station_info(station):
     Station information
     station     :   station abbreviation
     '''
-    assert isinstance(station, basestring), 'station must be string type'
+    utils.check_args(station, [basestring])
     url = urls.station_info(station)
     soup, encoding = _make_request(url)
     return stations.station_info(soup.find('station'), encoding)
@@ -171,7 +153,7 @@ def station_access(station):
     Station Access information
     station     :   station abbreviation
     '''
-    assert isinstance(station, basestring), 'station must be string type'
+    utils.check_args(station, [basestring])
     url = urls.station_access(station)
     soup, encoding = _make_request(url)
     return stations.station_access(soup.find('station'), encoding)
@@ -185,13 +167,10 @@ def station_departures(station, platform=None, direction=None,
     direction   :   (n)orth or (s)outh
     destinatons :   List of abbreviated destinations, exclude all others
     '''
-    assert isinstance(station, basestring), 'station must be string type'
-    assert platform is None or isinstance(platform, int),\
-        'platform must be int or null type'
-    assert direction is None or isinstance(direction, basestring),\
-        'direction must be string or null type'
-    assert destinations is None or isinstance(destinations, list), \
-        'destinations must be list or null type'
+    utils.check_args(station, [basestring])
+    utils.check_args(platform, [int], allow_none=True)
+    utils.check_args(direction, [basestring], allow_none=True, regex="^n|s$")
+    utils.check_args(destinations, [basestring], allow_none=True, is_list=True)
     url = urls.estimated_departures(station, platform=platform,
                                     direction=direction)
     soup, encoding = _make_request(url)
@@ -216,11 +195,8 @@ def station_schedule(station, date=None):
     station     :   station abbreviation
     date        :   mm/dd/yyyy format
     '''
-    assert isinstance(station, basestring), 'station must be string type'
-    assert date is None or isinstance(date, basestring), \
-        'date must be string or null type'
-    if date is not None:
-        _check_datetime(date)
+    utils.check_args(station, [basestring])
+    utils.check_args(date, [basestring], allow_none=True, regex=DATE_REGEX)
     url = urls.station_schedule(station, date=date)
     soup, encoding = _make_request(url)
     return stations.station_schedule(soup.find('station'), encoding)
@@ -235,14 +211,7 @@ def station_multiple_departures(station_output):
             # empty for all possible destinations
         }
     '''
-    assert isinstance(station_output, dict), 'station output must be dict type'
     for key in station_output.keys():
-        assert isinstance(key, basestring), 'station output keys must be stringtype'
-        assert isinstance(station_output[key], list),\
-            'station output values must be list type'
-        for item in station_output[key]:
-            assert isinstance(item, basestring),\
-                'destination list item must be basestring type'
         station_data = station_output.pop(key)
         directions = [direct.lower() for direct in station_data]
         station_output[key.lower()] = directions
