@@ -1,4 +1,5 @@
 from datetime import datetime
+from jsonschema import ValidationError
 import httpretty
 
 from transit import bart as client
@@ -187,6 +188,14 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                 for dir_estimate in direction['estimates']:
                     self.assert_dictionary(dir_estimate)
 
+    def test_multiple_stations_validation_error(self):
+        station_data = {
+            'mont' : 2,
+        }
+        with self.assertRaises(ValidationError) as val_error:
+            client.station_multiple_departures(station_data)
+        self.assertTrue("2 is not of type 'array'" in str(val_error.exception))
+
     @httpretty.activate
     def test_multiple_stations_custom(self):
         station = 'all'
@@ -196,10 +205,9 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                body=estimate_all.text,
                                content_type='application/xml')
         station_data = {
-            # test station is lowered as well
-            'mont' : ['dubl', 'Pitt'],
+            'mont' : ['dubl', 'pitt'],
             'bayf' : [],
-            'HAYW' : ['DALY'],
+            'hayw' : ['daly'],
         }
         ests = client.station_multiple_departures(station_data)
         for est in ests:
@@ -208,7 +216,7 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
             elif est['abbreviation'].lower() == 'bayf':
                 self.assertTrue(len(est['directions']) > 0) #pylint:disable=len-as-condition
             elif est['abbreviation'].lower() == 'hayw':
-                self.assertTrue(len(est['directions']) > 0) #pylint:disable=len-as-condition
+                self.assertEqual(len(est['directions']), 1) #pylint:disable=len-as-condition
             self.assert_dictionary(est)
 
     @httpretty.activate

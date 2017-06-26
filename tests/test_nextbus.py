@@ -1,4 +1,5 @@
 from datetime import datetime
+from jsonschema import ValidationError
 import httpretty
 
 from transit import nextbus as client
@@ -231,8 +232,24 @@ class TestNextbus(utils.BaseTestClient):
         for route in routes:
             self.assert_dictionary(route, skip=['agency_tag'])
 
+    def test_multi_prediction_validation_error(self):
+        data = {
+            'foo12' : 2,
+        }
+        with self.assertRaises(ValidationError) as val_error:
+            client.stop_multiple_predictions('sf-muni', data)
+        self.assertTrue("2 is not of type 'array'" in str(val_error.exception))
+
+        # empty list should fail
+        data = {
+            'foo12' : [],
+        }
+        with self.assertRaises(ValidationError) as val_error:
+            client.stop_multiple_predictions('sf-muni', data)
+        self.assertTrue("[] is too short" in str(val_error.exception))
+
     @httpretty.activate
-    def test_multi_prediction_single(self):
+    def test_multi_prediction_single_route(self):
         # Test with one stop/route
         agency_tag = 'sf-muni'
         data = {'13568' : ['38']}
@@ -249,7 +266,7 @@ class TestNextbus(utils.BaseTestClient):
                 self.assert_dictionary(direction)
 
     @httpretty.activate
-    def test_multi_prediction_multiple(self):
+    def test_multi_prediction_multiple_route(self):
         # Test with multiple stops on same route
         agency_tag = 'sf-muni'
         data = {'13568' : ['38',], '13567' : ['38']}

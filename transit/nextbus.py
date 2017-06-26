@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
+from jsonschema import validate
 import requests
 
-from transit import utils
+from transit import schema, utils
 from transit.exceptions import SkipException, TransitException
 from transit.modules.nextbus import urls
 from transit.modules.nextbus import agency, route, stop, schedule, vehicle
@@ -97,6 +98,10 @@ def stop_multiple_predictions(agency_tag, prediction_data):
         # must provide at least one route per stop tag
     }
     '''
+    validate(prediction_data, schema.NEXTBUS_MULTIPLE_STOP_SCHEMA)
+    print 'yeah its valid'
+    print prediction_data
+    print schema.NEXTBUS_MULTIPLE_STOP_SCHEMA
     utils.check_args(agency_tag, [basestring])
     url = urls.multiple_stop_prediction(agency_tag, prediction_data)
     soup, encoding = _make_request(url)

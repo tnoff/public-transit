@@ -10,6 +10,7 @@ setuptools.setup(
     install_requires=[
         'beautifulsoup4 >= 4.4.0',
         'httpretty >= 0.8.4',
+        'jsonschema >= 2.6.0',
         'prettytable >= 0.7.2',
         'pytz >= 2016.4',
         'requests >= 2.5.1',

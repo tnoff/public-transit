@@ -1,8 +1,9 @@
 from bs4 import BeautifulSoup
+from jsonschema import validate
 import requests
 
 from transit.exceptions import TransitException, SkipException
-from transit import utils
+from transit import schema, utils
 
 from transit.modules.bart import urls
 from transit.modules.bart import advisories
@@ -201,21 +202,17 @@ def station_schedule(station, date=None):
     soup, encoding = _make_request(url)
     return stations.station_schedule(soup.find('station'), encoding)
 
-def station_multiple_departures(station_output):
+def station_multiple_departures(station_input):
     '''
     Get estimated departures for mutliple stations
-    station_output:
+    station_input:
         {
             'station_abbrevation' : [destination1, destination2],
             'station_abbreviation2' : [],
             # empty for all possible destinations
         }
     '''
-    for key in station_output.keys():
-        station_data = station_output.pop(key)
-        directions = [direct.lower() for direct in station_data]
-        station_output[key.lower()] = directions
-
+    validate(station_input, schema.BART_MULTIPLE_STOP_SCHEMA)
     # call a list of all departures here, then strip data for only stations requested
     url = urls.estimated_departures('all')
     soup, encoding = _make_request(url)
@@ -223,7 +220,7 @@ def station_multiple_departures(station_output):
     for station in soup.find_all('station'):
         try:
             full_data.append(stations.station_departures(station, encoding,
-                                                         station_output=station_output))
+                                                         station_output=station_input))
         except SkipException:
             continue
     return full_data

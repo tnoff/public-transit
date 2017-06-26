@@ -206,6 +206,4 @@ TODOs
 
 - Improve tests where possible
 
-- Use jsonschema to validate dictionary input in bar/nextbus
-
 - Allow specifying of custom api keys
