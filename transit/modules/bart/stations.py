@@ -1,7 +1,9 @@
+from datetime import datetime
+
 from transit import utils
 from transit.exceptions import SkipException
 
-datetime_format = '%I:%M %p'
+DATETIME_FORMAT = '%I:%M %p'
 
 # bart doesnt have a way to call this easily that I can find
 # .. the one on their official website didnt include the new(-ish) station
@@ -64,6 +66,12 @@ def station_info(station_data, encoding):
             'food', 'shopping', 'attraction', 'link']
     data = utils.parse_page(station_data, args, encoding)
     data['abbreviation'] = data.pop('abbr', None)
+    if data['abbreviation']:
+        data['abbreviation'] = data['abbreviation'].lower()
+    if data['zipcode']:
+        data['zipcode'] = int(data['zipcode'])
+    data['gtfs_longitude'] = float(data['gtfs_longitude'])
+    data['gtfs_latitude'] = float(data['gtfs_latitude'])
 
     data['north_routes'] = []
     north_routes = station_data.find('north_routes')
@@ -96,6 +104,8 @@ def station_access(station_data, encoding):
             'link']
     data = utils.parse_page(station_data, args, encoding)
     data['abbreviation'] = data.pop('abbr', None)
+    if data['abbreviation']:
+        data['abbreviation'] = data['abbreviation'].lower()
     data['parking_flag'] = data.pop('parking_flag', 0) == 1
     data['bike_flag'] = data.pop('bike_flag', 0) == 1
     data['locker_flag'] = data.pop('locker_flag', 0) == 1
@@ -108,13 +118,18 @@ def estimate(estimate_data, encoding):
     if not isinstance(data['minutes'], int) and 'leaving' in data['minutes'].lower():
         data['minutes'] = 0
     data['platform'] = int(data['platform'])
+    data['color'] = data['color'].lower()
+    data['direction'] = data['direction'].lower()
+    data['length'] = int(data['length'])
+    data['minutes'] = int(data['minutes'])
     return data
 
 def direction_estimates(estimate_data, encoding, destinations=None):
     data = utils.parse_page(estimate_data, ['abbreviation'], encoding)
     # if destinations given, check here if valid
     # .. if not valid give up now to save time
-    if destinations and data['abbreviation'].lower() not in destinations:
+    data['abbreviation'] = data['abbreviation'].lower()
+    if destinations and data['abbreviation'] not in destinations:
         raise SkipException("Not valid destination:%s" % data['abbreviation'])
     new_data = utils.parse_page(estimate_data, ['destination'], encoding)
     data['name'] = new_data.pop('destination', None)
@@ -146,25 +161,42 @@ def station_departures(station_data, encoding, station_output=None):
             continue
     return data
 
-def schedule_time(schedule_data, encoding):
+def schedule_time(schedule_data, encoding, today):
     args = ['line', 'trainheadstation', 'origtime', 'desttime', 'trainidx',
             'bikeflag']
-    data = utils.parse_page(schedule_data, args, encoding,
-                            datetime_format=datetime_format)
+    data = utils.parse_page(schedule_data, args, encoding)
     data['line'] = int(data.pop('line', '0').replace('ROUTE ', ''))
     data['head_station'] = data.pop('trainheadstation', None)
+    if data['head_station']:
+        data['head_station'] = data['head_station'].lower()
     data['origin_time'] = data.pop('origtime', None)
     data['destination_time'] = data.pop('desttime', None)
     data['train_index'] = int(data.pop('trainidx', None))
     bike_flag = int(data.pop('bikeflag', 0))
     data['bike_flag'] = bike_flag == 1
+
+    origin_time = data.pop('origin_time', None)
+    if origin_time:
+        origin_time = datetime.strptime(origin_time, DATETIME_FORMAT)
+        data['origin_time'] = datetime(today.year, today.month, today.day,
+                                       origin_time.hour, origin_time.minute)
+
+    destination_time = data.pop('destination_time', None)
+    if destination_time:
+        destination_time = datetime.strptime(destination_time, DATETIME_FORMAT)
+        data['destination_time'] = datetime(today.year, today.month, today.day,
+                                            destination_time.hour, destination_time.minute)
+
     return data
 
 def station_schedule(station_data, encoding):
     args = ['name', 'abbr']
     data = utils.parse_page(station_data, args, encoding)
     data['abbreviation'] = data.pop('abbr', None)
+    if data['abbreviation']:
+        data['abbreviation'] = data['abbreviation'].lower()
     data['schedule_times'] = []
+    today = datetime.now()
     for item in station_data.find_all('item'):
-        data['schedule_times'].append(schedule_time(item, encoding))
+        data['schedule_times'].append(schedule_time(item, encoding, today))
     return data

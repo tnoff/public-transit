@@ -31,11 +31,9 @@ def route_info(route_number, schedule=None, date=None, key=DEFAULT_KEY):
 
 # station urls
 def station_info(station, key=DEFAULT_KEY):
-    station = station.lower()
     return '%sstn.aspx?cmd=stninfo&orig=%s&key=%s' % (MAIN_URL, station, key)
 
 def station_access(station, key=DEFAULT_KEY):
-    station = station.lower()
     return '%sstn.aspx?cmd=stnaccess&orig=%s&key=%s' % (MAIN_URL, station, key)
 
 def estimated_departures(station, platform=None, direction=None,
@@ -44,11 +42,10 @@ def estimated_departures(station, platform=None, direction=None,
     if platform:
         url = '%s&plat=%s' % (url, platform)
     if direction:
-        url = '%s&dir=%s' % (url, direction.lower())
+        url = '%s&dir=%s' % (url, direction)
     return url
 
 def station_schedule(station, date=None, key=DEFAULT_KEY):
-    station = station.lower()
     url = '%ssched.aspx?cmd=stnsched&orig=%s&key=%s' % (MAIN_URL, station, key)
     if date:
         url = '%s&date=%s' % (url, date)
@@ -60,8 +57,6 @@ def schedule_list(key=DEFAULT_KEY):
 
 def schedule_fare(origin_station, destination_station, date=None,
                   schedule=None, key=DEFAULT_KEY):
-    origin_station = origin_station.lower()
-    destination_station = destination_station.lower()
     url = '%ssched.aspx?cmd=fare&orig=%s&dest=%s&key=%s' % \
         (MAIN_URL, origin_station, destination_station, key)
     if date:

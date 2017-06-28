@@ -29,4 +29,7 @@ def service_advisory(bsa_data, encoding):
         page_data['expires'] = datetime(expires.year, expires.month, expires.day,
                                         expires.hour, expires.minute, expires.second,
                                         0, pacific_timezone)
+    page_data['id'] = int(page_data['id'])
+    page_data['station'] = page_data['station'].lower()
+    page_data['type'] = page_data['type'].lower()
     return page_data

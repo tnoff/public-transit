@@ -21,6 +21,11 @@ def check_args(value, valid_types, allow_none=False, is_list=False, regex=None):
         for item in value:
             if not isinstance(item, tuple(valid_types)):
                 raise TransitException("Invalid value:%s, not one of %s" % (item, valid_types))
+            if isinstance(item, basestring) and regex is not None:
+                checker = re.compile(regex)
+                if not checker.match(item):
+                    raise TransitException("Invalid value:%s, does not match"
+                                           " regex %s" % (item, regex))
     elif not isinstance(value, tuple(valid_types)):
         raise TransitException("Invalid value:%s, not one of %s" % (value, valid_types))
 
