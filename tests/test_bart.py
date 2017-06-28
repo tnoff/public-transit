@@ -218,6 +218,7 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
             elif est['abbreviation'].lower() == 'hayw':
                 self.assertEqual(len(est['directions']), 1) #pylint:disable=len-as-condition
             self.assert_dictionary(est)
+        self.assertEqual(len(ests), 3) #pylint:disable=len-as-condition
 
     @httpretty.activate
     def test_route_list(self):
