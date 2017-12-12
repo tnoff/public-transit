@@ -34,6 +34,8 @@ def parse_args():
                              help='ID of stop or station abbreviation')
     leg_createy.add_argument('--destinations', nargs='+',
                              help='Include destination or route tag')
+    leg_createy.add_argument('--force', action='store_true',
+                             help='Do not check destinations')
     leg_parsers.add_parser('list', help='List legs')
     leg_deletey = leg_parsers.add_parser('delete', help='Delete Leg')
     leg_deletey.add_argument('id', type=int, help='Leg ID number')
@@ -57,7 +59,8 @@ def leg_create(args, trip_planner):
     agency_tag = args.agency_tag.lower()
     stop_id = args.stop_id.lower()
     new_leg = trip_planner.leg_create(agency_tag, stop_id,
-                                      destinations=args.destinations)
+                                      destinations=args.destinations,
+                                      force=args.force)
     print 'New leg created:', new_leg['id']
 
 def leg_list(_, trip_planner):

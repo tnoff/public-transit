@@ -11,7 +11,7 @@ from transit import nextbus as nextbus_client
 from trip_planner.database.tables import Base, Leg, LegDestination, Trip, TripLeg
 from trip_planner.exceptions import TripPlannerException
 
-def validate_bart_station(stop_tag, destinations):
+def validate_bart_station(stop_tag, destinations, verify_destinations=True):
     '''validate bart station with destinations'''
     # first check station is valid from list
     valid_stations = bart_client.station_list()
@@ -33,18 +33,17 @@ def validate_bart_station(stop_tag, destinations):
 
     # if destinations given, check given destinations against possible destinations
     # .. make sure all are valid
-    if destinations:
+    if destinations and verify_destinations:
         if not isinstance(destinations, list):
             destinations = [destinations]
         for destination in sorted(destinations):
             if destination not in possible_destinations:
                 raise TripPlannerException("Invalid destination:%s" % destination)
-    # if destinations not given, use list of all possible destinations
-    else:
+    elif not destinations:
         destinations = list(possible_destinations)
     return station_name, destinations
 
-def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags):
+def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_route_tags=True):
     try:
         predictions = nextbus_client.stop_prediction(agency_tag,
                                                      stop_id)
@@ -64,7 +63,8 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags):
     possible_routes = [route['route_tag'] for route in predictions]
     # check if another leg is using the same agency and tag
     # if so, use that leg to get the stop tag
-    leg = db_session.query(Leg).filter(Leg.stop_id == stop_id).filter(Leg.agency == agency_tag).first()
+    leg = db_session.query(Leg).filter(Leg.stop_id == stop_id).\
+            filter(Leg.agency == agency_tag).first()
     stop_tag = None
     stop_title = None
     stop_id = stop_id
@@ -88,6 +88,7 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags):
                     break
             if found_route:
                 break
+
     # also return a list of all possible route_tags from predictions
     # .. this is also needed for the multiple stop logic later
     if route_tags is None:
@@ -96,9 +97,10 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags):
     if not isinstance(route_tags, list):
         route_tags = [route_tags]
 
-    for route in route_tags:
-        if route not in possible_routes:
-            raise TripPlannerException("Invalid route given:%s" % route)
+    if validate_route_tags:
+        for route in route_tags:
+            if route not in possible_routes:
+                raise TripPlannerException("Invalid route given:%s" % route)
     return stop_tag, stop_title, route_tags
 
 class TripPlanner(object):
@@ -111,7 +113,7 @@ class TripPlanner(object):
         Base.metadata.bind = database_engine
         self.db_session = sessionmaker(bind=database_engine)()
 
-    def leg_create(self, agency_tag, stop_id, destinations=None):
+    def leg_create(self, agency_tag, stop_id, destinations=None, force=False):
         '''
         Create a new leg with a given stop id and routes/destinations
            agency_tag : agency tag
@@ -121,21 +123,23 @@ class TripPlanner(object):
         '''
         assert isinstance(agency_tag, basestring), 'agency tag must be string type'
         assert isinstance(stop_id, basestring), 'stop id must be string type'
-        assert destinations is None or isinstance(destinations, list)\
-            or isinstance(destinations, basestring),\
+        assert destinations is None or isinstance(destinations, (basestring, list)), \
             'include must be list, string, or null type'
         if isinstance(destinations, list):
             for destination in destinations:
                 assert isinstance(destination, basestring), 'destination must be  string type'
+        assert isinstance(force, bool), 'force must be boolean value'
         # validate given stop
         if agency_tag == 'bart':
-            stop_title, route_tags = validate_bart_station(stop_id, destinations)
+            stop_title, route_tags = validate_bart_station(stop_id, destinations,
+                                                           verify_destinations=not force)
             stop_tag = None
         else:
             stop_tag, stop_title, route_tags = validate_nextbus_stop(self.db_session,
                                                                      agency_tag,
                                                                      stop_id,
-                                                                     destinations)
+                                                                     destinations,
+                                                                     validate_route_tags=not force)
         # Add new leg object
         leg_data = {
             'stop_id' : stop_id,
@@ -188,7 +192,8 @@ class TripPlanner(object):
         assert isinstance(leg_id, int), 'leg id must be int type'
         trip_leg = self.db_session.query(TripLeg).filter(TripLeg.leg_id == leg_id).first()
         if trip_leg is not None:
-            raise TripPlannerException('Cannot delete leg, being used by a Trip:%s' % trip_leg.trip_id)
+            raise TripPlannerException('Cannot delete leg'\
+                ', being used by a Trip:%s' % trip_leg.trip_id)
         self.db_session.query(LegDestination).\
             filter(LegDestination.leg_id == leg_id).delete()
         self.db_session.commit()
@@ -221,10 +226,9 @@ class TripPlanner(object):
         if leggy['agency'] == 'bart':
             return 'bart', bart_client.station_departures(leggy['stop_id'],
                                                           destinations=includes)
-        else:
-            return leggy['agency'], nextbus_client.stop_prediction(leggy['agency'],
-                                                                   leggy['stop_id'],
-                                                                   route_tags=includes)
+        return leggy['agency'], nextbus_client.stop_prediction(leggy['agency'],
+                                                               leggy['stop_id'],
+                                                               route_tags=includes)
 
     def trip_create(self, name, legs):
         '''
@@ -234,7 +238,7 @@ class TripPlanner(object):
         returns: dict of newly created trip with legs
         '''
         assert isinstance(name, basestring), 'name must be string type'
-        assert isinstance(legs, int) or isinstance(legs, list), 'legs must be list or int type'
+        assert isinstance(legs, (list, int)), 'legs must be list or int type'
         if isinstance(legs, list):
             for leg in legs:
                 assert isinstance(leg, int), 'leg must be int type'
