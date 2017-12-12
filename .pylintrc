@@ -1,4 +1,4 @@
 [messages control]
 
 disable=invalid-name,no-init,too-few-public-methods,missing-docstring,
-        too-many-arguments
+        too-many-arguments,len-as-condition

@@ -14,8 +14,8 @@ class BaseTestClient(unittest.TestCase): #pylint: disable=too-many-public-method
             obj_list = [obj]
         else:
             obj_list = obj
-        for obj in obj_list:
-            for key, value in obj.items():
+        for item in obj_list:
+            for key, value in item.items():
                 if key in skip:
                     continue
                 self.assertNotEqual(value, None)

@@ -111,7 +111,7 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                     self.assert_dictionary(dir_estimate)
 
     @httpretty.activate
-    def test_estimated_departues_with_departures(self):
+    def test_estimated_departues_with_destinations(self):
         station = 'rich'
         test_url = urls.estimated_departures(station)
         httpretty.register_uri(httpretty.GET,
@@ -243,7 +243,7 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                body=station_info.text,
                                content_type='application/xml')
         station = client.station_info(station_abbr)
-        self.assert_dictionary(station)
+        self.assert_dictionary(station, skip=['link'])
         self.assertTrue(len(station['north_routes']) > 0)
         self.assertTrue(len(station['south_routes']) > 0)
         self.assertTrue(len(station['south_platforms']) > 0)
@@ -258,7 +258,7 @@ class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
                                body=station_access.text,
                                content_type='application/xml')
         station = client.station_access(station_abbr)
-        self.assert_dictionary(station)
+        self.assert_dictionary(station, skip=['link'])
 
     @httpretty.activate
     def test_station_schedule(self):
