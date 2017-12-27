@@ -90,23 +90,5 @@ text = '''
     <route tag="212" title="212"/>
     <route tag="215" title="215"/>
     <route tag="216" title="216"/>
-    <route tag="217" title="217"/>
-    <route tag="232" title="232"/>
-    <route tag="239" title="239"/>
-    <route tag="251" title="251"/>
-    <route tag="275" title="275"/>
-    <route tag="314" title="314"/>
-    <route tag="339" title="339"/>
-    <route tag="356" title="356"/>
-    <route tag="376" title="376"/>
-    <route tag="386" title="386"/>
-    <route tag="687" title="687 Bay Farm Is. / Lincoln Middle Sch." shortTitle="687"/>
-    <route tag="800" title="800"/>
-    <route tag="801" title="801"/>
-    <route tag="802" title="802"/>
-    <route tag="805" title="805"/>
-    <route tag="822" title="822 24th Mission Bart/ Pittsburg Bart" shortTitle="822"/>
-    <route tag="840" title="840"/>
-    <route tag="851" title="851"/>
 </body>
 '''

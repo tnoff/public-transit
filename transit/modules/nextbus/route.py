@@ -3,7 +3,6 @@ from transit.modules.nextbus import stop
 
 def route_base(route_data, encoding):
     data = utils.parse_page(route_data, ['tag'], encoding)
-    data['route_tag'] = data.pop('tag', None)
     return data
 
 def route(route_data, encoding):
@@ -17,10 +16,10 @@ def route_info(route_data, encoding):
     additional_data = utils.parse_page(route_data, args, encoding)
     data.update(additional_data)
     data['opposite_color'] = data.pop('oppositecolor', None)
-    data['latitude_min'] = data.pop('latmin', None)
-    data['latitude_max'] = data.pop('latmax', None)
-    data['longitude_min'] = data.pop('lonmin', None)
-    data['longitude_max'] = data.pop('lonmax', None)
+    data['latitude_min'] = float(data.pop('latmin', None))
+    data['latitude_max'] = float(data.pop('latmax', None))
+    data['longitude_min'] = float(data.pop('lonmin', None))
+    data['longitude_max'] = float(data.pop('lonmax', None))
 
     data['stops'] = []
     data['paths'] = []
@@ -51,7 +50,7 @@ def route_info(route_data, encoding):
 def route_direction(direction_data, encoding):
     args = ['tag', 'name', 'title', 'useforui']
     data = utils.parse_page(direction_data, args, encoding)
-    data['use_for_ui'] = data.pop('useforui', None)
+    data['use_for_ui'] = data.pop('useforui', None) == 'true'
     data['stop_tags'] = []
     return data
 

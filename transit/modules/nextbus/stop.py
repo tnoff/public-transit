@@ -5,17 +5,19 @@ def stop(stop_data, encoding):
     args = ['tag', 'title', 'lat', 'lon', 'stopid', 'shortttile']
     data = utils.parse_page(stop_data, args, encoding)
     data['stop_tag'] = data.pop('tag', None)
-    data['latitude'] = data.pop('lat', None)
-    data['longitude'] = data.pop('lon', None)
+    data['latitude'] = float(data.pop('lat', None))
+    data['longitude'] = float(data.pop('lon', None))
     data['stop_id'] = data.pop('stopid', None)
-    data['short_title'] = data.pop('shortttile', None)
+    short_title = data.pop('shortttile', None)
+    if short_title:
+        data['short_title'] = short_title
     return data
 
 def point(point_data, encoding):
     args = ['lat', 'lon']
     data = utils.parse_page(point_data, args, encoding)
-    data['latitude'] = data.pop('lat', None)
-    data['longitude'] = data.pop('lon', None)
+    data['latitude'] = float(data.pop('lat', None))
+    data['longitude'] = float(data.pop('lon', None))
     return data
 
 def route_prediction(route_data, encoding, route_tags=None):
@@ -53,11 +55,13 @@ def route_stop_prediction(pred_data, encoding):
     args = ['seconds', 'minutes', 'block', 'vehicle', 'epochtime', 'triptag',
             'dirtag', 'isdeparture', 'affectedbylayover']
     data = utils.parse_page(pred_data, args, encoding)
-    data['epoch_time'] = data.pop('epochtime', None)
+    data['epoch_time'] = int(data.pop('epochtime', None))
+    data['seconds'] = int(data['seconds'])
+    data['minutes'] = int(data['minutes'])
     data['trip_tag'] = data.pop('triptag', None)
     data['dir_tag'] = data.pop('dirtag', None)
-    data['is_departure'] = data.pop('isdeparture', None)
-    data['affected_by_layover'] = data.pop('affectedbylayover', None)
+    data['is_departure'] = data.pop('isdeparture', None) == 'true'
+    data['affected_by_layover'] = data.pop('affectedbylayover', None) == 'true'
     if not data['affected_by_layover']:
         data['affected_by_layover'] = False
     return data
