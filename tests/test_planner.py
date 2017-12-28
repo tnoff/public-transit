@@ -113,27 +113,9 @@ class TestPlanner(utils.BaseTestClient):
     def test_leg_show_bart(self):
         client = TripPlanner()
         station = 'wdub'
-        # first call is station info
-        station_info_url = bart_urls.station_info(station)
-        httpretty.register_uri(httpretty.GET,
-                               station_info_url,
-                               body=station_info_wdub.text,
-                               content_type='application/xml')
-        # then return route infos, route list given in station info
-        route1 = 12
-        route2 = 11
-        route1_info_url = bart_urls.route_info(route1)
-        httpretty.register_uri(httpretty.GET,
-                               route1_info_url,
-                               body=route_info_12.text,
-                               content_type='application/xml')
-        route2_info_url = bart_urls.route_info(route2)
-        httpretty.register_uri(httpretty.GET,
-                               route2_info_url,
-                               body=route_info_11.text,
-                               content_type='application/xml')
-        # create station with no includes, make sure populated correctly
-        leg = client.leg_create('bart', station)
+
+        leg = client.leg_create('bart', station,
+                                destinations=['daly', 'dubl'], force=True)
 
         departure_url = bart_urls.estimated_departures(station)
         httpretty.register_uri(httpretty.GET,
@@ -144,8 +126,7 @@ class TestPlanner(utils.BaseTestClient):
         self.assertEqual(shown_agency, 'bart')
         for station in shown_data:
             for direction in station['directions']:
-                for estimate in direction['estimates']:
-                    self.assert_dictionary(estimate)
+                self.assertTrue(len(direction['estimates']) > 0)
 
     @httpretty.activate
     def test_leg_create_nextbus_invalid_stop(self):
@@ -157,7 +138,8 @@ class TestPlanner(utils.BaseTestClient):
                                content_type='text/xml')
         with self.assertRaises(TripPlannerException) as error:
             client.leg_create('actransit', 'foo')
-        self.assertTrue('Could not identify stop:stopId "foo" is not a valid stop id integer' in error.exception)
+        self.assertTrue('Could not identify stop:stopId "foo" is not a '\
+                        'valid stop id integer' in error.exception)
 
     @httpretty.activate
     def test_leg_create_nextbus(self):
@@ -327,8 +309,7 @@ class TestPlanner(utils.BaseTestClient):
         self.assertEqual(shown_agency, agency)
         for route in shown_data:
             for direction in route['directions']:
-                for prediction in direction['predictions']:
-                    self.assert_dictionary(prediction)
+                self.assertTrue(len(direction['predictions']) > 0)
 
     @httpretty.activate
     def test_trip_create(self):
@@ -368,29 +349,8 @@ class TestPlanner(utils.BaseTestClient):
                                content_type='text/xml')
         leg1 = client.leg_create(agency, stop)
 
-
         station = 'wdub'
-        # first call is station info
-        station_info_url = bart_urls.station_info(station)
-        httpretty.register_uri(httpretty.GET,
-                               station_info_url,
-                               body=station_info_wdub.text,
-                               content_type='application/xml')
-        # then return route infos, route list given in station info
-        route1 = 12
-        route2 = 11
-        route1_info_url = bart_urls.route_info(route1)
-        httpretty.register_uri(httpretty.GET,
-                               route1_info_url,
-                               body=route_info_12.text,
-                               content_type='application/xml')
-        route2_info_url = bart_urls.route_info(route2)
-        httpretty.register_uri(httpretty.GET,
-                               route2_info_url,
-                               body=route_info_11.text,
-                               content_type='application/xml')
-        # create station with no includes, make sure populated correctly
-        leg2 = client.leg_create('bart', station)
+        leg2 = client.leg_create('bart', station, destinations=['daly', 'dubl'], force=True)
 
         client.trip_create('foo', [int(leg1['id']), int(leg2['id'])])
         trips = client.trip_list()
@@ -437,29 +397,8 @@ class TestPlanner(utils.BaseTestClient):
                                content_type='text/xml')
         leg1 = client.leg_create(agency, stop, destinations=['99', '22'])
 
-
         station = 'wdub'
-        # first call is station info
-        station_info_url = bart_urls.station_info(station)
-        httpretty.register_uri(httpretty.GET,
-                               station_info_url,
-                               body=station_info_wdub.text,
-                               content_type='application/xml')
-        # then return route infos, route list given in station info
-        route1 = 12
-        route2 = 11
-        route1_info_url = bart_urls.route_info(route1)
-        httpretty.register_uri(httpretty.GET,
-                               route1_info_url,
-                               body=route_info_12.text,
-                               content_type='application/xml')
-        route2_info_url = bart_urls.route_info(route2)
-        httpretty.register_uri(httpretty.GET,
-                               route2_info_url,
-                               body=route_info_11.text,
-                               content_type='application/xml')
-        # create station with no includes, make sure populated correctly
-        leg2 = client.leg_create('bart', station)
+        leg2 = client.leg_create('bart', station, destinations=['daly', 'dubl'], force=True)
 
         trip = client.trip_create('foo', [leg1['id'], leg2['id']])
 
@@ -468,7 +407,8 @@ class TestPlanner(utils.BaseTestClient):
                                body=bart_estimates_all.text,
                                content_type='application/xml')
         httpretty.register_uri(httpretty.GET,
-                               nextbus_urls.multiple_stop_prediction(agency, {'9902820' : ['22', '99']}),
+                               nextbus_urls.multiple_stop_prediction(agency,
+                                                                     {'9902820' : ['22', '99']}),
                                body=nextbus_multiple_estimate.text,
                                content_type='application/xml')
         results = client.trip_show(trip['id'])

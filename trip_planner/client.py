@@ -22,27 +22,28 @@ def validate_bart_station(stop_tag, destinations, verify_destinations=True):
 
     station_name = valid_stations[stop_tag]
 
-    # check for all possible routes from station
-    # use this to get a list of all possible destinations
-    possible_destinations = set([])
-    station = bart_client.station_info(stop_tag.lower())
-    north_routes = station['north_routes'] or []
-    south_routes = station['south_routes'] or []
-    all_routes = set(north_routes + south_routes)
-    for route_number in sorted(all_routes):
-        route = bart_client.route_info(route_number)
-        possible_destinations.add(route['destination'].lower())
+    if verify_destinations:
+        # check for all possible routes from station
+        # use this to get a list of all possible destinations
+        possible_destinations = set([])
+        station = bart_client.station_info(stop_tag.lower())
+        north_routes = station['north_routes'] or []
+        south_routes = station['south_routes'] or []
+        all_routes = set(north_routes + south_routes)
+        for route_number in sorted(all_routes):
+            route = bart_client.route_info(route_number)
+            possible_destinations.add(route['destination'].lower())
 
-    # if destinations given, check given destinations against possible destinations
-    # .. make sure all are valid
-    if destinations and verify_destinations:
-        if not isinstance(destinations, list):
-            destinations = [destinations]
-        for destination in sorted(destinations):
-            if destination not in possible_destinations:
-                raise TripPlannerException("Invalid destination:%s" % destination)
-    elif not destinations:
-        destinations = list(possible_destinations)
+        # if destinations given, check given destinations against possible destinations
+        # .. make sure all are valid
+        if destinations:
+            if not isinstance(destinations, list):
+                destinations = [destinations]
+            for destination in sorted(destinations):
+                if destination not in possible_destinations:
+                    raise TripPlannerException("Invalid destination:%s" % destination)
+        elif not destinations:
+            destinations = list(possible_destinations)
     return station_name, destinations
 
 def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_route_tags=True):
@@ -78,6 +79,7 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
         stop_tag = leg.stop_tag
         stop_title = leg.stop_title
         stop_id = stop_id
+
     # if not, iterate through each route
     # .. for each route, go through every stop
     # .. check if stop id matches, if so use that same tag and exit
@@ -94,6 +96,9 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
             if found_route:
                 break
 
+    if not validate_route_tags:
+        return stop_tag, stop_title, route_tags
+
     # also return a list of all possible route_tags from predictions
     # .. this is also needed for the multiple stop logic later
     if route_tags is None:
@@ -102,10 +107,9 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
     if not isinstance(route_tags, list):
         route_tags = [route_tags]
 
-    if validate_route_tags:
-        for route in route_tags:
-            if route not in possible_routes:
-                raise TripPlannerException("Invalid route given:%s" % route)
+    for route in route_tags:
+        if route not in possible_routes:
+            raise TripPlannerException("Invalid route given:%s" % route)
     return stop_tag, stop_title, route_tags
 
 class TripPlanner(object):

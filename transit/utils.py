@@ -73,4 +73,7 @@ def clean_value(value, encoding, datetime_format=None):
             return new_value
         except ValueError:
             pass
+    else:
+        # Assume its a string
+        new_value = new_value.strip().rstrip('\n').lstrip('\n').strip()
     return new_value
