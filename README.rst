@@ -204,6 +204,6 @@ TODOs
 
 - Allow multi-delete in trip planner
 
-- Improve tests where possible
+- Fix tests to trip planner
 
 - Allow specifying of custom api keys
