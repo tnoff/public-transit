@@ -1,4 +1,6 @@
 from datetime import datetime
+import unittest
+
 from jsonschema import ValidationError
 import httpretty
 
@@ -6,7 +8,6 @@ from transit import nextbus as client
 from transit.exceptions import TransitException
 from transit.modules.nextbus import urls
 
-from tests import utils
 from tests.data.nextbus import agency_list as agency_list
 from tests.data.nextbus import error as error
 from tests.data.nextbus import message_get as message_get
@@ -20,7 +21,7 @@ from tests.data.nextbus import stop_predictions as stop_predictions
 from tests.data.nextbus import stop_predictions_route as stop_predictions_route
 from tests.data.nextbus import vehicle_locations as vehicle_locations
 
-class TestNextbus(utils.BaseTestClient):
+class TestNextbus(unittest.TestCase):
     @httpretty.activate
     def test_fails_error(self):
         # Check that failures catch nicely

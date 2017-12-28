@@ -1,11 +1,12 @@
 from datetime import datetime
+import unittest
+
 from jsonschema import ValidationError
 import httpretty
 
 from transit import bart as client
 from transit.exceptions import TransitException
 from transit.modules.bart import urls
-from tests import utils
 
 from tests.data.bart import bsa
 from tests.data.bart import train_count
@@ -23,7 +24,7 @@ from tests.data.bart import station_access
 from tests.data.bart import station_info
 from tests.data.bart import station_schedule
 
-class TestBart(utils.BaseTestClient): #pylint: disable=too-many-public-methods
+class TestBart(unittest.TestCase): #pylint: disable=too-many-public-methods
 
     @httpretty.activate
     def test_non_200_error(self):

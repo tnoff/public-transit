@@ -1,6 +1,6 @@
-import httpretty
+import unittest
 
-from tests import utils
+import httpretty
 
 from tests.data.planner import bart_estimates_all
 from tests.data.planner import bart_estimated_wdub
@@ -18,7 +18,7 @@ from transit.modules.nextbus import urls as nextbus_urls
 from trip_planner.client import TripPlanner
 from trip_planner.exceptions import TripPlannerException
 
-class TestPlanner(utils.BaseTestClient):
+class TestPlanner(unittest.TestCase):
 
     def test_leg_create_bart_invalid_station(self):
         client = TripPlanner()
