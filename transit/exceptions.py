@@ -3,3 +3,6 @@ class TransitException(Exception):
 
 class SkipException(Exception):
     pass
+
+class CLIException(Exception):
+    pass

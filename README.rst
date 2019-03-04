@@ -198,10 +198,10 @@ Tests require extra pip modules to be installed, they reside in the ``tests/requ
 TODOs
 ======
 
-- Move scripts into each folder
+- Actransit API
 
 - Change asserts so they throw custom exception
 
-- Allow multi-delete in trip planner
-
 - Allow specifying of custom api keys
+
+- Show alerts and messages with leg and trip outputs ( should probably cache as well )

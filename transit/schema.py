@@ -24,7 +24,7 @@ NEXTBUS_MULTIPLE_STOP_SCHEMA = {
             "type" : "array",
             "items" : {
                 "type" : "string",
-                "pattern" : "^([a-zA-Z0-9]+)$",
+                "pattern" : "^([a-zA-Z0-9-_]+)$",
             },
             "minItems" : 1,
         },

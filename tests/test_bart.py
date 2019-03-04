@@ -84,7 +84,6 @@ class TestBart(unittest.TestCase): #pylint: disable=too-many-public-methods
                                content_type='application/xml')
         status = client.elevator_status()
         self.assertTrue(isinstance(status['posted'], datetime))
-        self.assertTrue(isinstance(status['id'], int))
         self.assertEqual(status['type'], 'elevator')
         self.assertEqual(status['station'], 'bart')
         self.assertEqual(status['expires'], None)

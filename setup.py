@@ -18,11 +18,11 @@ setuptools.setup(
     ],
     entry_points={
         'console_scripts' : [
-            'bart = scripts.bart:main',
-            'nextbus = scripts.nextbus:main',
-            'trip-planner = scripts.planner_script:main',
+            'bart = transit.cli.bart:main',
+            'nextbus = transit.cli.nextbus:main',
+            'trip-planner = trip_planner.cli.planner_script:main',
         ]
     },
     packages=setuptools.find_packages(exclude=["*tests"]),
-    version='1.0.0',
+    version='1.1.0',
 )

@@ -1,12 +1,10 @@
-from collections import OrderedDict
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
-from transit import bart as bart_client
+from transit import bart
 from transit.exceptions import TransitException
-from transit import nextbus as nextbus_client
+from transit import nextbus
 
 from trip_planner.database.tables import Base, Leg, LegDestination, Trip, TripLeg
 from trip_planner.exceptions import TripPlannerException
@@ -16,7 +14,7 @@ def validate_bart_station(stop_tag, destinations, verify_destinations=True):
     Validate bart station with destinations
     '''
     # first check station is valid from list
-    valid_stations = bart_client.station_list()
+    valid_stations = bart.station_list()
     if stop_tag.lower() not in [i for i in valid_stations]:
         raise TripPlannerException('Bart station not valid:%s' % stop_tag)
 
@@ -26,12 +24,12 @@ def validate_bart_station(stop_tag, destinations, verify_destinations=True):
         # check for all possible routes from station
         # use this to get a list of all possible destinations
         possible_destinations = set([])
-        station = bart_client.station_info(stop_tag.lower())
+        station = bart.station_info(stop_tag.lower())
         north_routes = station['north_routes'] or []
         south_routes = station['south_routes'] or []
         all_routes = set(north_routes + south_routes)
         for route_number in sorted(all_routes):
-            route = bart_client.route_info(route_number)
+            route = bart.route_info(route_number)
             possible_destinations.add(route['destination'].lower())
 
         # if destinations given, check given destinations against possible destinations
@@ -51,8 +49,8 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
     Validate nextbus stop with route tags (destinations)
     '''
     try:
-        predictions = nextbus_client.stop_prediction(agency_tag,
-                                                     stop_id)
+        predictions = nextbus.stop_prediction(agency_tag,
+                                              stop_id)
     except TransitException as e:
         raise TripPlannerException("Could not identify stop:%s" % str(e))
 
@@ -86,7 +84,7 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
     else:
         found_route = False
         for route_tag in sorted(possible_routes):
-            route = nextbus_client.route_show(agency_tag, route_tag)
+            route = nextbus.route_show(agency_tag, route_tag)
             for stop in route['stops']:
                 if stop['stop_id'] == stop_id:
                     stop_tag = stop['stop_tag']
@@ -112,16 +110,13 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
             raise TripPlannerException("Invalid route given:%s" % route)
     return stop_tag, stop_title, route_tags
 
-class TripPlanner(object):
-    def __init__(self, database_path=None):
+class TripPlanner():
+    def __init__(self, database_path):
         '''
         Trip planner client
         database_path   :   Path to sqlite database
         '''
-        if database_path is not None:
-            database_engine = create_engine('sqlite:///%s' % database_path)
-        else:
-            database_engine = create_engine('sqlite:///')
+        database_engine = create_engine('sqlite:///%s' % database_path)
         Base.metadata.create_all(database_engine)
         Base.metadata.bind = database_engine
         self.db_session = sessionmaker(bind=database_engine)()
@@ -183,23 +178,32 @@ class TripPlanner(object):
         '''
         List all legs, along with their given routes/destinations
         '''
-        all_legs = self.db_session.query(Leg, LegDestination).join(LegDestination).all()
-        leg_data = OrderedDict()
-        for leg, leg_destination in all_legs:
-            leg_data.setdefault(leg.id, {})
-            if leg_data[leg.id] == {}:
-                leg_data[leg.id] = leg.as_dict()
-                leg_data[leg.id].pop('id')
-                leg_data[leg.id]['includes'] = []
-            leg_data[leg.id]['includes'].append(leg_destination.tag)
-        return leg_data
+        all_legs = []
+        for leg in self.db_session.query(Leg).all():
+            leg_data = leg.as_dict()
+            leg_data['destinations'] = []
+            for destination in self.db_session.query(LegDestination).\
+                    filter(LegDestination.leg_id == leg.id):
+                leg_data['destinations'].append(destination.tag)
+            all_legs.append(leg_data)
+        return all_legs
 
     def leg_delete(self, leg_id):
         '''
         Delete leg with given id
-        leg_id      :   leg integer id
+        leg_id      :   leg integer id(s)
         '''
-        assert isinstance(leg_id, int), 'leg id must be int type'
+        if not isinstance(leg_id, list):
+            assert isinstance(leg_id, int), 'leg id must be int type'
+            leg_id = [leg_id]
+        deleted_ids = []
+        for leg in leg_id:
+            self.__leg_delete(leg)
+            deleted_ids.append(leg)
+        self.db_session.execute("VACUUM")
+        return deleted_ids
+
+    def __leg_delete(self, leg_id):
         trip_leg = self.db_session.query(TripLeg).filter(TripLeg.leg_id == leg_id).first()
         if trip_leg is not None:
             raise TripPlannerException('Cannot delete leg'\
@@ -213,7 +217,6 @@ class TripPlanner(object):
             raise TripPlannerException("no leg found with id:%s" % leg_id)
         self.db_session.delete(leg)
         self.db_session.commit()
-        self.db_session.execute("VACUUM")
         return True
 
     def leg_show(self, leg_id):
@@ -233,11 +236,11 @@ class TripPlanner(object):
                 leggy = leg.as_dict()
             includes.append(leg_include.tag)
         if leggy['agency'] == 'bart':
-            return 'bart', bart_client.station_departures(leggy['stop_id'],
-                                                          destinations=includes)
-        return leggy['agency'], nextbus_client.stop_prediction(leggy['agency'],
-                                                               leggy['stop_id'],
-                                                               route_tags=includes)
+            return 'bart', bart.station_departures(leggy['stop_id'],
+                                                   destinations=includes)
+        return leggy['agency'], nextbus.stop_prediction(leggy['agency'],
+                                                        leggy['stop_id'],
+                                                        route_tags=includes)
 
     def trip_create(self, name, legs):
         '''
@@ -272,16 +275,14 @@ class TripPlanner(object):
         '''
         List all trips
         '''
-        all_trips = self.db_session.query(Trip, TripLeg).join(TripLeg).all()
-        trip_data = OrderedDict()
-        for trip, trip_leg in all_trips:
-            trip_data.setdefault(trip.id, {})
-            if trip_data[trip.id] == {}:
-                trip_data[trip.id] = trip.as_dict()
-                trip_data[trip.id].pop('id')
-                trip_data[trip.id]['legs'] = []
-            trip_data[trip.id]['legs'].append(trip_leg.leg_id)
-        return trip_data
+        all_trips = []
+        for trip in self.db_session.query(Trip).all():
+            trip_data = trip.as_dict()
+            trip_data['legs'] = []
+            for leg in self.db_session.query(TripLeg).filter(TripLeg.trip_id == trip.id):
+                trip_data['legs'].append(leg.leg_id)
+            all_trips.append(trip_data)
+        return all_trips
 
     def trip_show(self, trip_id):
         '''
@@ -314,23 +315,32 @@ class TripPlanner(object):
                 nextbus_data[agency].setdefault(leg.stop_tag, [])
                 nextbus_data[agency][leg.stop_tag].append(include_tag)
 
-        trip_data = {
-            'bart' : None,
-            'nextbus' : {},
-        }
+        trip_data = dict()
+
         if station_data:
-            trip_data['bart'] = bart_client.station_multiple_departures(station_data)
+            trip_data['bart'] = bart.station_multiple_departures(station_data)
+        trip_data['nextbus'] = []
         for agency, data in nextbus_data.items():
-            trip_data['nextbus'][agency] = nextbus_client.stop_multiple_predictions(agency,
-                                                                                    data)
+            trip_data['nextbus'] += nextbus.stop_multiple_predictions(agency, data)
         return trip_data
 
     def trip_delete(self, trip_id):
         '''
         Delete trip with given id
-        trip_id     :   trip id
+        trip_id     :   trip id(s)
         '''
-        assert isinstance(trip_id, int), 'trip id must be int type'
+        if not isinstance(trip_id, list):
+            assert isinstance(trip_id, int), 'trip id must be int type'
+            trip_id = [trip_id]
+
+        deleted_trips = []
+        for trip in trip_id:
+            self.__trip_delete(trip)
+            deleted_trips.append(trip)
+        self.db_session.execute("VACUUM")
+        return deleted_trips
+
+    def __trip_delete(self, trip_id):
         try:
             trip = self.db_session.query(Trip).get(trip_id)
             self.db_session.delete(trip)
@@ -344,5 +354,4 @@ class TripPlanner(object):
         for leg in legs:
             self.db_session.delete(leg)
         self.db_session.commit()
-        self.db_session.execute("VACUUM")
         return True
