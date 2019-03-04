@@ -73,8 +73,8 @@ class TestNextbus(unittest.TestCase):
                                content_type='application/xml')
         routes = client.route_list(agency_tag)
         for route in routes:
-            self.assertTrue(isinstance(route['title'], basestring))
-            self.assertTrue(isinstance(route['tag'], basestring))
+            self.assertTrue(isinstance(route['title'], str))
+            self.assertTrue(isinstance(route['tag'], str))
 
     @httpretty.activate
     def test_route_show(self):
@@ -86,10 +86,10 @@ class TestNextbus(unittest.TestCase):
                                body=route_show.text,
                                content_type='application/xml')
         route = client.route_show(agency_tag, route_tag)
-        self.assertTrue(isinstance(route['tag'], basestring))
-        self.assertTrue(isinstance(route['title'], basestring))
-        self.assertTrue(isinstance(route['opposite_color'], basestring))
-        self.assertTrue(isinstance(route['color'], basestring))
+        self.assertTrue(isinstance(route['tag'], str))
+        self.assertTrue(isinstance(route['title'], str))
+        self.assertTrue(isinstance(route['opposite_color'], str))
+        self.assertTrue(isinstance(route['color'], str))
         self.assertTrue(isinstance(route['longitude_max'], float))
         self.assertTrue(isinstance(route['longitude_min'], float))
         self.assertTrue(isinstance(route['longitude_max'], float))
@@ -101,19 +101,19 @@ class TestNextbus(unittest.TestCase):
                 self.assertTrue(isinstance(point['latitude'], float))
 
         for stop in route['stops']:
-            self.assertTrue(isinstance(stop['title'], basestring))
-            self.assertTrue(isinstance(stop['stop_tag'], basestring))
-            self.assertTrue(isinstance(stop['stop_id'], basestring))
+            self.assertTrue(isinstance(stop['title'], str))
+            self.assertTrue(isinstance(stop['stop_tag'], str))
+            self.assertTrue(isinstance(stop['stop_id'], str))
             self.assertTrue(isinstance(stop['longitude'], float))
             self.assertTrue(isinstance(stop['latitude'], float))
 
         for direction in route['directions']:
-            self.assertTrue(isinstance(direction['title'], basestring))
-            self.assertTrue(isinstance(direction['name'], basestring))
-            self.assertTrue(isinstance(direction['tag'], basestring))
+            self.assertTrue(isinstance(direction['title'], str))
+            self.assertTrue(isinstance(direction['name'], str))
+            self.assertTrue(isinstance(direction['tag'], str))
             self.assertTrue(isinstance(direction['use_for_ui'], bool))
             for stop_tag in direction['stop_tags']:
-                self.assertTrue(isinstance(stop_tag, basestring))
+                self.assertTrue(isinstance(stop_tag, str))
 
     @httpretty.activate
     def test_stop_prediction_no_route(self):
@@ -126,19 +126,19 @@ class TestNextbus(unittest.TestCase):
                                content_type='application/xml')
         predictions = client.stop_prediction(agency_tag, stop_id)
         for prediction in predictions:
-            self.assertTrue(isinstance(prediction['route_tag'], basestring))
-            self.assertTrue(isinstance(prediction['agency_title'], basestring))
-            self.assertTrue(isinstance(prediction['route_title'], basestring))
-            self.assertTrue(isinstance(prediction['stop_title'], basestring))
+            self.assertTrue(isinstance(prediction['route_tag'], str))
+            self.assertTrue(isinstance(prediction['agency_title'], str))
+            self.assertTrue(isinstance(prediction['route_title'], str))
+            self.assertTrue(isinstance(prediction['stop_title'], str))
             for message in prediction['messages']:
-                self.assertTrue(isinstance(message, basestring))
+                self.assertTrue(isinstance(message, str))
             for direction in prediction['directions']:
-                self.assertTrue(isinstance(direction['title'], basestring))
+                self.assertTrue(isinstance(direction['title'], str))
                 for pred in direction['predictions']:
-                    self.assertTrue(isinstance(pred['trip_tag'], basestring))
-                    self.assertTrue(isinstance(pred['dir_tag'], basestring))
-                    self.assertTrue(isinstance(pred['vehicle'], basestring))
-                    self.assertTrue(isinstance(pred['block'], basestring))
+                    self.assertTrue(isinstance(pred['trip_tag'], str))
+                    self.assertTrue(isinstance(pred['dir_tag'], str))
+                    self.assertTrue(isinstance(pred['vehicle'], str))
+                    self.assertTrue(isinstance(pred['block'], str))
                     self.assertTrue(isinstance(pred['affected_by_layover'], bool))
                     self.assertTrue(isinstance(pred['is_departure'], bool))
                     self.assertTrue(isinstance(pred['epoch_time'], int))
@@ -204,16 +204,16 @@ class TestNextbus(unittest.TestCase):
                                content_type='application/xml')
         schedules = client.schedule_get(agency_tag, route_tag)
         for schedule in schedules:
-            self.assertTrue(isinstance(schedule['title'], basestring))
-            self.assertTrue(isinstance(schedule['tag'], basestring))
-            self.assertTrue(isinstance(schedule['service_class'], basestring))
-            self.assertTrue(isinstance(schedule['schedule_class'], basestring))
-            self.assertTrue(isinstance(schedule['direction'], basestring))
+            self.assertTrue(isinstance(schedule['title'], str))
+            self.assertTrue(isinstance(schedule['tag'], str))
+            self.assertTrue(isinstance(schedule['service_class'], str))
+            self.assertTrue(isinstance(schedule['schedule_class'], str))
+            self.assertTrue(isinstance(schedule['direction'], str))
             for block in schedule['blocks']:
-                self.assertTrue(isinstance(block['block_id'], basestring))
+                self.assertTrue(isinstance(block['block_id'], str))
                 for stop in block['stop_schedules']:
-                    self.assertTrue(isinstance(stop['stop_tag'], basestring))
-                    self.assertTrue(isinstance(stop['title'], basestring))
+                    self.assertTrue(isinstance(stop['stop_tag'], str))
+                    self.assertTrue(isinstance(stop['title'], str))
                     self.assertTrue(isinstance(stop['epoch_time'], int))
                     if stop['time']:
                         self.assertTrue(isinstance(stop['time'], datetime))
@@ -235,9 +235,9 @@ class TestNextbus(unittest.TestCase):
             self.assertTrue(isinstance(location['longitude'], float))
             self.assertTrue(isinstance(location['latitude'], float))
             self.assertTrue(isinstance(location['predictable'], bool))
-            self.assertTrue(isinstance(location['route_tag'], basestring))
-            self.assertTrue(isinstance(location['heading'], basestring))
-            self.assertTrue(isinstance(location['vehicle_id'], basestring))
+            self.assertTrue(isinstance(location['route_tag'], str))
+            self.assertTrue(isinstance(location['heading'], str))
+            self.assertTrue(isinstance(location['vehicle_id'], str))
 
     @httpretty.activate
     def test_message_single(self):
@@ -251,12 +251,12 @@ class TestNextbus(unittest.TestCase):
                                content_type='application/xml')
         routes = client.route_messages(agency_tag, [route_tag])
         for route in routes:
-            self.assertTrue(isinstance(route['tag'], basestring))
+            self.assertTrue(isinstance(route['tag'], str))
             for message in route['messages']:
-                self.assertTrue(isinstance(message['message_id'], basestring))
-                self.assertTrue(isinstance(message['priority'], basestring))
+                self.assertTrue(isinstance(message['message_id'], str))
+                self.assertTrue(isinstance(message['priority'], str))
                 for text in message['text']:
-                    self.assertTrue(isinstance(text, basestring))
+                    self.assertTrue(isinstance(text, str))
 
     @httpretty.activate
     def test_message_multiple(self):

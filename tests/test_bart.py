@@ -47,7 +47,7 @@ class TestBart(unittest.TestCase): #pylint: disable=too-many-public-methods
                                content_type='application/xml')
         with self.assertRaises(TransitException) as e:
             client.service_advisory()
-        self.assertEqual(str(e.exception), 'Invalid key:The api key was missing or invalid.')
+        self.assertEqual(str(e.exception), "b'Invalid key':b'The api key was missing or invalid.'")
 
     @httpretty.activate
     def test_bsa(self):

@@ -44,7 +44,7 @@ def route_list(agency_tag):
     Get list of agency routes
     agency_tag      :   agency tag
     '''
-    utils.check_args(agency_tag, [basestring])
+    utils.check_args(agency_tag, [str])
     url = urls.route_list(agency_tag)
     soup, encoding = _make_request(url)
     return_data = []
@@ -58,8 +58,8 @@ def route_show(agency_tag, route_tag):
     agency_tag      :   agency tag
     route_tag       :   route_tag
     '''
-    utils.check_args(agency_tag, [basestring])
-    utils.check_args(route_tag, [basestring])
+    utils.check_args(agency_tag, [str])
+    utils.check_args(route_tag, [str])
     url = urls.route_show(agency_tag, route_tag)
     soup, encoding = _make_request(url)
     return route.route_info(soup.find('route'), encoding)
@@ -70,8 +70,8 @@ def route_messages(agency_tag, route_tags):
     agency_tag      :   agency tag
     route_tags      :   list of route tags
     '''
-    utils.check_args(agency_tag, [basestring])
-    utils.check_args(route_tags, [basestring], is_list=True)
+    utils.check_args(agency_tag, [str])
+    utils.check_args(route_tags, [str], is_list=True)
     url = urls.message_get(agency_tag, route_tags)
     soup, encoding = _make_request(url)
     return [route.route_message(r, encoding) for r in soup.find_all('route')]
@@ -82,8 +82,8 @@ def schedule_get(agency_tag, route_tag):
     agency_tag      :   agency tag
     route_tag       :   route tag
     '''
-    utils.check_args(agency_tag, [basestring])
-    utils.check_args(route_tag, [basestring])
+    utils.check_args(agency_tag, [str])
+    utils.check_args(route_tag, [str])
     url = urls.schedule_get(agency_tag, route_tag)
     soup, encoding = _make_request(url)
     return [schedule.schedule_route(r, encoding) for r in soup.find_all('route')]
@@ -99,7 +99,7 @@ def stop_multiple_predictions(agency_tag, prediction_data):
     }
     '''
     validate(prediction_data, schema.NEXTBUS_MULTIPLE_STOP_SCHEMA)
-    utils.check_args(agency_tag, [basestring])
+    utils.check_args(agency_tag, [str])
     url = urls.multiple_stop_prediction(agency_tag, prediction_data)
     soup, encoding = _make_request(url)
     return [stop.route_prediction(pred, encoding) for pred in soup.find_all('predictions')]
@@ -111,9 +111,9 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     stop_id         :   stop id
     route_tags      :   list of routes
     '''
-    utils.check_args(agency_tag, [basestring])
-    utils.check_args(stop_id, [basestring])
-    utils.check_args(route_tags, [basestring], allow_none=True, is_list=True)
+    utils.check_args(agency_tag, [str])
+    utils.check_args(stop_id, [str])
+    utils.check_args(route_tags, [str], allow_none=True, is_list=True)
     url = urls.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
     soup, encoding = _make_request(url)
     routes = []
@@ -134,8 +134,8 @@ def vehicle_location(agency_tag, route_tag, epoch_time):
     route_tag       :   route tag
     epoch_time      :   epoch time for locations
     '''
-    utils.check_args(agency_tag, [basestring])
-    utils.check_args(route_tag, [basestring])
+    utils.check_args(agency_tag, [str])
+    utils.check_args(route_tag, [str])
     utils.check_args(epoch_time, [int])
     url = urls.vehicle_location(agency_tag, route_tag, epoch_time)
     soup, encoding = _make_request(url)

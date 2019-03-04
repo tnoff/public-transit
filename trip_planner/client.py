@@ -133,13 +133,13 @@ class TripPlanner(object):
         stop_id         :   identifier of stop
         include         :   include only destinations
         '''
-        assert isinstance(agency_tag, basestring), 'agency tag must be string type'
-        assert isinstance(stop_id, basestring), 'stop id must be string type'
-        assert destinations is None or isinstance(destinations, (basestring, list)), \
+        assert isinstance(agency_tag, str), 'agency tag must be string type'
+        assert isinstance(stop_id, str), 'stop id must be string type'
+        assert destinations is None or isinstance(destinations, (str, list)), \
             'include must be list, string, or null type'
         if isinstance(destinations, list):
             for destination in destinations:
-                assert isinstance(destination, basestring), 'destination must be  string type'
+                assert isinstance(destination, str), 'destination must be  string type'
         assert isinstance(force, bool), 'force must be boolean value'
         # validate given stop
         if agency_tag == 'bart':
@@ -245,7 +245,7 @@ class TripPlanner(object):
         name        :   name of new trip
         legs        :   one or more legs for trip to use
         '''
-        assert isinstance(name, basestring), 'name must be string type'
+        assert isinstance(name, str), 'name must be string type'
         assert isinstance(legs, (list, int)), 'legs must be list or int type'
         if isinstance(legs, list):
             for leg in legs:
@@ -295,7 +295,6 @@ class TripPlanner(object):
             raise TripPlannerException("No Trip with ID:%s" % trip_id)
 
         trip_query = self.db_session.query(TripLeg, Leg, LegDestination)
-        trip_query = trip_query.join(Leg).join(LegDestination)
         trip_query = trip_query.filter(TripLeg.trip_id == trip_id)
         trip_query = trip_query.filter(TripLeg.leg_id == Leg.id)
         trip_query = trip_query.filter(LegDestination.leg_id == Leg.id)
@@ -321,7 +320,7 @@ class TripPlanner(object):
         }
         if station_data:
             trip_data['bart'] = bart_client.station_multiple_departures(station_data)
-        for agency, data in nextbus_data.iteritems():
+        for agency, data in nextbus_data.items():
             trip_data['nextbus'][agency] = nextbus_client.stop_multiple_predictions(agency,
                                                                                     data)
         return trip_data

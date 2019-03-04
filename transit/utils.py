@@ -10,7 +10,7 @@ def check_args(value, valid_types, allow_none=False, is_list=False, regex=None):
     valid_types :   Valid types which will not throw exceptions
     allow_none  :   Allow None value
     is_list     :   Check that value is list, and then check valid_types against items in list
-    regex       :   If value is basestring, check against regex
+    regex       :   If value is str, check against regex
     '''
     if allow_none and value is None:
         return
@@ -21,7 +21,7 @@ def check_args(value, valid_types, allow_none=False, is_list=False, regex=None):
         for item in value:
             if not isinstance(item, tuple(valid_types)):
                 raise TransitException("Invalid value:%s, not one of %s" % (item, valid_types))
-            if isinstance(item, basestring) and regex is not None:
+            if isinstance(item, str) and regex is not None:
                 checker = re.compile(regex)
                 if not checker.match(item):
                     raise TransitException("Invalid value:%s, does not match"
@@ -29,7 +29,7 @@ def check_args(value, valid_types, allow_none=False, is_list=False, regex=None):
     elif not isinstance(value, tuple(valid_types)):
         raise TransitException("Invalid value:%s, not one of %s" % (value, valid_types))
 
-    if isinstance(value, basestring) and regex is not None:
+    if isinstance(value, str) and regex is not None:
         checker = re.compile(regex)
         if not checker.match(value):
             raise TransitException("Invalid value:%s, does not match regex %s" % (value, regex))
@@ -65,15 +65,12 @@ def clean_value(value, encoding, datetime_format=None):
     if value is None:
         return None
 
-    new_value = value.encode(encoding)
-
     if datetime_format:
         try:
-            new_value = datetime.strptime(new_value, datetime_format)
-            return new_value
+            return datetime.strptime(value, datetime_format)
         except ValueError:
             pass
     else:
         # Assume its a string
-        new_value = new_value.strip().rstrip('\n').lstrip('\n').strip()
-    return new_value
+        return value.strip().rstrip('\n').lstrip('\n').strip()
+    return value

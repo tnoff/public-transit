@@ -24,7 +24,7 @@ class TestPlanner(unittest.TestCase):
         client = TripPlanner()
         with self.assertRaises(TripPlannerException) as error:
             client.leg_create('bart', 'foobar')
-        self.assertTrue('Bart station not valid:foobar' in error.exception)
+        self.assertTrue('Bart station not valid:foobar' in str(error.exception))
 
     @httpretty.activate
     def test_leg_create_bart(self):
@@ -79,7 +79,7 @@ class TestPlanner(unittest.TestCase):
         # create station with no includes, make sure populated correctly
         with self.assertRaises(TripPlannerException) as error:
             client.leg_create('bart', station, destinations=['foo'])
-        self.assertTrue('Invalid destination:foo' in error.exception)
+        self.assertTrue('Invalid destination:foo' in str(error.exception))
 
     @httpretty.activate
     def test_leg_create_bart_one_destination(self):
@@ -139,7 +139,7 @@ class TestPlanner(unittest.TestCase):
         with self.assertRaises(TripPlannerException) as error:
             client.leg_create('actransit', 'foo')
         self.assertTrue('Could not identify stop:stopId "foo" is not a '\
-                        'valid stop id integer' in error.exception)
+                        'valid stop id integer' in str(error.exception))
 
     @httpretty.activate
     def test_leg_create_nextbus(self):
@@ -178,7 +178,7 @@ class TestPlanner(unittest.TestCase):
                                content_type='text/xml')
         with self.assertRaises(TripPlannerException) as error:
             client.leg_create(agency, stop, destinations='100')
-        self.assertTrue('Invalid route given:100' in error.exception)
+        self.assertTrue('Invalid route given:100' in str(error.exception))
 
     @httpretty.activate
     def test_leg_create_nextbus_invalid_destinations(self):
@@ -198,7 +198,7 @@ class TestPlanner(unittest.TestCase):
                                content_type='text/xml')
         with self.assertRaises(TripPlannerException) as error:
             client.leg_create(agency, stop, destinations=['100'])
-        self.assertTrue('Invalid route given:100' in error.exception)
+        self.assertTrue('Invalid route given:100' in str(error.exception))
 
     @httpretty.activate
     def test_leg_create_nextbus_one_direction(self):
@@ -282,7 +282,7 @@ class TestPlanner(unittest.TestCase):
         client.trip_create('foo', [leg['id']])
         with self.assertRaises(TripPlannerException) as error:
             client.leg_delete(leg['id'])
-        self.assertTrue('Cannot delete leg, being used by a Trip:1' in error.exception)
+        self.assertTrue('Cannot delete leg, being used by a Trip:1' in str(error.exception))
 
     @httpretty.activate
     def test_leg_show_nextbus(self):

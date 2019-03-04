@@ -79,7 +79,7 @@ def route_list(schedule=None, date=None):
     date        :   mm/dd/yyyy format
     '''
     utils.check_args(schedule, [int], allow_none=True)
-    utils.check_args(date, [basestring], allow_none=True, regex=DATE_REGEX)
+    utils.check_args(date, [str], allow_none=True, regex=DATE_REGEX)
     url = urls.route_list(schedule=schedule, date=date)
     soup, encoding = _make_request(url)
 
@@ -101,7 +101,7 @@ def route_info(route_number, schedule=None, date=None):
     '''
     utils.check_args(route_number, [int])
     utils.check_args(schedule, [int], allow_none=True)
-    utils.check_args(date, [basestring], allow_none=True, regex=DATE_REGEX)
+    utils.check_args(date, [str], allow_none=True, regex=DATE_REGEX)
     url = urls.route_info(route_number, schedule=schedule, date=date)
     soup, encoding = _make_request(url)
     return routes.route_info(soup.find('route'), encoding)
@@ -126,10 +126,10 @@ def schedule_fare(origin_station, destination_station,
     schedule                :   schedule number
     date                    :   mm/dd/yyyy format
     '''
-    utils.check_args(origin_station, [basestring], regex=LOWER_CASE_REGEX)
-    utils.check_args(destination_station, [basestring], regex=LOWER_CASE_REGEX)
+    utils.check_args(origin_station, [str], regex=LOWER_CASE_REGEX)
+    utils.check_args(destination_station, [str], regex=LOWER_CASE_REGEX)
     utils.check_args(schedule, [int], allow_none=True)
-    utils.check_args(date, [basestring], allow_none=True, regex=DATE_REGEX)
+    utils.check_args(date, [str], allow_none=True, regex=DATE_REGEX)
     url = urls.schedule_fare(origin_station, destination_station,
                              date=date, schedule=schedule)
     soup, encoding = _make_request(url)
@@ -146,7 +146,7 @@ def station_info(station):
     Station information
     station     :   station abbreviation
     '''
-    utils.check_args(station, [basestring], regex=LOWER_CASE_REGEX)
+    utils.check_args(station, [str], regex=LOWER_CASE_REGEX)
     url = urls.station_info(station)
     soup, encoding = _make_request(url)
     return stations.station_info(soup.find('station'), encoding)
@@ -156,7 +156,7 @@ def station_access(station):
     Station Access information
     station     :   station abbreviation
     '''
-    utils.check_args(station, [basestring], regex=LOWER_CASE_REGEX)
+    utils.check_args(station, [str], regex=LOWER_CASE_REGEX)
     url = urls.station_access(station)
     soup, encoding = _make_request(url)
     return stations.station_access(soup.find('station'), encoding)
@@ -170,10 +170,10 @@ def station_departures(station, platform=None, direction=None,
     direction   :   (n)orth or (s)outh
     destinatons :   List of abbreviated destinations, exclude all others
     '''
-    utils.check_args(station, [basestring], regex=LOWER_CASE_REGEX)
+    utils.check_args(station, [str], regex=LOWER_CASE_REGEX)
     utils.check_args(platform, [int], allow_none=True)
-    utils.check_args(direction, [basestring], allow_none=True, regex="^n|s$")
-    utils.check_args(destinations, [basestring], allow_none=True, is_list=True,
+    utils.check_args(direction, [str], allow_none=True, regex="^n|s$")
+    utils.check_args(destinations, [str], allow_none=True, is_list=True,
                      regex=LOWER_CASE_REGEX)
     url = urls.estimated_departures(station, platform=platform,
                                     direction=direction)
@@ -198,8 +198,8 @@ def station_schedule(station, date=None):
     station     :   station abbreviation
     date        :   mm/dd/yyyy format
     '''
-    utils.check_args(station, [basestring], regex=LOWER_CASE_REGEX)
-    utils.check_args(date, [basestring], allow_none=True, regex=DATE_REGEX)
+    utils.check_args(station, [str], regex=LOWER_CASE_REGEX)
+    utils.check_args(date, [str], allow_none=True, regex=DATE_REGEX)
     url = urls.station_schedule(station, date=date)
     soup, encoding = _make_request(url)
     return stations.station_schedule(soup.find('station'), encoding)
