@@ -76,6 +76,7 @@ class TestPlannerArgs(TestRunnerHelper):
             'force' : False,
             'destinations' : None,
             'db_file' : DEFAULT_DB_PATH,
+            'bart_api_key' : None,
         })
 
         args = generate_args(['leg', 'create', 'sf-muni', '1235', '--destinations', 'foo', 'bar'])
@@ -87,6 +88,7 @@ class TestPlannerArgs(TestRunnerHelper):
             'force' : False,
             'destinations' : ['foo', 'bar'],
             'db_file' : DEFAULT_DB_PATH,
+            'bart_api_key' : None,
         })
 
         args = generate_args(['leg', 'create', 'sf-muni', '1235', '--force'])
@@ -98,6 +100,19 @@ class TestPlannerArgs(TestRunnerHelper):
             'force' : True,
             'destinations' : None,
             'db_file' : DEFAULT_DB_PATH,
+            'bart_api_key' : None,
+        })
+
+        args = generate_args(['leg', 'create', 'sf-muni', '1235', '--bart-api-key', 'foo'])
+        self.assert_dictionary(args, {
+            'command' : 'leg',
+            'subcommand' : 'create',
+            'agency_tag' : 'sf-muni',
+            'stop_id' : '1235',
+            'force' : False,
+            'destinations' : None,
+            'db_file' : DEFAULT_DB_PATH,
+            'bart_api_key' : 'foo',
         })
 
         # Leg delete
@@ -132,6 +147,16 @@ class TestPlannerArgs(TestRunnerHelper):
             'subcommand' : 'show',
             'leg_id' : 5,
             'db_file' : DEFAULT_DB_PATH,
+            'bart_api_key' : None,
+        })
+
+        args = generate_args(['leg', 'show', '5', '--bart-api-key', 'foo'])
+        self.assert_dictionary(args, {
+            'command' : 'leg',
+            'subcommand' : 'show',
+            'leg_id' : 5,
+            'db_file' : DEFAULT_DB_PATH,
+            'bart_api_key' : 'foo',
         })
 
     def test_trip_args(self):
@@ -171,6 +196,16 @@ class TestPlannerArgs(TestRunnerHelper):
             'subcommand' : 'show',
             'trip_id' : 5,
             'db_file' : DEFAULT_DB_PATH,
+            'bart_api_key' : None,
+        })
+
+        args = generate_args(['trip', 'show', '5', '--bart-api-key', 'foo'])
+        self.assert_dictionary(args, {
+            'command' : 'trip',
+            'subcommand' : 'show',
+            'trip_id' : 5,
+            'db_file' : DEFAULT_DB_PATH,
+            'bart_api_key' : 'foo',
         })
 
         # Trip delete

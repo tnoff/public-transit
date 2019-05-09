@@ -43,70 +43,8 @@ From the help page.
 
 .. code::
 
+    >>> import transit
     >>> help(transit.bart)
-
-    elevator_status()
-        System wide elevator status
-
-    route_info(route_number, schedule=None, date=None)
-        Show information for specific route
-        route_number: number of route to show
-        schedule: schedule number
-        date: mm/dd/yyyy format
-
-    route_list(schedule=None, date=None)
-        Show information for specific route
-        schedule: schedule number
-        date: mm/dd/yyyy format
-
-    schedule_fare(origin_station, destination_station, date=None, schedule=None)
-        Get the scheduled fare
-        origin_station: station you'll onbard at
-        destination_station: station you'll offboard at
-        schedule: schedule number
-        date: mm/dd/yyyy format
-
-    schedule_list()
-        List bart schedules
-
-    service_advisory()
-        System wide service advisory
-
-    station_access(station)
-        Station Access information
-        station: station abbreviation
-
-    station_departures(station, platform=None, direction=None, destinations=None)
-        Get estimated station departures
-        station: station abbreviation
-        plaform: platfrom number
-        direction: (n)orth or (s)outh
-        destinatons: List of abbreviated destinations, exclude all others
-
-    station_info(station)
-        Station information
-        station: station abbreviation
-
-    station_list()
-        List all bart stations
-
-    station_multiple_departures(station_output)
-        Get estimated departures for mutliple stations
-        station_output:
-            {
-                'station_abbrevation' : [destination1, destination2],
-                'station_abbreviation2' : [],
-                # empty for all possible destinations
-            }
-
-    station_schedule(station, date=None)
-        Get a stations schedule
-        station: station abbreviation
-        date: mm/dd/yyyy format
-
-    train_count()
-        System wide train count
-
 -------
 Nextbus
 -------
@@ -114,50 +52,8 @@ From the help page.
 
 .. code::
 
+    >>> import transit
     >>> help(transit.nextbus)
-
-    agency_list()
-        List all nextbus agencies
-
-    route_show(agency_tag, route_tag)
-        Get information about route
-        agency_tag: agency tag
-        route_tag : route_tag
-
-    route_list(agency_tag)
-        Get list of agency routes
-        agency_tag: agency tag
-
-    route_messages(agency_tag, route_tags)
-        Get alert messages for routes
-        agency_tag : agency tag
-        route_tags : either single route tag, or list of tags
-
-    schedule_get(agency_tag, route_tag)
-        Get schedule information for route
-        agency_tag : agency tag
-        route_tag : route tag
-
-    stop_multiple_predictions(agency_tag, prediction_data)
-        Get predictions for multiple stops
-        agency_tag: agency tag
-        prediction_data : {
-             "stop_tag1" : [route1, route2],
-             "stop_tag2" : [route3],
-             # must provide at least one route per stop tag
-        }
-
-    stop_prediction(agency_tag, stop_id, route_tags=None)
-        Get arrival predictions for stops
-        agency_tag: agency tag
-        stop_id: stop id
-        route_tags: list of routes or single route to limit search
-
-    vehicle_location(agency_tag, route_tag, epoch_time)
-        Get vehicle location for route at time
-        agency_tag: agency tag
-        route_tag: route tag
-        epoch_time: epoch time for locations
 
 ============
 Trip Planner
@@ -201,7 +97,5 @@ TODOs
 - Actransit API
 
 - Change asserts so they throw custom exception
-
-- Allow specifying of custom api keys
 
 - Show alerts and messages with leg and trip outputs ( should probably cache as well )

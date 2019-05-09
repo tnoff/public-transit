@@ -38,11 +38,15 @@ def _make_request(url, markup="html.parser"):
         raise TransitException(error_string)
     return soup, encoding
 
-def service_advisory():
+def service_advisory(api_key=None):
     '''
     System wide service advisory
+    api_key : Use api key for request
     '''
-    url = urls.service_advisory()
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
+    url = urls.service_advisory(**kwargs)
     soup, encoding = _make_request(url)
     service_advisories = []
     for bsa in soup.find_all('bsa'):
@@ -50,31 +54,43 @@ def service_advisory():
         service_advisories.append(service_data)
     return service_advisories
 
-def train_count():
+def train_count(api_key=None):
     '''
     System wide train count
+    api_key : Use api key for request
     '''
-    url = urls.train_count()
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
+    url = urls.train_count(**kwargs)
     soup, encoding = _make_request(url)
     return int(soup.find('traincount').string.encode(encoding))
 
-def elevator_status():
+def elevator_status(api_key=None):
     '''
     System wide elevator status
+    api_key : Use api key for request
     '''
-    url = urls.elevator_status()
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
+    url = urls.elevator_status(**kwargs)
     soup, encoding = _make_request(url)
     return advisories.service_advisory(soup.find('bsa'), encoding)
 
-def route_list(schedule=None, date=None):
+def route_list(schedule=None, date=None, api_key=None):
     '''
     Show information for specific route
     schedule    :   schedule number
     date        :   mm/dd/yyyy format
+    api_key : Use api key for request
     '''
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
     utils.check_args(schedule, [int], allow_none=True)
     utils.check_args(date, [str], allow_none=True, regex=DATE_REGEX)
-    url = urls.route_list(schedule=schedule, date=date)
+    url = urls.route_list(schedule=schedule, date=date, **kwargs)
     soup, encoding = _make_request(url)
 
     route_data = {}
@@ -86,25 +102,33 @@ def route_list(schedule=None, date=None):
         route_data['routes'].append(routes.route(route_xml, encoding))
     return route_data
 
-def route_info(route_number, schedule=None, date=None):
+def route_info(route_number, schedule=None, date=None, api_key=None):
     '''
     Show information for specific route
     route_number    :   number of route to show
     schedule        :   schedule number
     date            :   mm/dd/yyyy format
+    api_key : Use api key for request
     '''
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
     utils.check_args(route_number, [int])
     utils.check_args(schedule, [int], allow_none=True)
     utils.check_args(date, [str], allow_none=True, regex=DATE_REGEX)
-    url = urls.route_info(route_number, schedule=schedule, date=date)
+    url = urls.route_info(route_number, schedule=schedule, date=date, **kwargs)
     soup, encoding = _make_request(url)
     return routes.route_info(soup.find('route'), encoding)
 
-def schedule_list():
+def schedule_list(api_key=None):
     '''
     List bart schedules
+    api_key : Use api key for request
     '''
-    url = urls.schedule_list()
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
+    url = urls.schedule_list(**kwargs)
     soup, encoding = _make_request(url)
     new_schedules = []
     for sched in soup.find_all('schedule'):
@@ -112,65 +136,84 @@ def schedule_list():
     return new_schedules
 
 def schedule_fare(origin_station, destination_station,
-                  date=None, schedule=None):
+                  date=None, schedule=None, api_key=None):
     '''
     Get the scheduled fare
     origin_station          :   station you'll onbard at
     destination_station     :   station you'll offboard at
     schedule                :   schedule number
     date                    :   mm/dd/yyyy format
+    api_key : Use api key for request
     '''
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
     utils.check_args(origin_station, [str], regex=STATION_REGEX)
     utils.check_args(destination_station, [str], regex=STATION_REGEX)
     utils.check_args(schedule, [int], allow_none=True)
     utils.check_args(date, [str], allow_none=True, regex=DATE_REGEX)
     url = urls.schedule_fare(origin_station, destination_station,
-                             date=date, schedule=schedule)
+                             date=date, schedule=schedule, **kwargs)
     soup, encoding = _make_request(url)
     return schedules.schedule_fare(soup, encoding)
 
-def station_list():
+def station_list(api_key=None): #pylint:disable=unused-argument
     '''
     List all bart stations
+    api_key : Use api key for request
     '''
+    # We dont need api key here, but have arg
+    # So everything is uniform
     return stations.STATION_MAPPING
 
-def station_info(station):
+def station_info(station, api_key=None):
     '''
     Station information
     station     :   station abbreviation
+    api_key : Use api key for request
     '''
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
     utils.check_args(station, [str], regex=STATION_REGEX)
-    url = urls.station_info(station)
+    url = urls.station_info(station, **kwargs)
     soup, encoding = _make_request(url)
     return stations.station_info(soup.find('station'), encoding)
 
-def station_access(station):
+def station_access(station, api_key=None):
     '''
     Station Access information
     station     :   station abbreviation
+    api_key : Use api key for request
     '''
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
     utils.check_args(station, [str], regex=STATION_REGEX)
-    url = urls.station_access(station)
+    url = urls.station_access(station, **kwargs)
     soup, encoding = _make_request(url)
     return stations.station_access(soup.find('station'), encoding)
 
 def station_departures(station, platform=None, direction=None,
-                       destinations=None):
+                       destinations=None, api_key=None):
     '''
     Get estimated station departures
     station     :   station abbreviation
     plaform     :   platfrom number
     direction   :   (n)orth or (s)outh
     destinatons :   List of abbreviated destinations, exclude all others
+    api_key : Use api key for request
     '''
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
     utils.check_args(station, [str], regex=STATION_REGEX)
     utils.check_args(platform, [int], allow_none=True)
     utils.check_args(direction, [str], allow_none=True, regex="^[nsNS]$")
     utils.check_args(destinations, [str], allow_none=True, is_list=True,
                      regex=STATION_REGEX)
     url = urls.estimated_departures(station, platform=platform,
-                                    direction=direction)
+                                    direction=direction, **kwargs)
     soup, encoding = _make_request(url)
 
     if station == 'all':
@@ -186,19 +229,23 @@ def station_departures(station, platform=None, direction=None,
                                                    station_output=station_output))
     return departs
 
-def station_schedule(station, date=None):
+def station_schedule(station, date=None, api_key=None):
     '''
     Get a stations schedule
     station     :   station abbreviation
     date        :   mm/dd/yyyy format
+    api_key : Use api key for request
     '''
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
     utils.check_args(station, [str], regex=STATION_REGEX)
     utils.check_args(date, [str], allow_none=True, regex=DATE_REGEX)
-    url = urls.station_schedule(station, date=date)
+    url = urls.station_schedule(station, date=date, **kwargs)
     soup, encoding = _make_request(url)
     return stations.station_schedule(soup.find('station'), encoding)
 
-def station_multiple_departures(station_input):
+def station_multiple_departures(station_input, api_key=None):
     '''
     Get estimated departures for mutliple stations
     station_input:
@@ -207,10 +254,14 @@ def station_multiple_departures(station_input):
             'station_abbreviation2' : [],
             # empty for all possible destinations
         }
+    api_key : Use api key for request
     '''
+    kwargs = {}
+    if api_key is not None:
+        kwargs['key'] = api_key
     validate(station_input, schema.BART_MULTIPLE_STOP_SCHEMA)
     # call a list of all departures here, then strip data for only stations requested
-    url = urls.estimated_departures('all')
+    url = urls.estimated_departures('all', **kwargs)
     soup, encoding = _make_request(url)
     full_data = []
     for station in soup.find_all('station'):

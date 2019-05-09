@@ -9,7 +9,7 @@ from transit import nextbus
 from trip_planner.database.tables import Base, Leg, LegDestination, Trip, TripLeg
 from trip_planner.exceptions import TripPlannerException
 
-def validate_bart_station(stop_tag, destinations, verify_destinations=True):
+def validate_bart_station(stop_tag, destinations, verify_destinations=True, api_key=None):
     '''
     Validate bart station with destinations
     '''
@@ -24,12 +24,12 @@ def validate_bart_station(stop_tag, destinations, verify_destinations=True):
         # check for all possible routes from station
         # use this to get a list of all possible destinations
         possible_destinations = set([])
-        station = bart.station_info(stop_tag.lower())
+        station = bart.station_info(stop_tag.lower(), api_key=api_key)
         north_routes = station['north_routes'] or []
         south_routes = station['south_routes'] or []
         all_routes = set(north_routes + south_routes)
         for route_number in sorted(all_routes):
-            route = bart.route_info(route_number)
+            route = bart.route_info(route_number, api_key=api_key)
             possible_destinations.add(route['destination'].lower())
 
         # if destinations given, check given destinations against possible destinations
@@ -121,12 +121,13 @@ class TripPlanner():
         Base.metadata.bind = database_engine
         self.db_session = sessionmaker(bind=database_engine)()
 
-    def leg_create(self, agency_tag, stop_id, destinations=None, force=False):
+    def leg_create(self, agency_tag, stop_id, destinations=None, force=False, bart_api_key=None):
         '''
         Create a new leg with a given stop id and routes/destinations
         agency_tag      :   agency tag
         stop_id         :   identifier of stop
         include         :   include only destinations
+        bart_api_key    : Use specific bart API key
         '''
         assert isinstance(agency_tag, str), 'agency tag must be string type'
         assert isinstance(stop_id, str), 'stop id must be string type'
@@ -139,7 +140,8 @@ class TripPlanner():
         # validate given stop
         if agency_tag == 'bart':
             stop_title, route_tags = validate_bart_station(stop_id, destinations,
-                                                           verify_destinations=not force)
+                                                           verify_destinations=not force,
+                                                           api_key=bart_api_key)
             stop_tag = None
         else:
             stop_tag, stop_title, route_tags = validate_nextbus_stop(self.db_session,
@@ -219,10 +221,11 @@ class TripPlanner():
         self.db_session.commit()
         return True
 
-    def leg_show(self, leg_id):
+    def leg_show(self, leg_id, bart_api_key=None):
         '''
         Get predictions for leg with given id
         leg_id      :   leg integer id
+        bart_api_key    : Use specific bart API key
         '''
         assert isinstance(leg_id, int), 'leg id must be int type'
         leg_query = self.db_session.query(Leg, LegDestination).join(LegDestination)
@@ -237,7 +240,7 @@ class TripPlanner():
             includes.append(leg_include.tag)
         if leggy['agency'] == 'bart':
             return 'bart', bart.station_departures(leggy['stop_id'],
-                                                   destinations=includes)
+                                                   destinations=includes, api_key=bart_api_key)
         return leggy['agency'], nextbus.stop_prediction(leggy['agency'],
                                                         leggy['stop_id'],
                                                         route_tags=includes)
@@ -284,10 +287,11 @@ class TripPlanner():
             all_trips.append(trip_data)
         return all_trips
 
-    def trip_show(self, trip_id):
+    def trip_show(self, trip_id, bart_api_key=None):
         '''
         Show all legs for a trip with given id
         trip_id     :   trip id
+        bart_api_key    : Use specific bart API key
         '''
         assert isinstance(trip_id, int), 'trip id must be int type'
         try:
@@ -318,7 +322,7 @@ class TripPlanner():
         trip_data = dict()
 
         if station_data:
-            trip_data['bart'] = bart.station_multiple_departures(station_data)
+            trip_data['bart'] = bart.station_multiple_departures(station_data, api_key=bart_api_key)
         trip_data['nextbus'] = []
         for agency, data in nextbus_data.items():
             trip_data['nextbus'] += nextbus.stop_multiple_predictions(agency, data)

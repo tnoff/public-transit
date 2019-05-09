@@ -50,6 +50,22 @@ class TestBart(unittest.TestCase): #pylint: disable=too-many-public-methods
         self.assertEqual(str(e.exception), "b'Invalid key':b'The api key was missing or invalid.'")
 
     @httpretty.activate
+    def test_specify_api_key(self):
+        test_url = urls.service_advisory(key='foo')
+        httpretty.register_uri(httpretty.GET,
+                               test_url,
+                               body=bsa.text,
+                               content_type='application/xml')
+        advisories = client.service_advisory(api_key='foo')
+        for advisory in advisories:
+            self.assertTrue(isinstance(advisory['posted'], datetime))
+            self.assertTrue(isinstance(advisory['expires'], datetime))
+            self.assertTrue(len(advisory['description']) > 0)
+            self.assertEqual(advisory['station'], 'bart')
+            self.assertTrue(isinstance(advisory['id'], int))
+            self.assertEqual(advisory['type'], 'delay')
+
+    @httpretty.activate
     def test_bsa(self):
         test_url = urls.service_advisory()
         httpretty.register_uri(httpretty.GET,

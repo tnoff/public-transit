@@ -40,6 +40,9 @@ def station_abbr_checker(stringy):
 
 def generate_args(command_line_args):
     p = CommonArgparse(description='Bart cli')
+
+    p.add_argument('-k', '--api-key', help='Use specific API Key for requests')
+
     sub_parser = p.add_subparsers(help='Command', dest='command')
 
     _add_service(sub_parser)
@@ -92,12 +95,12 @@ def _add_stations(sub_parser):
     # Info
     station_infos = stations_sp.add_parser('info',
                                            help='Show station info')
-    station_infos.add_argument('station_abbr', type=station_abbr_checker,
+    station_infos.add_argument('station', type=station_abbr_checker,
                                help='Station Abbreviation')
     # Departures
     est = stations_sp.add_parser('departures',
                                  help='Estimates for a station')
-    est.add_argument('station_abbr', type=station_abbr_checker,
+    est.add_argument('station', type=station_abbr_checker,
                      help='Station Abbreviation or "all"')
     est.add_argument('--direction', type=direction_regex_checker,
                      help='(n)orth or (s)outh')
@@ -107,13 +110,13 @@ def _add_stations(sub_parser):
     # Access
     station_access = stations_sp.add_parser('access',
                                             help='Show station access')
-    station_access.add_argument('station_abbr',
+    station_access.add_argument('station',
                                 type=station_abbr_checker,
                                 help='Station Abbreviation')
     # Schedule
     station_sched = stations_sp.add_parser('schedule',
                                            help='Station Schedule')
-    station_sched.add_argument('station_abbr',
+    station_sched.add_argument('station',
                                type=station_abbr_checker,
                                help='Station abbreviation')
     station_sched.add_argument('--date', type=date_regex_checker,

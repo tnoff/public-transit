@@ -54,6 +54,7 @@ def _add_leg(subparsers):
                             help='Include destination or route tag')
     leg_create.add_argument('--force', action='store_true',
                             help='Do not check destinations')
+    leg_create.add_argument('--bart-api-key', help='Use specific bart api key')
 
     leg_parsers.add_parser('list', help='List legs')
 
@@ -62,6 +63,7 @@ def _add_leg(subparsers):
 
     leg_show = leg_parsers.add_parser('show', help='Show leg')
     leg_show.add_argument('leg_id', type=int, help='Leg ID number')
+    leg_show.add_argument('--bart-api-key', help='Use specific bart api key')
 
 def _add_trips(subparsers):
     trips = subparsers.add_parser('trip', help='Trip commands')
@@ -75,6 +77,7 @@ def _add_trips(subparsers):
 
     trips_show = trips_parsers.add_parser('show', help='Show trip')
     trips_show.add_argument('trip_id', type=int, help='Trip ID')
+    trips_show.add_argument('--bart-api-key', help='Use specific bart api key')
 
     trips_delete = trips_parsers.add_parser('delete', help='Delete trip')
     trips_delete.add_argument('trip_id', type=int, nargs='+', help='Trip ID')
