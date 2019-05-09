@@ -76,7 +76,6 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
     if leg is not None:
         stop_tag = leg.stop_tag
         stop_title = leg.stop_title
-        stop_id = stop_id
 
     # if not, iterate through each route
     # .. for each route, go through every stop
@@ -121,7 +120,8 @@ class TripPlanner():
         Base.metadata.bind = database_engine
         self.db_session = sessionmaker(bind=database_engine)()
 
-    def leg_create(self, agency_tag, stop_id, destinations=None, force=False, bart_api_key=None):
+    def leg_create(self, agency_tag, stop_id, destinations=None, #pylint:disable=too-many-locals
+                   force=False, bart_api_key=None):
         '''
         Create a new leg with a given stop id and routes/destinations
         agency_tag      :   agency tag
