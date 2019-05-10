@@ -1,4 +1,4 @@
-from transit.cli.bart import generate_args
+from transit.cli.bart import generate_args, DEFAULT_BART_API_KEY
 from transit.exceptions import CLIException
 from transit.modules.bart.settings import DATE_REGEX, DIRECTION_REGEX, STATION_REGEX
 
@@ -25,20 +25,20 @@ class TestBartArgs(TestRunnerHelper):
 
         with self.assertRaises(CLIException) as error:
             generate_args(['-k'])
-        self.check_error_message(error, "argument -k/--api-key: expected one argument")
+        self.check_error_message(error, "argument -k/--bart-api-key: expected one argument")
 
         args = generate_args(['-k', 'foo', 'service', 'advisory'])
         self.assert_dictionary(args, {
             'command' : 'service',
             'subcommand' : 'advisory',
-            'api_key' : 'foo',
+            'bart_api_key' : 'foo',
         })
 
-        args = generate_args(['--api-key', 'foo', 'service', 'advisory'])
+        args = generate_args(['--bart-api-key', 'foo', 'service', 'advisory'])
         self.assert_dictionary(args, {
             'command' : 'service',
             'subcommand' : 'advisory',
-            'api_key' : 'foo',
+            'bart_api_key' : 'foo',
         })
 
 
@@ -61,19 +61,19 @@ class TestBartArgs(TestRunnerHelper):
         self.assert_dictionary(args, {
             'command' : 'service',
             'subcommand' : 'advisory',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         args = generate_args(['service', 'train-count'])
         self.assert_dictionary(args, {
             'command' : 'service',
             'subcommand' : 'train-count',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         args = generate_args(['service', 'elevator-status'])
         self.assert_dictionary(args, {
             'command' : 'service',
             'subcommand' : 'elevator-status',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
 
     def test_route_args(self):
@@ -96,7 +96,7 @@ class TestBartArgs(TestRunnerHelper):
             'subcommand' : 'list',
             'schedule' : None,
             'date' : None,
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         args = generate_args(['route', 'list', '--schedule', '2'])
         self.assert_dictionary(args, {
@@ -104,7 +104,7 @@ class TestBartArgs(TestRunnerHelper):
             'subcommand' : 'list',
             'schedule' : 2,
             'date' : None,
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         with self.assertRaises(CLIException) as error:
             generate_args(['route', 'list', '--schedule', 'foo'])
@@ -115,7 +115,7 @@ class TestBartArgs(TestRunnerHelper):
             'subcommand' : 'list',
             'schedule' : None,
             'date' : '01/01/2019',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         with self.assertRaises(CLIException) as error:
             generate_args(['route', 'list', '--date', 'derp'])
@@ -128,7 +128,7 @@ class TestBartArgs(TestRunnerHelper):
             'subcommand' : 'list',
             'schedule' : 2,
             'date' : '01/01/2019',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         # Route info
         with self.assertRaises(CLIException) as error:
@@ -145,7 +145,7 @@ class TestBartArgs(TestRunnerHelper):
             'route_number' : 99,
             'schedule' : None,
             'date' : None,
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         args = generate_args(['route', 'info', '99', '--schedule', '2'])
         self.assert_dictionary(args, {
@@ -154,7 +154,7 @@ class TestBartArgs(TestRunnerHelper):
             'route_number' : 99,
             'schedule' : 2,
             'date' : None,
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         with self.assertRaises(CLIException) as error:
             generate_args(['route', 'info', '99', '--schedule', 'foo'])
@@ -166,7 +166,7 @@ class TestBartArgs(TestRunnerHelper):
             'route_number' : 99,
             'schedule' : None,
             'date' : '01/01/2019',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         with self.assertRaises(CLIException) as error:
             generate_args(['route', 'info', '99', '--date', 'derp'])
@@ -179,7 +179,7 @@ class TestBartArgs(TestRunnerHelper):
             'route_number' : 99,
             'schedule' : 2,
             'date' : '01/01/2019',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
 
     def test_station_args(self): # pylint:disable=too-many-statements
@@ -201,7 +201,7 @@ class TestBartArgs(TestRunnerHelper):
         self.assert_dictionary(args, {
             'command' : 'station',
             'subcommand' : 'list',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         # Station info
         with self.assertRaises(CLIException) as error:
@@ -216,7 +216,7 @@ class TestBartArgs(TestRunnerHelper):
             'command' : 'station',
             'subcommand' : 'info',
             'station' : 'dubl',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         # Station departures
         with self.assertRaises(CLIException) as error:
@@ -234,7 +234,7 @@ class TestBartArgs(TestRunnerHelper):
             'direction' : None,
             'platform' : None,
             'destinations' : None,
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         with self.assertRaises(CLIException) as error:
             generate_args(['station', 'departures', 'dubl', '--direction', 'foo'])
@@ -249,7 +249,7 @@ class TestBartArgs(TestRunnerHelper):
             'direction' : 'n',
             'platform' : None,
             'destinations' : None,
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         with self.assertRaises(CLIException) as error:
             generate_args(['station', 'departures', 'dubl', '--destinations'])
@@ -266,7 +266,7 @@ class TestBartArgs(TestRunnerHelper):
             'direction' : None,
             'platform' : None,
             'destinations' : ['12th'],
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         # Station access
         with self.assertRaises(CLIException) as error:
@@ -278,7 +278,7 @@ class TestBartArgs(TestRunnerHelper):
             'command' : 'station',
             'subcommand' : 'access',
             'station' : 'dubl',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         # Schedule
         with self.assertRaises(CLIException) as error:
@@ -291,7 +291,7 @@ class TestBartArgs(TestRunnerHelper):
             'subcommand' : 'schedule',
             'station' : 'dubl',
             'date' : None,
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         with self.assertRaises(CLIException) as error:
             generate_args(['station', 'schedule', 'dubl', '--date', 'foo'])
@@ -303,7 +303,7 @@ class TestBartArgs(TestRunnerHelper):
             'subcommand' : 'schedule',
             'station' : 'dubl',
             'date' : '01/01/2019',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
 
     def test_schedule(self):
@@ -318,7 +318,7 @@ class TestBartArgs(TestRunnerHelper):
         self.assert_dictionary(args, {
             'command' : 'schedule',
             'subcommand' : 'list',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         # Schedule Fare
         with self.assertRaises(CLIException) as error:
@@ -341,7 +341,7 @@ class TestBartArgs(TestRunnerHelper):
             'destination_station': 'mont',
             'schedule' : None,
             'date' : None,
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         with self.assertRaises(CLIException) as error:
             generate_args(['schedule', 'fare', 'dubl', 'mont', '--schedule', 'foo'])
@@ -354,7 +354,7 @@ class TestBartArgs(TestRunnerHelper):
             'destination_station': 'mont',
             'schedule' : 2,
             'date' : None,
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })
         with self.assertRaises(CLIException) as error:
             generate_args(['schedule', 'fare', 'dubl', 'mont', '--date', 'foo'])
@@ -368,5 +368,5 @@ class TestBartArgs(TestRunnerHelper):
             'destination_station': 'mont',
             'schedule' : None,
             'date' : '01/01/2019',
-            'api_key' : None,
+            'bart_api_key' : DEFAULT_BART_API_KEY,
         })

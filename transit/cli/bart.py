@@ -13,6 +13,8 @@ DATETIME_FORMAT_NO_DATE = '%H:%M:%S'
 
 DATETIME_FORMAT_JUST_DATE = '%Y-%m-%d'
 
+DEFAULT_BART_API_KEY = 'MW9S-E7SL-26DU-VV8V'
+
 
 # Keep this out of the class so it can be inherited by trip planner cli
 def generate_prediction_list(departure_data):
@@ -41,7 +43,8 @@ def station_abbr_checker(stringy):
 def generate_args(command_line_args):
     p = CommonArgparse(description='Bart cli')
 
-    p.add_argument('-k', '--api-key', help='Use specific API Key for requests')
+    p.add_argument('-k', '--bart-api-key', default=DEFAULT_BART_API_KEY,
+                   help='Use specific API Key for requests')
 
     sub_parser = p.add_subparsers(help='Command', dest='command')
 

@@ -2,6 +2,7 @@ import os
 import sys
 
 from transit.cli.bart import generate_prediction_list as bart_pred_list
+from transit.cli.bart import DEFAULT_BART_API_KEY
 from transit.cli.nextbus import generate_prediction_list as nextbus_pred_list
 from transit.cli.common import CommonArgparse, CommonCLI
 from transit.exceptions import CLIException
@@ -26,6 +27,8 @@ def generate_args(command_line_args):
 
     p.add_argument('-d', '--db-file', default=DEFAULT_DB_PATH,
                    help='Path to local db file')
+    p.add_argument('-b', '--bart-api-key', default=DEFAULT_BART_API_KEY,
+                   help='Use specific bart api key')
 
     sub_parser = p.add_subparsers(help='Command', dest='command')
 
@@ -54,7 +57,6 @@ def _add_leg(subparsers):
                             help='Include destination or route tag')
     leg_create.add_argument('--force', action='store_true',
                             help='Do not check destinations')
-    leg_create.add_argument('--bart-api-key', help='Use specific bart api key')
 
     leg_parsers.add_parser('list', help='List legs')
 
@@ -63,7 +65,6 @@ def _add_leg(subparsers):
 
     leg_show = leg_parsers.add_parser('show', help='Show leg')
     leg_show.add_argument('leg_id', type=int, help='Leg ID number')
-    leg_show.add_argument('--bart-api-key', help='Use specific bart api key')
 
 def _add_trips(subparsers):
     trips = subparsers.add_parser('trip', help='Trip commands')
@@ -77,7 +78,6 @@ def _add_trips(subparsers):
 
     trips_show = trips_parsers.add_parser('show', help='Show trip')
     trips_show.add_argument('trip_id', type=int, help='Trip ID')
-    trips_show.add_argument('--bart-api-key', help='Use specific bart api key')
 
     trips_delete = trips_parsers.add_parser('delete', help='Delete trip')
     trips_delete.add_argument('trip_id', type=int, nargs='+', help='Trip ID')

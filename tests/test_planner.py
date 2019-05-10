@@ -19,6 +19,8 @@ from tests.data.planner import route_info_11
 from tests.data.planner import route_info_12
 from tests.utils import temp_file
 
+FAKE_KEY = 'foobar123'
+
 class TestPlanner(unittest.TestCase):
 
     def test_leg_create_bart_invalid_station(self):
@@ -34,7 +36,7 @@ class TestPlanner(unittest.TestCase):
             client = TripPlanner(temp_db)
             station = 'wdub'
             # first call is station info
-            station_info_url = bart_urls.station_info(station)
+            station_info_url = bart_urls.station_info(station, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    station_info_url,
                                    body=station_info_wdub.text,
@@ -42,18 +44,18 @@ class TestPlanner(unittest.TestCase):
             # then return route infos, route list given in station info
             route1 = 12
             route2 = 11
-            route1_info_url = bart_urls.route_info(route1)
+            route1_info_url = bart_urls.route_info(route1, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    route1_info_url,
                                    body=route_info_12.text,
                                    content_type='application/xml')
-            route2_info_url = bart_urls.route_info(route2)
+            route2_info_url = bart_urls.route_info(route2, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    route2_info_url,
                                    body=route_info_11.text,
                                    content_type='application/xml')
             # create station with no includes, make sure populated correctly
-            leg = client.leg_create('bart', station)
+            leg = client.leg_create('bart', station, bart_api_key=FAKE_KEY)
             self.assertEqual(sorted(["daly", "dubl"]), sorted(leg['includes']))
 
     @httpretty.activate
@@ -62,7 +64,7 @@ class TestPlanner(unittest.TestCase):
             client = TripPlanner(temp_db)
             station = 'wdub'
             # first call is station info
-            station_info_url = bart_urls.station_info(station)
+            station_info_url = bart_urls.station_info(station, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    station_info_url,
                                    body=station_info_wdub.text,
@@ -70,19 +72,19 @@ class TestPlanner(unittest.TestCase):
             # then return route infos, route list given in station info
             route1 = 12
             route2 = 11
-            route1_info_url = bart_urls.route_info(route1)
+            route1_info_url = bart_urls.route_info(route1, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    route1_info_url,
                                    body=route_info_12.text,
                                    content_type='application/xml')
-            route2_info_url = bart_urls.route_info(route2)
+            route2_info_url = bart_urls.route_info(route2, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    route2_info_url,
                                    body=route_info_11.text,
                                    content_type='application/xml')
             # create station with no includes, make sure populated correctly
             with self.assertRaises(TripPlannerException) as error:
-                client.leg_create('bart', station, destinations=['foo'])
+                client.leg_create('bart', station, bart_api_key=FAKE_KEY, destinations=['foo'])
             self.assertTrue('Invalid destination:foo' in str(error.exception))
 
     @httpretty.activate
@@ -92,7 +94,7 @@ class TestPlanner(unittest.TestCase):
             # make sure if given one destination, only that one and not both are used
             station = 'wdub'
             # first call is station info
-            station_info_url = bart_urls.station_info(station)
+            station_info_url = bart_urls.station_info(station, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    station_info_url,
                                    body=station_info_wdub.text,
@@ -100,18 +102,18 @@ class TestPlanner(unittest.TestCase):
             # then return route infos, route list given in station info
             route1 = 12
             route2 = 11
-            route1_info_url = bart_urls.route_info(route1)
+            route1_info_url = bart_urls.route_info(route1, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    route1_info_url,
                                    body=route_info_12.text,
                                    content_type='application/xml')
-            route2_info_url = bart_urls.route_info(route2)
+            route2_info_url = bart_urls.route_info(route2, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    route2_info_url,
                                    body=route_info_11.text,
                                    content_type='application/xml')
             # create station with no includes, make sure populated correctly
-            leg = client.leg_create('bart', station, destinations=['dubl'])
+            leg = client.leg_create('bart', station, bart_api_key=FAKE_KEY, destinations=['dubl'])
             self.assertEqual(leg['includes'], ['dubl'])
 
     @httpretty.activate
@@ -123,12 +125,12 @@ class TestPlanner(unittest.TestCase):
             leg = client.leg_create('bart', station,
                                     destinations=['daly', 'dubl'], force=True)
 
-            departure_url = bart_urls.estimated_departures(station)
+            departure_url = bart_urls.estimated_departures(station, FAKE_KEY)
             httpretty.register_uri(httpretty.GET,
                                    departure_url,
                                    body=bart_estimated_wdub.text,
                                    content_type='application/xml')
-            shown_agency, shown_data = client.leg_show(leg['id'])
+            shown_agency, shown_data = client.leg_show(leg['id'], bart_api_key=FAKE_KEY)
             self.assertEqual(shown_agency, 'bart')
             for station in shown_data:
                 for direction in station['directions']:
@@ -417,7 +419,7 @@ class TestPlanner(unittest.TestCase):
             leg1 = client.leg_create(agency, stop, destinations=['99', '22'])
 
             station = 'wdub'
-            leg2 = client.leg_create('bart', station, destinations=['daly', 'dubl'], force=True)
+            leg2 = client.leg_create('bart', station, bart_api_key=FAKE_KEY, destinations=['daly', 'dubl'], force=True)
 
             trip = client.trip_create('foo', [leg1['id'], leg2['id']])
 
@@ -429,7 +431,7 @@ class TestPlanner(unittest.TestCase):
             }
 
             httpretty.register_uri(httpretty.GET,
-                                   bart_urls.estimated_departures('all'),
+                                   bart_urls.estimated_departures('all', FAKE_KEY),
                                    body=bart_estimates_all.text,
                                    content_type='application/xml')
             httpretty.register_uri(httpretty.GET,
@@ -437,7 +439,7 @@ class TestPlanner(unittest.TestCase):
                                                                          mock_stop_dict),
                                    body=nextbus_multiple_estimate.text,
                                    content_type='application/xml')
-            results = client.trip_show(trip['id'])
+            results = client.trip_show(trip['id'], bart_api_key=FAKE_KEY)
             self.assertTrue(len(results['bart']) > 0)
             for station in results['bart']: #pylint:disable=not-an-iterable
                 for direction in station['directions']:
