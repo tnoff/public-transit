@@ -20,9 +20,10 @@ setuptools.setup(
         'console_scripts' : [
             'bart = transit.cli.bart:main',
             'nextbus = transit.cli.nextbus:main',
+            'actransit = transit.cli.actransit:main',
             'trip-planner = trip_planner.cli.planner_script:main',
         ]
     },
     packages=setuptools.find_packages(exclude=["*tests"]),
-    version='1.1.3',
+    version='1.2.0',
 )
