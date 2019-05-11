@@ -91,7 +91,7 @@ class TripPlannerCLI(CommonCLI):
         kwargs.pop('command')
         kwargs.pop('subcommand')
         self.kwargs = kwargs
-        db_dir_path = os.path.splitext(db_file)[0]
+        db_dir_path = os.path.split(db_file)[0]
         create_directory(db_dir_path)
         self.planner = TripPlanner(database_path=db_file)
 
