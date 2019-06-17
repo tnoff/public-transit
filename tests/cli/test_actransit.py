@@ -90,27 +90,37 @@ class TestACTransitCli(TestRunnerHelper):
         self.assertEqual(mock_out.getvalue(), expected)
 
     def test_stop_predictions(self):
-        expected = '''+-----------+---------------------+-----------+
-| Routename |  Predicteddeparture | Vehicleid |
-+-----------+---------------------+-----------+
-|     99    | 2019-06-16T19:02:00 |    1420   |
-+-----------+---------------------+-----------+
+        expected = '''+-------+-------------------+--------------------------+---------------+
+| Route |  Route direction  |        Stop title        |  Predictions  |
++-------+-------------------+--------------------------+---------------+
+|  51A  | To Rockridge BART | Santa Clara Av + Park St | 00:25 ; 00:25 |
++-------+-------------------+--------------------------+---------------+
 '''
         with mock.patch('transit.actransit.stop_predictions') as mock_method:
             with mock.patch('sys.stdout', new_callable=StringIO) as mock_out:
-                mock_method.return_value = [
-                    {
-                        'TripId': 6791878,
-                        'PredictionDateTime': '2019-06-16T18:26:21',
-                        'PredictedDeparture': '2019-06-16T19:02:00',
-                        'PredictedDelayInSeconds': 0,
-                        'RouteName': '99',
-                        'VehicleId': 1420
-                    }
-                ]
-                args = generate_args(['-k', 'foo', 'stop', 'predictions', '1234'])
-                bart_cli = ACTransitCLI(**args)
-                bart_cli.run_command()
+                with mock.patch('transit.cli.actransit.clean_pred_time') as mock_time:
+                    mock_time.return_value = '00:25'
+                    mock_method.return_value = [
+                        {
+                            "prdtm": 'foo',
+                            "rtdir": "To Rockridge BART",
+                            "rt": "51A",
+                            "stpnm": "Santa Clara Av + Park St",
+                            "tripid" : '1234',
+                            'stpid' : '55511',
+                        },
+                        {
+                            "prdtm": 'bar',
+                            "rtdir": "To Rockridge BART",
+                            "rt": "51A",
+                            "stpnm": "Santa Clara Av + Park St",
+                            "tripid" : '1234',
+                            'stpid' : '55511',
+                        }
+                    ]
+                    args = generate_args(['-k', 'foo', 'stop', 'predictions', '1234'])
+                    bart_cli = ACTransitCLI(**args)
+                    bart_cli.run_command()
         self.assertEqual(mock_out.getvalue(), expected)
 
     def test_service_notices(self):

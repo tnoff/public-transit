@@ -1,11 +1,81 @@
-DATA = [
-    {
-        'TripId': 6791878,
-        'StopId': 51303,
-        'PredictionDateTime': '2019-06-16T18:26:21',
-        'PredictedDeparture': '2019-06-16T19:02:00',
-        'PredictedDelayInSeconds': 0,
-        'RouteName': '99',
-        'VehicleId': 1420
+DATA = {
+    "bustime-response": {
+        "prd": [
+            {
+                "vid": "1614",
+                "tatripid": "6358245",
+                "typ": "A",
+                "des": "Rockridge BART",
+                "geoid": "147",
+                "prdctdn": "15",
+                "prdtm": "20190618 22:35",
+                "rtdir": "To Rockridge BART",
+                "dstp": 15932,
+                "schdtm": "20190618 22:35",
+                "rtdd": "51A",
+                "rt": "51A",
+                "stpid": "55511",
+                "tmstmp": "20190618 22:19",
+                "seq": 6,
+                "tripdyn": 0,
+                "stpnm": "Santa Clara Av + Park St",
+                "tablockid": "51011",
+                "dyn": 0,
+                "rid": "5109",
+                "dly": False,
+                "zone": "",
+                "tripid": "341182020"
+            },
+            {
+                "vid": "1607",
+                "tatripid": "6358246",
+                "typ": "A",
+                "des": "Rockridge BART",
+                "geoid": "147",
+                "prdctdn": "35",
+                "prdtm": "20190618 22:55",
+                "rtdir": "To Rockridge BART",
+                "dstp": 33882,
+                "schdtm": "20190618 22:55",
+                "rtdd": "51A",
+                "rt": "51A",
+                "stpid": "55511",
+                "tmstmp": "20190618 22:19",
+                "seq": 6,
+                "tripdyn": 0,
+                "stpnm": "Santa Clara Av + Park St",
+                "tablockid": "51004",
+                "dyn": 0,
+                "rid": "5107",
+                "dly": False,
+                "zone": "",
+                "tripid": "341183020"
+            },
+            {
+                "vid": "1605",
+                "tatripid": "6358247",
+                "typ": "A",
+                "des": "Rockridge BART",
+                "geoid": "147",
+                "prdctdn": "55",
+                "prdtm": "20190618 23:15",
+                "rtdir": "To Rockridge BART",
+                "dstp": 53936,
+                "schdtm": "20190618 23:15",
+                "rtdd": "51A",
+                "rt": "51A",
+                "stpid": "55511",
+                "tmstmp": "20190618 22:19",
+                "seq": 6,
+                "tripdyn": 0,
+                "stpnm": "Santa Clara Av + Park St",
+                "tablockid": "51003",
+                "dyn": 0,
+                "rid": "5103",
+                "dly": False,
+                "zone": "",
+                "tripid": "341184020"
+            }
+        ]
     }
-]
+}

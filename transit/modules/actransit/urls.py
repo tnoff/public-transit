@@ -14,8 +14,12 @@ def route_stops(token, route_name, trip_id):
     return '%s/route/%s/trip/%s/stops/?token=%s' % \
         (BASE_URL, route_name, trip_id, token)
 
-def stop_predictions(token, stop_id):
-    return '%s/stops/%s/predictions/?token=%s' % (BASE_URL, stop_id, token)
+def stop_predictions(token, stop_ids, route_names):
+    stops = ','.join('%s' % stop_id for stop_id in stop_ids)
+    url = '%s/actrealtime/prediction?stpid=%s' % (BASE_URL, stops)
+    if route_names:
+        url = '%s&rt=%s' % (url, ','.join(route for route in route_names))
+    return '%s&token=%s' % (url, token)
 
 def service_notices(token):
     return '%s/servicenotices/?token=%s' % (BASE_URL, token)

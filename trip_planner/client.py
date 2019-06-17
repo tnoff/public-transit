@@ -2,6 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import UnmappedInstanceError
 
+from transit import actransit
 from transit import bart
 from transit.exceptions import TransitException
 from transit import nextbus
@@ -9,7 +10,7 @@ from transit import nextbus
 from trip_planner.database.tables import Base, Leg, LegDestination, Trip, TripLeg
 from trip_planner.exceptions import TripPlannerException
 
-def validate_bart_station(stop_tag, destinations, bart_api_key, verify_destinations=True):
+def validate_bart_station(stop_tag, destinations, bart_api_key, force):
     '''
     Validate bart station with destinations
     '''
@@ -20,7 +21,7 @@ def validate_bart_station(stop_tag, destinations, bart_api_key, verify_destinati
 
     station_name = valid_stations[stop_tag]
 
-    if verify_destinations:
+    if not force:
         # check for all possible routes from station
         # use this to get a list of all possible destinations
         possible_destinations = set([])
@@ -44,7 +45,7 @@ def validate_bart_station(stop_tag, destinations, bart_api_key, verify_destinati
             destinations = list(possible_destinations)
     return station_name, destinations
 
-def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_route_tags=True):
+def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, force):
     '''
     Validate nextbus stop with route tags (destinations)
     '''
@@ -93,7 +94,7 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
             if found_route:
                 break
 
-    if not validate_route_tags:
+    if force:
         return stop_tag, stop_title, route_tags
 
     # also return a list of all possible route_tags from predictions
@@ -109,6 +110,31 @@ def validate_nextbus_stop(db_session, agency_tag, stop_id, route_tags, validate_
             raise TripPlannerException("Invalid route given:%s" % route)
     return stop_tag, stop_title, route_tags
 
+def validate_actransit_stop(stop_id, route_tags, actransit_api_key, force):
+    '''
+    Validate actransit stop with route tags
+    '''
+    # First get a result from the stop id, to make sure stop is valid
+    # then see if route tags are listed
+    stop_preds = actransit.stop_predictions(actransit_api_key, stop_id)
+    if not force:
+        all_routes = set([])
+        for route in stop_preds:
+            all_routes.add(route['rt'])
+        # If route tags given, make sure they are valid
+        if route_tags:
+            for route in route_tags:
+                if route not in all_routes:
+                    raise TripPlannerException("Invalid route given:%s" % route)
+        # Else, just use all routes
+        else:
+            route_tags = list(all_routes)
+
+    # Grab stop title from first pred
+    stop_title = stop_preds[0]['stpnm']
+
+    return stop_id, stop_title, route_tags
+
 class TripPlanner():
     def __init__(self, database_path):
         '''
@@ -120,14 +146,16 @@ class TripPlanner():
         Base.metadata.bind = database_engine
         self.db_session = sessionmaker(bind=database_engine)()
 
-    def leg_create(self, agency_tag, stop_id, destinations=None, #pylint:disable=too-many-locals
-                   force=False, bart_api_key=None, **kwargs):
+    def leg_create(self, agency_tag, stop_id, destinations=None, #pylint:disable=too-many-locals,unused-argument
+                   force=False, bart_api_key=None,
+                   actransit_api_key=None, **kwargs):
         '''
         Create a new leg with a given stop id and routes/destinations
-        agency_tag      :   agency tag
-        stop_id         :   identifier of stop
-        include         :   include only destinations
-        bart_api_key    : Use specific bart API key
+        agency_tag          :   Agency tag
+        stop_id             :   Identifier of stop
+        include             :   Include only destinations
+        bart_api_key        :   Use specific bart API key
+        actransit_api_key   :   Use specific actransit API key
         '''
         assert isinstance(agency_tag, str), 'agency tag must be string type'
         assert isinstance(stop_id, str), 'stop id must be string type'
@@ -141,14 +169,19 @@ class TripPlanner():
         if agency_tag == 'bart':
             stop_title, route_tags = validate_bart_station(stop_id, destinations,
                                                            bart_api_key,
-                                                           verify_destinations=not force)
+                                                           force)
             stop_tag = None
+        elif agency_tag == 'actransit':
+            stop_tag, stop_title, route_tags = validate_actransit_stop(stop_id,
+                                                                       destinations,
+                                                                       actransit_api_key,
+                                                                       force)
         else:
             stop_tag, stop_title, route_tags = validate_nextbus_stop(self.db_session,
                                                                      agency_tag,
                                                                      stop_id,
                                                                      destinations,
-                                                                     validate_route_tags=not force)
+                                                                     force)
         # Add new leg object
         leg_data = {
             'stop_id' : stop_id,
@@ -176,7 +209,7 @@ class TripPlanner():
         leg['includes'] = sorted(route_tags)
         return leg
 
-    def leg_list(self, **kwargs):
+    def leg_list(self, **kwargs): #pylint:disable=unused-argument
         '''
         List all legs, along with their given routes/destinations
         '''
@@ -190,7 +223,7 @@ class TripPlanner():
             all_legs.append(leg_data)
         return all_legs
 
-    def leg_delete(self, leg_id, **kwargs):
+    def leg_delete(self, leg_id, **kwargs): #pylint:disable=unused-argument
         '''
         Delete leg with given id
         leg_id      :   leg integer id(s)
@@ -205,7 +238,7 @@ class TripPlanner():
         self.db_session.execute("VACUUM")
         return deleted_ids
 
-    def __leg_delete(self, leg_id):
+    def __leg_delete(self, leg_id): #pylint:disable=unused-argument
         trip_leg = self.db_session.query(TripLeg).filter(TripLeg.leg_id == leg_id).first()
         if trip_leg is not None:
             raise TripPlannerException('Cannot delete leg'\
@@ -221,11 +254,13 @@ class TripPlanner():
         self.db_session.commit()
         return True
 
-    def leg_show(self, leg_id, bart_api_key=None, **kwargs):
+    def leg_show(self, leg_id, bart_api_key=None,#pylint:disable=unused-argument
+                 actransit_api_key=None, **kwargs):
         '''
         Get predictions for leg with given id
-        leg_id      :   leg integer id
-        bart_api_key    : Use specific bart API key
+        leg_id              :   Leg integer id
+        bart_api_key        :   Use specific Bart API key
+        actransit_api_key   :   Use specific Actransit API Key
         '''
         assert isinstance(leg_id, int), 'leg id must be int type'
         leg_query = self.db_session.query(Leg, LegDestination).join(LegDestination)
@@ -241,11 +276,15 @@ class TripPlanner():
         if leggy['agency'] == 'bart':
             return 'bart', bart.station_departures(leggy['stop_id'], bart_api_key,
                                                    destinations=includes)
+        if leggy['agency'] == 'actransit':
+            return 'actransit', actransit.stop_predictions(actransit_api_key,
+                                                           leggy['stop_id'],
+                                                           route_names=includes)
         return leggy['agency'], nextbus.stop_prediction(leggy['agency'],
                                                         leggy['stop_id'],
                                                         route_tags=includes)
 
-    def trip_create(self, name, legs, **kwargs):
+    def trip_create(self, name, legs, **kwargs): #pylint:disable=unused-argument
         '''
         Create a new trip with one or more legs
         name        :   name of new trip
@@ -274,7 +313,7 @@ class TripPlanner():
         new_trip['legs'] = legs
         return new_trip
 
-    def trip_list(self, **kwargs):
+    def trip_list(self, **kwargs): #pylint:disable=unused-argument
         '''
         List all trips
         '''
@@ -287,11 +326,13 @@ class TripPlanner():
             all_trips.append(trip_data)
         return all_trips
 
-    def trip_show(self, trip_id, bart_api_key=None, **kwargs):
+    def trip_show(self, trip_id, bart_api_key=None,#pylint:disable=unused-argument,too-many-locals
+                  actransit_api_key=None, **kwargs):
         '''
         Show all legs for a trip with given id
-        trip_id     :   trip id
-        bart_api_key    : Use specific bart API key
+        trip_id             :   Trip id
+        bart_api_key        :   Use specific Bart API key
+        actransit_api_key   :   Use specific Actransit API Key
         '''
         assert isinstance(trip_id, int), 'trip id must be int type'
         try:
@@ -306,6 +347,7 @@ class TripPlanner():
 
         nextbus_data = {}
         station_data = {}
+        actransit_data = {}
 
         for _, leg, leg_include in trip_query:
             agency = leg.agency
@@ -314,6 +356,9 @@ class TripPlanner():
             if agency == 'bart':
                 station_data.setdefault(stop_id, [])
                 station_data[stop_id].append(include_tag)
+            elif agency == 'actransit':
+                actransit_data.setdefault(stop_id, [])
+                actransit_data[stop_id].append(include_tag)
             else:
                 nextbus_data.setdefault(agency, {})
                 nextbus_data[agency].setdefault(leg.stop_tag, [])
@@ -327,9 +372,16 @@ class TripPlanner():
         trip_data['nextbus'] = []
         for agency, data in nextbus_data.items():
             trip_data['nextbus'] += nextbus.stop_multiple_predictions(agency, data)
+        # Since not all stops might not have all routes
+        # do each call individually
+        trip_data['actransit'] = []
+        for stop_id, routes in actransit_data.items():
+            trip_data['actransit'] += actransit.stop_predictions(actransit_api_key,
+                                                                 stop_id,
+                                                                 routes)
         return trip_data
 
-    def trip_delete(self, trip_id, **kwargs):
+    def trip_delete(self, trip_id, **kwargs): #pylint:disable=unused-argument
         '''
         Delete trip with given id
         trip_id     :   trip id(s)

@@ -146,13 +146,24 @@ class TestActransitArgs(TestRunnerHelper):
 
         with self.assertRaises(CLIException) as error:
             generate_args(['-k', 'foo', 'stop', 'predictions'])
-        self.check_error_message(error, "the following arguments are required: stop_id")
+        self.check_error_message(error, "the following arguments are required: stop_ids")
 
         args = generate_args(['-k', 'foo', 'stop', 'predictions', '1234'])
         self.assert_dictionary(args, {
             'command' : 'stop',
             'subcommand' : 'predictions',
-            'stop_id' : '1234',
+            'stop_ids' : ['1234'],
+            'route_names' : None,
+            'actransit_api_key' : 'foo',
+        })
+
+        args = generate_args(['-k', 'foo', 'stop', 'predictions', '1234', '2345',
+                              '--route-names', 'foo', 'bar'])
+        self.assert_dictionary(args, {
+            'command' : 'stop',
+            'subcommand' : 'predictions',
+            'stop_ids' : ['1234', '2345'],
+            'route_names' : ['foo', 'bar'],
             'actransit_api_key' : 'foo',
         })
 

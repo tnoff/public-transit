@@ -94,8 +94,6 @@ Tests require extra pip modules to be installed, they reside in the ``tests/requ
 TODOs
 ======
 
-- Actransit API
-
 - Change asserts so they throw custom exception
 
 - Show alerts and messages with leg and trip outputs ( should probably cache as well )

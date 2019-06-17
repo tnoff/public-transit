@@ -1,6 +1,8 @@
+from configparser import NoSectionError, NoOptionError, SafeConfigParser
 import os
 import sys
 
+from transit.cli.actransit import actransit_pred_list
 from transit.cli.bart import generate_prediction_list as bart_pred_list
 from transit.cli.bart import DEFAULT_BART_API_KEY
 from transit.cli.nextbus import generate_prediction_list as nextbus_pred_list
@@ -12,6 +14,10 @@ from trip_planner.client import TripPlanner
 DEFAULT_DB_PATH = os.path.join(os.path.expanduser('~'),
                                '.trip_planner',
                                'planner.sql')
+
+DEFAULT_CONFIG_PATH = os.path.join(os.path.expanduser('~'),
+                                   '.trip_planner',
+                                   'config')
 
 def create_directory(path):
     try:
@@ -27,8 +33,13 @@ def generate_args(command_line_args):
 
     p.add_argument('-d', '--db-file', default=DEFAULT_DB_PATH,
                    help='Path to local db file')
-    p.add_argument('-b', '--bart-api-key', default=DEFAULT_BART_API_KEY,
+    p.add_argument('-c', '--config', default=DEFAULT_CONFIG_PATH,
+                   help='Path to config file')
+    p.add_argument('-b', '--bart-api-key',
                    help='Use specific bart api key')
+
+    p.add_argument('-a', '--actransit-api-key',
+                   help='Use specific actransit api key')
 
     sub_parser = p.add_subparsers(help='Command', dest='command')
 
@@ -86,10 +97,26 @@ def _add_trips(subparsers):
 class TripPlannerCLI(CommonCLI):
     def __init__(self, **kwargs):
         CommonCLI.__init__(self, **kwargs)
-        # Reset kwargs so db file doesnt show up
-        db_file = kwargs.pop('db_file')
+        # Read args from config file, if present
+        config_file = kwargs.pop('config')
+        parser = SafeConfigParser()
+        parser.read(config_file)
+        # If not set, then use config
+        try:
+            if not kwargs.get('actransit_api_key'):
+                kwargs['actransit_api_key'] = parser.get('keys',
+                                                         'actransit_api_key')
+        except (NoSectionError, NoOptionError):
+            pass
+        try:
+            if not kwargs.get('bart_api_key'):
+                kwargs['bart_api_key'] = parser.get('keys', 'bart_api_key')
+        except (NoSectionError, NoOptionError):
+            pass
         kwargs.pop('command')
         kwargs.pop('subcommand')
+        # Reset kwargs so db file doesnt show up
+        db_file = kwargs.pop('db_file')
         self.kwargs = kwargs
         db_dir_path = os.path.split(db_file)[0]
         create_directory(db_dir_path)
@@ -114,6 +141,11 @@ class TripPlannerCLI(CommonCLI):
             list_data = bart_pred_list(leg_data)
             self._print_table(list_data, key_order=['station', 'direction',
                                                     'estimates ( minutes )'])
+        elif agency == 'actransit':
+            print("Agency: actransit")
+            list_data = actransit_pred_list(leg_data)
+            self._print_table(list_data, key_order=['Route', 'Route Direction',
+                                                    'Stop Title', 'Predictions'])
         else:
             agency_data = nextbus_pred_list(leg_data)
             for agency, pred_data in agency_data.items():
@@ -149,6 +181,13 @@ class TripPlannerCLI(CommonCLI):
             list_data = bart_pred_list(bart_data)
             self._print_table(list_data, key_order=['station', 'direction',
                                                     'estimates ( minutes )'])
+        actransit_data = trip_data.pop('actransit', None)
+        if actransit_data:
+            print("Agency: actransit")
+            list_data = actransit_pred_list(actransit_data)
+            self._print_table(list_data, key_order=['Route', 'Route Direction',
+                                                    'Stop Title', 'Predictions'])
+
         nextbus_data = trip_data.pop('nextbus', None)
         if nextbus_data:
             agency_data = nextbus_pred_list(nextbus_data)

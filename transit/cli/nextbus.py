@@ -1,8 +1,8 @@
 import sys
-from datetime import datetime
 
 from transit import nextbus
 from transit.cli.common import CommonArgparse, CommonCLI, DATETIME_FORMAT_NO_DATE
+from transit.cli.common import seconds_to_datetime
 from transit.exceptions import CLIException
 
 # Keep this out of the class so it can be inherited by trip planner cli
@@ -20,20 +20,6 @@ def generate_prediction_list(stop_data):
                 'stop' : stop['stop_title'],
             })
     return agency_data
-
-def seconds_to_datetime(seconds):
-    minutes = int(seconds / 60)
-    if minutes > 0:
-        seconds = seconds % 60
-
-    hours = int(minutes / 60)
-    if hours > 0:
-        minutes = minutes % 60
-
-    date = datetime(1900, 1, 1, hours, minutes, seconds)
-    if hours > 0:
-        return date.strftime('%H:%M:%S')
-    return date.strftime('%M:%S')
 
 def generate_args(command_line_args):
     p = CommonArgparse(description='Nextbus cli')

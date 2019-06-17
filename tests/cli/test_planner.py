@@ -7,6 +7,32 @@ from trip_planner.cli.planner_script import generate_args, TripPlannerCLI
 from tests.utils import TestRunnerHelper, temp_file
 
 class TestPlannerCLI(TestRunnerHelper):
+    def test_config(self):
+        # Write data to config, make sure its read correctly
+        with temp_file(suffix='.sql') as temp_db:
+            with temp_file(suffix='.conf') as temp_config:
+                with open(temp_config, 'w') as temp_config_writer:
+                    temp_config_writer.write('[keys]\nactransit_api_key=foo\nbart_api_key=bar\n')
+                args = generate_args(['-d', temp_db, '-c', temp_config, 'leg', 'list'])
+                trip_planner_cli = TripPlannerCLI(**args)
+                print(trip_planner_cli.kwargs)
+        self.assertEqual(trip_planner_cli.kwargs['actransit_api_key'], 'foo')
+        self.assertEqual(trip_planner_cli.kwargs['bart_api_key'], 'bar')
+
+
+    def test_empty_config(self):
+        with temp_file(suffix='.sql') as temp_db:
+            with temp_file(suffix='.conf') as temp_config:
+                with open(temp_config, 'w') as temp_config_writer:
+                    temp_config_writer.write('\n')
+                args = generate_args(['-d', temp_db, '-c', temp_config, 'leg', 'list'])
+                trip_planner_cli = TripPlannerCLI(**args)
+                print(trip_planner_cli.kwargs)
+        self.assertEqual(trip_planner_cli.kwargs['actransit_api_key'], None)
+        self.assertEqual(trip_planner_cli.kwargs['bart_api_key'], None)
+
+
+
     def test_leg_create(self):
         expected = '''Leg created: 1
 {

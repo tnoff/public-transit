@@ -13,6 +13,20 @@ DATETIME_FORMAT_NO_DATE = '%H:%M:%S'
 
 DATETIME_FORMAT_JUST_DATE = '%Y-%m-%d'
 
+def seconds_to_datetime(seconds):
+    minutes = int(seconds / 60)
+    if minutes > 0:
+        seconds = seconds % 60
+
+    hours = int(minutes / 60)
+    if hours > 0:
+        minutes = minutes % 60
+
+    date = datetime.datetime(1900, 1, 1, hours, minutes, seconds)
+    if hours > 0:
+        return date.strftime('%H:%M:%S')
+    return date.strftime('%M:%S')
+
 class CommonArgparse(argparse.ArgumentParser):
     def error(self, message):
         raise CLIException(message)

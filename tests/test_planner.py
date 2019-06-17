@@ -140,13 +140,13 @@ class TestPlanner(unittest.TestCase):
     def test_leg_create_nextbus_invalid_stop(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            stop_url = nextbus_urls.stop_prediction('actransit', 'foo')
+            stop_url = nextbus_urls.stop_prediction('sf-muni', 'foo')
             httpretty.register_uri(httpretty.GET,
                                    stop_url,
                                    body=nextbus_invalid_stop.text,
                                    content_type='text/xml')
             with self.assertRaises(TripPlannerException) as error:
-                client.leg_create('actransit', 'foo')
+                client.leg_create('sf-muni', 'foo')
             self.assertTrue('Could not identify stop:stopId "foo" is not a '\
                             'valid stop id integer' in str(error.exception))
 
@@ -154,7 +154,7 @@ class TestPlanner(unittest.TestCase):
     def test_leg_create_nextbus(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = 22
             route_url = nextbus_urls.route_show(agency, route)
@@ -174,7 +174,7 @@ class TestPlanner(unittest.TestCase):
     def test_leg_create_nextbus_invalid_destination(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = 22
             route_url = nextbus_urls.route_show(agency, route)
@@ -195,7 +195,7 @@ class TestPlanner(unittest.TestCase):
     def test_leg_create_nextbus_invalid_destinations(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = 22
             route_url = nextbus_urls.route_show(agency, route)
@@ -216,7 +216,7 @@ class TestPlanner(unittest.TestCase):
     def test_leg_create_nextbus_one_direction(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = '22'
             route_url = nextbus_urls.route_show(agency, route)
@@ -236,7 +236,7 @@ class TestPlanner(unittest.TestCase):
     def test_leg_list(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = '22'
             route_url = nextbus_urls.route_show(agency, route)
@@ -257,7 +257,7 @@ class TestPlanner(unittest.TestCase):
     def test_leg_delete(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = '22'
             route_url = nextbus_urls.route_show(agency, route)
@@ -281,7 +281,7 @@ class TestPlanner(unittest.TestCase):
     def test_leg_delete_with_trip_is_invalid(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = '22'
             route_url = nextbus_urls.route_show(agency, route)
@@ -304,7 +304,7 @@ class TestPlanner(unittest.TestCase):
     def test_leg_show_nextbus(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = '22'
             route_url = nextbus_urls.route_show(agency, route)
@@ -332,7 +332,7 @@ class TestPlanner(unittest.TestCase):
     def test_trip_create(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = '22'
             route_url = nextbus_urls.route_show(agency, route)
@@ -353,7 +353,7 @@ class TestPlanner(unittest.TestCase):
     def test_trip_list(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = '22'
             route_url = nextbus_urls.route_show(agency, route)
@@ -380,7 +380,7 @@ class TestPlanner(unittest.TestCase):
     def test_trip_delete(self):
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = '22'
             route_url = nextbus_urls.route_show(agency, route)
@@ -403,7 +403,7 @@ class TestPlanner(unittest.TestCase):
     def test_trip_show(self): #pylint:disable=too-many-locals
         with temp_file(suffix='.sql') as temp_db:
             client = TripPlanner(temp_db)
-            agency = 'actransit'
+            agency = 'sf-muni'
             stop = '51303'
             route = '22'
             route_url = nextbus_urls.route_show(agency, route)
@@ -419,7 +419,8 @@ class TestPlanner(unittest.TestCase):
             leg1 = client.leg_create(agency, stop, destinations=['99', '22'])
 
             station = 'wdub'
-            leg2 = client.leg_create('bart', station, bart_api_key=FAKE_KEY, destinations=['daly', 'dubl'], force=True)
+            leg2 = client.leg_create('bart', station, bart_api_key=FAKE_KEY,
+                                     destinations=['daly', 'dubl'], force=True)
 
             trip = client.trip_create('foo', [leg1['id'], leg2['id']])
 

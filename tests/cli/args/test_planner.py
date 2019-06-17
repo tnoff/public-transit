@@ -1,7 +1,7 @@
-from transit.cli.bart import DEFAULT_BART_API_KEY
 from transit.exceptions import CLIException
 
-from trip_planner.cli.planner_script import generate_args, DEFAULT_DB_PATH
+from trip_planner.cli.planner_script import generate_args
+from trip_planner.cli.planner_script import DEFAULT_DB_PATH, DEFAULT_CONFIG_PATH
 
 from tests.utils import TestRunnerHelper
 
@@ -28,7 +28,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'command' : 'leg',
             'subcommand' : 'list',
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         args = generate_args(['-d', 'foo.sql', 'leg', 'list'])
@@ -36,7 +38,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'command' : 'leg',
             'subcommand' : 'list',
             'db_file' : 'foo.sql',
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         args = generate_args(['-b', 'foobar10', 'leg', 'list'])
@@ -45,6 +49,8 @@ class TestPlannerArgs(TestRunnerHelper):
             'subcommand' : 'list',
             'db_file' : DEFAULT_DB_PATH,
             'bart_api_key' : 'foobar10',
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
     def test_leg_args(self):
@@ -67,7 +73,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'command' : 'leg',
             'subcommand' : 'list',
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         # Test leg create
@@ -89,7 +97,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'force' : False,
             'destinations' : None,
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         args = generate_args(['leg', 'create', 'sf-muni', '1235', '--destinations', 'foo', 'bar'])
@@ -101,7 +111,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'force' : False,
             'destinations' : ['foo', 'bar'],
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         args = generate_args(['leg', 'create', 'sf-muni', '1235', '--force'])
@@ -113,7 +125,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'force' : True,
             'destinations' : None,
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         # Leg delete
@@ -131,7 +145,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'subcommand' : 'delete',
             'leg_id' : [5, 6],
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         # Leg show
@@ -149,7 +165,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'subcommand' : 'show',
             'leg_id' : 5,
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
     def test_trip_args(self):
@@ -172,7 +190,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'command' : 'trip',
             'subcommand' : 'list',
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         # Trip show
@@ -190,7 +210,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'subcommand' : 'show',
             'trip_id' : 5,
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         # Trip delete
@@ -208,7 +230,9 @@ class TestPlannerArgs(TestRunnerHelper):
             'subcommand' : 'delete',
             'trip_id' : [5, 6],
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })
 
         # Trip create
@@ -231,5 +255,7 @@ class TestPlannerArgs(TestRunnerHelper):
             'name' : 'foo',
             'legs' : [5, 6],
             'db_file' : DEFAULT_DB_PATH,
-            'bart_api_key' : DEFAULT_BART_API_KEY,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
         })

@@ -75,19 +75,17 @@ class TestActransit(TestRunnerHelper):
 
     @httpretty.activate
     def test_stop_predictions(self):
-        test_url = urls.stop_predictions(FAKE_TOKEN, '51303')
+        test_url = urls.stop_predictions(FAKE_TOKEN, '55511', None)
         httpretty.register_uri(httpretty.GET,
                                test_url,
                                body=json.dumps(stop_predictions.DATA),
                                content_type='application/json')
-        predictions = actransit.stop_predictions(FAKE_TOKEN, '51303')
+        predictions = actransit.stop_predictions(FAKE_TOKEN, '55511')
         for pred in predictions:
-            self.assertNotEqual(pred['RouteName'], None)
-            self.assertNotEqual(pred['PredictedDeparture'], None)
-            self.assertNotEqual(pred['PredictionDateTime'], None)
-            self.assertNotEqual(pred['PredictedDelayInSeconds'], None)
-            self.assertNotEqual(pred['VehicleId'], None)
-            self.assertNotEqual(pred['TripId'], None)
+            self.assertNotEqual(pred['tmstmp'], None)
+            self.assertNotEqual(pred['stpnm'], None)
+            self.assertNotEqual(pred['rtdir'], None)
+            self.assertNotEqual(pred['prdtm'], None)
 
     @httpretty.activate
     def test_service_notices(self):
