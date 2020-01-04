@@ -209,6 +209,19 @@ class TestPlannerArgs(TestRunnerHelper):
             'command' : 'trip',
             'subcommand' : 'show',
             'trip_id' : 5,
+            'reload' : 30,
+            'db_file' : DEFAULT_DB_PATH,
+            'bart_api_key' : None,
+            'actransit_api_key' : None,
+            'config': DEFAULT_CONFIG_PATH,
+        })
+
+        args = generate_args(['trip', 'show', '5', '--reload', '45'])
+        self.assert_dictionary(args, {
+            'command' : 'trip',
+            'subcommand' : 'show',
+            'trip_id' : 5,
+            'reload' : 45,
             'db_file' : DEFAULT_DB_PATH,
             'bart_api_key' : None,
             'actransit_api_key' : None,

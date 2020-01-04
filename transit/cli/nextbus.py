@@ -81,11 +81,11 @@ def _add_stop(sub_parser):
 class NextbusCLI(CommonCLI):
     def agency_list(self, **kwargs):
         agency_data = nextbus.agency_list(**kwargs)
-        self._print_table(agency_data)
+        print(self._print_table(agency_data))
 
     def route_list(self, **kwargs):
         route_data = nextbus.route_list(**kwargs)
-        self._print_table(route_data)
+        print(self._print_table(route_data))
 
     def route_show(self, **kwargs):
         route_data = nextbus.route_show(**kwargs)
@@ -94,7 +94,7 @@ class NextbusCLI(CommonCLI):
         # Save stops for later
         stops = route_data.pop('stops')
         self._print_json(route_data)
-        self._print_table(stops)
+        print(self._print_table(stops))
 
     def route_messages(self, **kwargs):
         route_data = nextbus.route_messages(**kwargs)
@@ -109,12 +109,12 @@ class NextbusCLI(CommonCLI):
             all_stops = []
             for block in route_dir['blocks']:
                 all_stops += block['stop_schedules']
-            self._print_table(all_stops, datetime_format=DATETIME_FORMAT_NO_DATE,
-                              key_order=['time', 'stop_tag', 'title'])
+            print(self._print_table(all_stops, datetime_format=DATETIME_FORMAT_NO_DATE,
+                                    key_order=['time', 'stop_tag', 'title']))
 
     def route_vehicle(self, **kwargs):
         route_data = nextbus.vehicle_location(**kwargs)
-        self._print_table(route_data, key_order=['vehicle_id', 'latitude', 'longitude'])
+        print(self._print_table(route_data, key_order=['vehicle_id', 'latitude', 'longitude']))
 
     def stop_prediction(self, **kwargs):
         stop_data = nextbus.stop_prediction(**kwargs)
@@ -122,7 +122,7 @@ class NextbusCLI(CommonCLI):
         agency_data = generate_prediction_list(stop_data)
         for agency, pred_data in agency_data.items():
             print("Agency:", agency)
-            self._print_table(pred_data, key_order=['route', 'direction', 'predictions'])
+            print(self._print_table(pred_data, key_order=['route', 'direction', 'predictions']))
 
 def main():
     try:

@@ -114,7 +114,7 @@ def _add_service(sub_parser):
 class ACTransitCLI(CommonCLI):
     def route_list(self, **kwargs):
         routes = actransit.route_list(**kwargs)
-        self._print_table(routes, key_order=['Name', 'RouteId', 'Description'])
+        print(self._print_table(routes, key_order=['Name', 'RouteId', 'Description']))
 
     def route_directions(self, **kwargs):
         route_dirs = actransit.route_directions(**kwargs)
@@ -122,18 +122,18 @@ class ACTransitCLI(CommonCLI):
 
     def route_trips(self, **kwargs):
         route_trip_data = actransit.route_trips(**kwargs)
-        self._print_table(route_trip_data, key_order=['TripId', 'StartTime'])
+        print(self._print_table(route_trip_data, key_order=['TripId', 'StartTime']))
 
     def route_stops(self, **kwargs):
         route_stop_data = actransit.route_stops(**kwargs)
-        self._print_table(route_stop_data, key_order=['StopId', 'Name',
-                                                      'Latitude', 'Longitude', 'ScheduledTime'])
+        print(self._print_table(route_stop_data, key_order=['StopId', 'Name',
+                                                            'Latitude', 'Longitude', 'ScheduledTime']))
 
     def stop_predictions(self, **kwargs):
         stop_pred_data = actransit.stop_predictions(**kwargs)
         cleaned_list = actransit_pred_list(stop_pred_data)
-        self._print_table(cleaned_list, key_order=['Route', 'Route Direction',
-                                                   'Stop Title', 'Predictions'])
+        print(self._print_table(cleaned_list, key_order=['Route', 'Route Direction',
+                                                         'Stop Title', 'Predictions']))
 
     def service_notices(self, **kwargs):
         notices = actransit.service_notices(**kwargs)
