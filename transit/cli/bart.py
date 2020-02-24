@@ -161,7 +161,7 @@ class BartCLI(CommonCLI):
     def route_list(self, **kwargs):
         list_data = bart.route_list(**kwargs)
         print("Schedule Number:%s" % list_data['schedule_number'])
-        print(self._print_table(list_data['routes']))
+        self._print_table(list_data['routes'])
 
     def route_info(self, **kwargs):
         route_data = bart.route_info(**kwargs)
@@ -177,7 +177,7 @@ class BartCLI(CommonCLI):
                 'abbreviation' : key,
                 'name' : station_data[key]
             })
-        print(self._print_table(list_data))
+        self._print_table(list_data)
 
     def station_info(self, **kwargs):
         station_data = bart.station_info(**kwargs)
@@ -186,7 +186,7 @@ class BartCLI(CommonCLI):
     def station_departures(self, **kwargs):
         departure_data = bart.station_departures(**kwargs)
         list_data = generate_prediction_list(departure_data)
-        print(self._print_table(list_data, key_order=['station', 'direction', 'estimates ( minutes )']))
+        self._print_table(list_data, key_order=['station', 'direction', 'estimates ( minutes )'])
 
     def station_access(self, **kwargs):
         station_data = bart.station_access(**kwargs)
@@ -195,14 +195,14 @@ class BartCLI(CommonCLI):
     def station_schedule(self, **kwargs):
         station_data = bart.station_schedule(**kwargs)
         print("Station Name:", station_data['name'])
-        print(self._print_table(station_data['schedule_times'],
-                                datetime_format=DATETIME_FORMAT_NO_DATE,
-                                key_order=['line', 'origin_time', 'destination_time', 'bike_flag']))
+        self._print_table(station_data['schedule_times'],
+                          datetime_format=DATETIME_FORMAT_NO_DATE,
+                          key_order=['line', 'origin_time', 'destination_time', 'bike_flag'])
 
     def schedule_list(self, **kwargs):
         schedule_data = bart.schedule_list(**kwargs)
-        print(self._print_table(schedule_data, datetime_format=DATETIME_FORMAT_JUST_DATE,
-                                key_order=['id', 'effective_date']))
+        self._print_table(schedule_data, datetime_format=DATETIME_FORMAT_JUST_DATE,
+                          key_order=['id', 'effective_date'])
 
     def schedule_fare(self, **kwargs):
         schedule_data = bart.schedule_fare(**kwargs)

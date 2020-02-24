@@ -87,4 +87,4 @@ class CommonCLI():
                 else:
                     item_data.append(item[key])
             table.add_row(item_data)
-        return str(table)
+        print(table)

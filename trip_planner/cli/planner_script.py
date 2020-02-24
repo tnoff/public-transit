@@ -1,9 +1,6 @@
 from configparser import NoSectionError, NoOptionError, SafeConfigParser
-import curses
-from datetime import datetime
 import os
 import sys
-import time
 
 from transit.cli.actransit import actransit_pred_list
 from transit.cli.bart import generate_prediction_list as bart_pred_list
@@ -30,12 +27,6 @@ def create_directory(path):
             pass
         else:
             raise OSError(e)
-
-def print_to_screen(stdscr, line_num, message):
-    for line in message.split('\n'):
-        stdscr.addstr(line_num, 0, line)
-        line_num += 1
-    return line_num
 
 def generate_args(command_line_args):
     p = CommonArgparse(description='Planner Script CLI')
@@ -98,7 +89,6 @@ def _add_trips(subparsers):
 
     trips_show = trips_parsers.add_parser('show', help='Show trip')
     trips_show.add_argument('trip_id', type=int, help='Trip ID')
-    trips_show.add_argument('--reload', type=int, default=30, help="Reload output every N seconds")
 
     trips_delete = trips_parsers.add_parser('delete', help='Delete trip')
     trips_delete.add_argument('trip_id', type=int, nargs='+', help='Trip ID')
@@ -136,8 +126,8 @@ class TripPlannerCLI(CommonCLI):
         leg_data = self.planner.leg_list(**kwargs)
         for leg in leg_data:
             leg['destinations'] = ' ; '.join(dest for dest in leg['destinations'])
-        print(self._print_table(leg_data, key_order=['id', 'agency', 'stop_title',
-                                                     'stop_tag', 'destinations']))
+        self._print_table(leg_data, key_order=['id', 'agency', 'stop_title',
+                                               'stop_tag', 'destinations'])
 
     def leg_create(self, **kwargs):
         leg_data = self.planner.leg_create(**kwargs)
@@ -149,19 +139,19 @@ class TripPlannerCLI(CommonCLI):
         if agency == 'bart':
             print("Agency: bart")
             list_data = bart_pred_list(leg_data)
-            print(self._print_table(list_data, key_order=['station', 'direction',
-                                                          'estimates ( minutes )']))
+            self._print_table(list_data, key_order=['station', 'direction',
+                                                    'estimates ( minutes )'])
         elif agency == 'actransit':
             print("Agency: actransit")
             list_data = actransit_pred_list(leg_data)
-            print(self._print_table(list_data, key_order=['Route', 'Route Direction',
-                                                          'Stop Title', 'Predictions']))
+            self._print_table(list_data, key_order=['Route', 'Route Direction',
+                                                    'Stop Title', 'Predictions'])
         else:
             agency_data = nextbus_pred_list(leg_data)
             for agency, pred_data in agency_data.items():
                 print("Agency:", agency)
-                print(self._print_table(pred_data, key_order=['stop', 'route',
-                                                              'direction', 'predictions']))
+                self._print_table(pred_data, key_order=['stop', 'route',
+                                                        'direction', 'predictions'])
 
     def leg_delete(self, **kwargs):
         leg_data = self.planner.leg_delete(**kwargs)
@@ -176,57 +166,35 @@ class TripPlannerCLI(CommonCLI):
         trip_data = self.planner.trip_list(**kwargs)
         for trip in trip_data:
             trip['legs'] = ' ; '.join(str(leg) for leg in trip['legs'])
-        print(self._print_table(trip_data, key_order=['id', 'name', 'legs']))
+        self._print_table(trip_data, key_order=['id', 'name', 'legs'])
 
     def trip_delete(self, **kwargs):
         trip_data = self.planner.trip_delete(**kwargs)
         print("Trips deleted:", " ; ".join(str(trip) for trip in trip_data))
 
     def trip_show(self, **kwargs):
-        reload_time = kwargs.pop('reload', None)
+        trip_data = self.planner.trip_show(**kwargs)
 
-        try:
-            while True:
-                stdscr = curses.initscr()
-                curses.noecho()
-                curses.cbreak()
+        bart_data = trip_data.pop('bart', None)
+        if bart_data:
+            print("Agency: bart")
+            list_data = bart_pred_list(bart_data)
+            self._print_table(list_data, key_order=['station', 'direction',
+                                                    'estimates ( minutes )'])
+        actransit_data = trip_data.pop('actransit', None)
+        if actransit_data:
+            print("Agency: actransit")
+            list_data = actransit_pred_list(actransit_data)
+            self._print_table(list_data, key_order=['Route', 'Route Direction',
+                                                    'Stop Title', 'Predictions'])
 
-                line_num = 0
-                line_num = print_to_screen(stdscr, line_num, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-                trip_data = self.planner.trip_show(**kwargs)
-
-                bart_data = trip_data.pop('bart', None)
-                if bart_data:
-                    line_num = print_to_screen(stdscr, line_num, "Agency: bart")
-                    list_data = bart_pred_list(bart_data)
-                    table_string = self._print_table(list_data, key_order=['station', 'direction',
-                                                                           'estimates ( minutes )'])
-                    line_num = print_to_screen(stdscr, line_num, table_string)
-
-                actransit_data = trip_data.pop('actransit', None)
-                if actransit_data:
-                    line_num = print_to_screen(stdscr, line_num, "Agency: actransit")
-                    list_data = actransit_pred_list(actransit_data)
-                    table_string = self._print_table(list_data, key_order=['Route', 'Route Direction',
-                                                                           'Stop Title', 'Predictions'])
-                    line_num = print_to_screen(stdscr, line_num, table_string)
-
-                nextbus_data = trip_data.pop('nextbus', None)
-                if nextbus_data:
-                    agency_data = nextbus_pred_list(nextbus_data)
-                    for agency, pred_data in agency_data.items():
-                        line_num = print_to_screen(stdscr, line_num, "Agency: %s" %  agency)
-                        table_string = self._print_table(pred_data, key_order=['stop', 'route',
-                                                                               'direction', 'predictions'])
-                        line_num = print_to_screen(stdscr, line_num, table_string)
-
-                stdscr.refresh()
-                time.sleep(reload_time)
-        except KeyboardInterrupt:
-            curses.echo()
-            curses.nocbreak()
-            curses.endwin()
+        nextbus_data = trip_data.pop('nextbus', None)
+        if nextbus_data:
+            agency_data = nextbus_pred_list(nextbus_data)
+            for agency, pred_data in agency_data.items():
+                print("Agency:", agency)
+                self._print_table(pred_data, key_order=['stop', 'route',
+                                                        'direction', 'predictions'])
 
 def main():
     try:
