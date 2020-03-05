@@ -6,7 +6,7 @@ setuptools.setup(
     name='public-transit',
     description='Public Transit CLI',
     author='Tyler D. North',
-    author_email='tylernorth18@gmail.com',
+    author_email='ty_north@yahoo.com',
     install_requires=[
         'beautifulsoup4 >= 4.7.1',
         'httpretty >= 0.9.6',
