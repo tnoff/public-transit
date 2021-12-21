@@ -1,12 +1,15 @@
-text = '''
-<?xml version="1.0" encoding="iso-8859-1"?>                                     
-<root>
-<uri>
-<![CDATA[ http://api.bart.gov/api/bsa.aspx?cmd=count ]]>
-</uri>
-<date>06/23/2015</date>
-<time>14:03:00 PM PDT</time>
-<traincount>51</traincount>
-<message/>
-</root>
-'''
+DATA = {
+    "?xml": {
+        "@version": "1.0",
+        "@encoding": "utf-8"
+    },
+    "root": {
+        "uri": {
+            "#cdata-section": " http://api.bart.gov/api/bsa.aspx?cmd=count&json=y"
+        },
+        "date": "12/20/2021",
+        "time": "19:46:00 PM PST",
+        "traincount": "44",
+        "message": ""
+    }
+}

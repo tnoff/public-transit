@@ -9,6 +9,7 @@ setuptools.setup(
     author_email='ty_north@yahoo.com',
     install_requires=[
         'beautifulsoup4 >= 4.7.1',
+        'click==8.0.3',
         'httpretty >= 0.9.6',
         'jsonschema >= 3.0.1',
         'prettytable >= 0.7.2',
@@ -25,5 +26,5 @@ setuptools.setup(
         ]
     },
     packages=setuptools.find_packages(exclude=["*tests"]),
-    version='1.3.0',
+    version='1.4.0',
 )

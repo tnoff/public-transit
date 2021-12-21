@@ -1,5 +1,4 @@
-text = '''
-<?xml version="1.0" encoding="utf-8" ?>
+text = '''<?xml version="1.0" encoding="utf-8" ?>
 <body copyright="All data copyright agencies listed below and NextBus Inc 2015.">
     <agency tag="actransit" title="AC Transit" regionTitle="California-Northern"/>
     <agency tag="jhu-apl" title="APL" regionTitle="Maryland"/>

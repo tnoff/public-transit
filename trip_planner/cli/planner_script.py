@@ -1,205 +1,94 @@
-from configparser import NoSectionError, NoOptionError, SafeConfigParser
+import json
 import os
-import sys
+from pathlib import Path
 
-from transit.cli.actransit import actransit_pred_list
-from transit.cli.bart import generate_prediction_list as bart_pred_list
-from transit.cli.bart import DEFAULT_BART_API_KEY
-from transit.cli.nextbus import generate_prediction_list as nextbus_pred_list
-from transit.cli.common import CommonArgparse, CommonCLI
-from transit.exceptions import CLIException
+import click
 
 from trip_planner.client import TripPlanner
 
-DEFAULT_DB_PATH = os.path.join(os.path.expanduser('~'),
-                               '.trip_planner',
-                               'planner.sql')
+DEFAULT_PATH = Path(os.path.expanduser('~')) / '.trip_planner'
+DEFAULT_DB_PATH = DEFAULT_PATH / 'db.sql'
 
-DEFAULT_CONFIG_PATH = os.path.join(os.path.expanduser('~'),
-                                   '.trip_planner',
-                                   'config')
+DEFAULT_PATH.mkdir(exist_ok=True)
 
-def create_directory(path):
-    try:
-        os.mkdir(path)
-    except OSError as e:
-        if 'File exists' in str(e):
-            pass
-        else:
-            raise OSError(e)
+@click.group()
+@click.option('--bart-api-key', '-bk', default='MW9S-E7SL-26DU-VV8V')
+@click.option('--actransit-api-key', '-ak')
+@click.option('--database-file', '-db', default=str(DEFAULT_DB_PATH))
+@click.pass_context
+def cli(ctx, bart_api_key, actransit_api_key, database_file):
+    ctx.obj['actransit_api_key'] = actransit_api_key or os.getenv('ACTRANSIT_API_KEY', None)
+    ctx.obj['bart_api_key'] = bart_api_key
+    ctx.obj['client'] = TripPlanner(database_file,
+                                    actransit_api_key=ctx.obj['actransit_api_key'],
+                                    bart_api_key=ctx.obj['bart_api_key'])
 
-def generate_args(command_line_args):
-    p = CommonArgparse(description='Planner Script CLI')
+@cli.command()
+@click.pass_context
+def leg_list(ctx):
+    resp = ctx.obj['client'].leg_list()
+    click.echo(json.dumps(resp, indent=4))
 
-    p.add_argument('-d', '--db-file', default=DEFAULT_DB_PATH,
-                   help='Path to local db file')
-    p.add_argument('-c', '--config', default=DEFAULT_CONFIG_PATH,
-                   help='Path to config file')
-    p.add_argument('-b', '--bart-api-key',
-                   help='Use specific bart api key')
+@cli.command()
+@click.argument('agency')
+@click.argument('stop_id')
+@click.option('--destinations', '-d', multiple=True, help='Only include destinations in output')
+@click.pass_context
+def leg_create(ctx, agency, stop_id, destinations):
+    resp = ctx.obj['client'].leg_create(agency, stop_id, destinations)
+    click.echo(json.dumps(resp, indent=4))
 
-    p.add_argument('-a', '--actransit-api-key',
-                   help='Use specific actransit api key')
+@cli.command()
+@click.argument('leg_id')
+@click.pass_context
+def leg_show(ctx, leg_id):
+    agency, resp = ctx.obj['client'].leg_show(leg_id)
+    click.echo(f'Agency {agency}')
+    click.echo(json.dumps(resp, indent=4))
 
-    sub_parser = p.add_subparsers(help='Command', dest='command')
+@cli.command()
+@click.argument('leg_id')
+@click.pass_context
+def leg_delete(ctx, leg_id):
+    resp = ctx.obj['client'].leg_delete(leg_id)
+    click.echo(resp)
 
-    _add_leg(sub_parser)
-    _add_trips(sub_parser)
+@cli.command()
+@click.argument('name')
+@click.argument('legs', nargs=-1)
+@click.pass_context
+def trip_create(ctx, name, legs):
+    resp = ctx.obj['client'].trip_create(name, legs)
+    click.echo(resp)
 
-    return_args = vars(p.parse_args(command_line_args))
-    if return_args['command'] is None:
-        raise CLIException("Error: No command arg present")
-    if return_args['subcommand'] is None:
-        raise CLIException("Error: No sub-command arg present")
-    return return_args
+@cli.command()
+@click.pass_context
+def trip_list(ctx):
+    resp = ctx.obj['client'].trip_list()
+    click.echo(json.dumps(resp, indent=4))
 
-def _add_leg(subparsers):
-    leg = subparsers.add_parser('leg', help='Let of a trip')
-    leg_parsers = leg.add_subparsers(dest='subcommand',
-                                     help='Sub-Command')
+@cli.command()
+@click.argument('trip_id')
+@click.pass_context
+def trip_show(ctx, trip_id):
+    resp = ctx.obj['client'].trip_show(trip_id)
+    for agency, agency_data in resp.items():
+        if not agency_data:
+            continue
+        print(f'Agency {agency}')
+        for stop, estimate_data in agency_data.items():
+            print(f'{"Stop":24} | {"Destination":24} | {"Times (Seconds)":24}')
+            print('-' * 80)
+            for dest_name, est_times in estimate_data.items():
+                print(f'{stop:24} | {dest_name:24} | {", ".join(str(e) for e in est_times):24}')
+        print('=' * 80)
 
-    leg_create = leg_parsers.add_parser('create',
-                                        help='Create leg')
-    leg_create.add_argument('agency_tag',
-                            help='actransit, bart, sf-muni, etc..')
-    leg_create.add_argument('stop_id',
-                            help='ID of stop or station abbreviation')
-    leg_create.add_argument('--destinations', nargs='+',
-                            help='Include destination or route tag')
-    leg_create.add_argument('--force', action='store_true',
-                            help='Do not check destinations')
-
-    leg_parsers.add_parser('list', help='List legs')
-
-    leg_delete = leg_parsers.add_parser('delete', help='Delete Leg')
-    leg_delete.add_argument('leg_id', type=int, nargs='+', help='Leg ID number')
-
-    leg_show = leg_parsers.add_parser('show', help='Show leg')
-    leg_show.add_argument('leg_id', type=int, help='Leg ID number')
-
-def _add_trips(subparsers):
-    trips = subparsers.add_parser('trip', help='Trip commands')
-    trips_parsers = trips.add_subparsers(dest='subcommand', help='Sub-Command')
-
-    trips_parsers.add_parser('list', help='List trips')
-
-    trips_create = trips_parsers.add_parser('create', help='Create trip')
-    trips_create.add_argument('name', help='Trip Name')
-    trips_create.add_argument('legs', type=int, nargs='+', help='Leg IDs')
-
-    trips_show = trips_parsers.add_parser('show', help='Show trip')
-    trips_show.add_argument('trip_id', type=int, help='Trip ID')
-
-    trips_delete = trips_parsers.add_parser('delete', help='Delete trip')
-    trips_delete.add_argument('trip_id', type=int, nargs='+', help='Trip ID')
-
-
-class TripPlannerCLI(CommonCLI):
-    def __init__(self, **kwargs):
-        CommonCLI.__init__(self, **kwargs)
-        # Read args from config file, if present
-        config_file = kwargs.pop('config')
-        parser = SafeConfigParser()
-        parser.read(config_file)
-        # If not set, then use config
-        try:
-            if not kwargs.get('actransit_api_key'):
-                kwargs['actransit_api_key'] = parser.get('keys',
-                                                         'actransit_api_key')
-        except (NoSectionError, NoOptionError):
-            pass
-        try:
-            if not kwargs.get('bart_api_key'):
-                kwargs['bart_api_key'] = parser.get('keys', 'bart_api_key')
-        except (NoSectionError, NoOptionError):
-            pass
-        kwargs.pop('command')
-        kwargs.pop('subcommand')
-        # Reset kwargs so db file doesnt show up
-        db_file = kwargs.pop('db_file')
-        self.kwargs = kwargs
-        db_dir_path = os.path.split(db_file)[0]
-        create_directory(db_dir_path)
-        self.planner = TripPlanner(database_path=db_file)
-
-    def leg_list(self, **kwargs):
-        leg_data = self.planner.leg_list(**kwargs)
-        for leg in leg_data:
-            leg['destinations'] = ' ; '.join(dest for dest in leg['destinations'])
-        self._print_table(leg_data, key_order=['id', 'agency', 'stop_title',
-                                               'stop_tag', 'destinations'])
-
-    def leg_create(self, **kwargs):
-        leg_data = self.planner.leg_create(**kwargs)
-        print("Leg created:", leg_data.pop('id'))
-        self._print_json(leg_data)
-
-    def leg_show(self, **kwargs):
-        agency, leg_data = self.planner.leg_show(**kwargs)
-        if agency == 'bart':
-            print("Agency: bart")
-            list_data = bart_pred_list(leg_data)
-            self._print_table(list_data, key_order=['station', 'direction',
-                                                    'estimates ( minutes )'])
-        elif agency == 'actransit':
-            print("Agency: actransit")
-            list_data = actransit_pred_list(leg_data)
-            self._print_table(list_data, key_order=['Route', 'Route Direction',
-                                                    'Stop Title', 'Predictions'])
-        else:
-            agency_data = nextbus_pred_list(leg_data)
-            for agency, pred_data in agency_data.items():
-                print("Agency:", agency)
-                self._print_table(pred_data, key_order=['stop', 'route',
-                                                        'direction', 'predictions'])
-
-    def leg_delete(self, **kwargs):
-        leg_data = self.planner.leg_delete(**kwargs)
-        print("Legs deleted:", " ; ".join(str(leg) for leg in leg_data))
-
-    def trip_create(self, **kwargs):
-        trip_data = self.planner.trip_create(**kwargs)
-        print("Trip created:", trip_data.pop('id'))
-        self._print_json(trip_data)
-
-    def trip_list(self, **kwargs):
-        trip_data = self.planner.trip_list(**kwargs)
-        for trip in trip_data:
-            trip['legs'] = ' ; '.join(str(leg) for leg in trip['legs'])
-        self._print_table(trip_data, key_order=['id', 'name', 'legs'])
-
-    def trip_delete(self, **kwargs):
-        trip_data = self.planner.trip_delete(**kwargs)
-        print("Trips deleted:", " ; ".join(str(trip) for trip in trip_data))
-
-    def trip_show(self, **kwargs):
-        trip_data = self.planner.trip_show(**kwargs)
-
-        bart_data = trip_data.pop('bart', None)
-        if bart_data:
-            print("Agency: bart")
-            list_data = bart_pred_list(bart_data)
-            self._print_table(list_data, key_order=['station', 'direction',
-                                                    'estimates ( minutes )'])
-        actransit_data = trip_data.pop('actransit', None)
-        if actransit_data:
-            print("Agency: actransit")
-            list_data = actransit_pred_list(actransit_data)
-            self._print_table(list_data, key_order=['Route', 'Route Direction',
-                                                    'Stop Title', 'Predictions'])
-
-        nextbus_data = trip_data.pop('nextbus', None)
-        if nextbus_data:
-            agency_data = nextbus_pred_list(nextbus_data)
-            for agency, pred_data in agency_data.items():
-                print("Agency:", agency)
-                self._print_table(pred_data, key_order=['stop', 'route',
-                                                        'direction', 'predictions'])
+@cli.command()
+@click.argument('trip_id')
+@click.pass_context
+def trip_delete(ctx, trip_id):
+    resp = ctx.obj['client'].trip_delete(trip_id)
+    click.echo(resp)
 
 def main():
-    try:
-        args = generate_args(sys.argv[1:])
-        trip_planner_cli = TripPlannerCLI(**args)
-        trip_planner_cli.run_command()
-    except CLIException as exc:
-        print(str(exc))
+    cli(obj={}) #pylint:disable=no-value-for-parameter,unexpected-keyword-arg

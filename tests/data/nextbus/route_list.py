@@ -1,5 +1,4 @@
-text = '''
-<?xml version="1.0" encoding="utf-8" ?> 
+text = '''<?xml version="1.0" encoding="utf-8" ?> 
 <body copyright="All data copyright AC Transit 2015.">
     <route tag="B" title="B"/>
     <route tag="BSD" title="Broadway Shuttle Weekdays"/>

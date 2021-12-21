@@ -1,4 +1,7 @@
+[FORMAT]
+max-line-length=140
+
 [messages control]
 
 disable=invalid-name,no-init,too-few-public-methods,missing-docstring,
-        too-many-arguments,len-as-condition
+        too-many-arguments,len-as-condition,consider-iterating-dictionary,raise-missing-from

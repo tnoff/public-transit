@@ -1,5 +1,4 @@
-text = '''
-<?xml version="1.0" encoding="utf-8" ?> 
+text = '''<?xml version="1.0" encoding="utf-8" ?> 
 <body copyright="All data copyright San Francisco Muni 2015.">
 <predictions agencyTitle="San Francisco Muni" routeTitle="38-Geary" routeTag="38" stopTitle="43rd Ave &amp; Point Lobos Ave" stopTag="13568">
   <direction title="Inbound to Downtown">

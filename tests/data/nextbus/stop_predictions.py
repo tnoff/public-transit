@@ -11,7 +11,5 @@ text = '''<?xml version="1.0" encoding="utf-8" ?>
   <prediction epochTime="1424062181349" seconds="3293" minutes="54" isDeparture="false" affectedByLayover="true" dirTag="99_72_1" vehicle="1411" block="99005" tripTag="3966110" />
   </direction>
 </predictions>
-<predictions agencyTitle="AC Transit" routeTitle="801" routeTag="801" stopTitle="Mission Blvd &amp; Central Blvd" stopTag="9902820" dirTitleBecauseNoPredictions="To Downtown Oakland">
-</predictions>
 </body>
 '''
