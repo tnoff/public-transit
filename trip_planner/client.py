@@ -30,7 +30,7 @@ def validate_nextbus_stop(agency_tag, stop_id):
     try:
         predictions = nextbus.stop_prediction(agency_tag, stop_id)['predictions']
     except TransitException as e:
-        raise TripPlannerException(f'Could not identify stop: {str(e)}')
+        raise TripPlannerException(f'Could not identify stop: {str(e)}') from e
 
     stop_tag = None
     stop_title = None
@@ -225,8 +225,8 @@ class TripPlanner():
         '''
         try:
             self.db_session.query(Trip).get(trip_id)
-        except UnmappedInstanceError:
-            raise TripPlannerException(f'No Trip with ID: {trip_id}')
+        except UnmappedInstanceError as e:
+            raise TripPlannerException(f'No Trip with ID: {trip_id}') from e
 
         trip_query = self.db_session.query(TripLeg, Leg).\
             filter(TripLeg.trip_id == trip_id).\

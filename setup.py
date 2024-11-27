@@ -1,22 +1,31 @@
 #!/usr/bin/env python
-
+import os
 import setuptools
+
+THIS_DIR = os.path.dirname(__file__)
+REQUIREMENTS_FILES = [os.path.join(THIS_DIR, 'requirements.txt')]
+VERSION_FILE = os.path.join(THIS_DIR, 'VERSION')
+
+required = []
+for file_name in REQUIREMENTS_FILES:
+    # Not sure why but tox seems to miss the file here
+    # So add the check
+    if os.path.exists(file_name):
+        with open(file_name) as f:
+            required += f.read().splitlines()
+
+try:
+    with open(VERSION_FILE) as r:
+        version = r.read().strip()
+except FileNotFoundError:
+    version = '0.0.1'
 
 setuptools.setup(
     name='public-transit',
     description='Public Transit CLI',
     author='Tyler D. North',
-    author_email='ty_north@yahoo.com',
-    install_requires=[
-        'beautifulsoup4 >= 4.7.1',
-        'click==8.0.3',
-        'httpretty >= 0.9.6',
-        'jsonschema >= 3.0.1',
-        'prettytable >= 0.7.2',
-        'pytz >= 2018.9',
-        'requests >= 2.21.0',
-        'SQLAlchemy >= 1.3.1',
-    ],
+    author_email='me@tyler-north.com',
+    install_requires=required,
     entry_points={
         'console_scripts' : [
             'bart = transit.cli.bart:main',
@@ -26,5 +35,5 @@ setuptools.setup(
         ]
     },
     packages=setuptools.find_packages(exclude=["*tests"]),
-    version='1.4.0',
+    version=version,
 )

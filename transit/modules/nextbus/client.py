@@ -14,7 +14,7 @@ def post_process(_path, key, value):
 
 def _make_request(url):
     headers = {'accept-encoding' : 'gzip, deflate'}
-    r = requests.get(url, headers=headers)
+    r = requests.get(url, timeout=120, headers=headers)
     if r.status_code != 200:
         raise TransitException(f'Non-200 status code returned, {r.status_code} - {r.text}')
 

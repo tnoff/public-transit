@@ -4,7 +4,7 @@ from transit.exceptions import TransitException
 from transit.modules.actransit import urls
 
 def _make_request(url):
-    req = requests.get(url)
+    req = requests.get(url, timeout=120)
     if req.status_code != 200:
         raise TransitException(f'Non 200 status code {req.status_code} returned, "{req.text}"')
     return req.json()
@@ -45,7 +45,7 @@ def route_trips(actransit_api_key, route_name, direction,
         'sunday' : 6,
     }
 
-    if schedule_type not in list(schedule_type_mapping.keys()):
+    if schedule_type not in schedule_type_mapping:
         raise TransitException(f'Invalid schedule type: "{schedule_type}"')
 
     url = urls.route_trips(actransit_api_key, route_name, direction,

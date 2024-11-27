@@ -19,7 +19,7 @@ def inject_function(func):
     return decorated_class
 
 @inject_function(as_dict)
-class Leg(Base): #pylint:disable=no-init
+class Leg(Base):
     __tablename__ = 'leg'
     id = Column(Integer, primary_key=True)
     agency = Column(String(128))
@@ -28,20 +28,20 @@ class Leg(Base): #pylint:disable=no-init
     stop_title = Column(String(128))
 
 @inject_function(as_dict)
-class LegDestination(Base): #pylint:disable=no-init
+class LegDestination(Base):
     __tablename__ = 'leg_destination'
     id = Column(Integer, primary_key=True)
     leg_id = Column(Integer, ForeignKey('leg.id'))
     tag = Column(String(64))
 
 @inject_function(as_dict)
-class Trip(Base): #pylint:disable=no-init
+class Trip(Base):
     __tablename__ = 'trip'
     id = Column(Integer, primary_key=True)
     name = Column(String(128))
 
 @inject_function(as_dict)
-class TripLeg(Base): #pylint:disable=no-init
+class TripLeg(Base):
     __tablename__ = 'trip_leg'
     id = Column(Integer, primary_key=True)
     trip_id = Column(Integer, ForeignKey('trip.id'))

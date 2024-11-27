@@ -1,7 +1,16 @@
-[FORMAT]
-max-line-length=140
+[MESSAGES CONTROL]
 
-[messages control]
+# Enable the message, report, category or checker with the given id(s). You can
+# either give multiple identifier separated by comma (,) or put this option
+# multiple time.
+#enable=
 
-disable=invalid-name,no-init,too-few-public-methods,missing-docstring,
-        too-many-arguments,len-as-condition,consider-iterating-dictionary,raise-missing-from
+# Disable the message, report, category or checker with the given id(s). You
+# can either give multiple identifier separated by comma (,) or put this option
+# multiple time (only on the command line, not in the configuration file where
+# it should appear only once).
+disable=line-too-long,
+        missing-function-docstring,
+        missing-module-docstring,
+        missing-class-docstring,
+        too-few-public-methods

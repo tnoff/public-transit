@@ -1,6 +1,5 @@
 import json
 
-import httpretty
 import pytest
 
 from transit.modules.actransit import client
@@ -76,25 +75,3 @@ def test_service_notices(requests_mock):
         note['ImpactedRoutes'] != None
         for route in note['ImpactedRoutes']:
             route != None
-
-"""
-
-class TestActransit(TestRunnerHelper):
-
-    @httpretty.activate
-    def test_service_notices(self):
-        test_url = urls.service_notices(FAKE_TOKEN)
-        httpretty.register_uri(httpretty.GET,
-                               test_url,
-                               body=json.dumps(notices.DATA),
-                               content_type='application/json')
-        notes = actransit.service_notices(FAKE_TOKEN)
-        for note in notes:
-            self.assertNotEqual(note['Url'], None)
-            self.assertNotEqual(note['Title'], None)
-            self.assertNotEqual(note['NoticeText'], None)
-            self.assertNotEqual(note['PostDate'], None)
-            self.assertNotEqual(note['ImpactedRoutes'], None)
-            for route in note['ImpactedRoutes']:
-                self.assertNotEqual(route, None)
-"""
