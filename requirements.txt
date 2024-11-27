@@ -1,4 +1,4 @@
-beautifulsoup4==4.7.1
+beautifulsoup4==4.12.3
 click==8.0.3
 jsonschema==4.23.0
 prettytable==3.12.0
