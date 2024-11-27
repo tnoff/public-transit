@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import UnmappedInstanceError
+from sqlalchemy.sql import text
 
 from transit.modules.actransit import client as actransit
 from transit.modules.bart import client as bart
@@ -171,7 +172,7 @@ class TripPlanner():
         self.db_session.query(LegDestination).filter(LegDestination.leg_id == leg_id).delete()
         self.db_session.query(Leg).filter(Leg.id == leg_id).delete()
         self.db_session.commit()
-        self.db_session.execute("VACUUM")
+        self.db_session.execute(text("VACUUM"))
         return True
 
     def trip_create(self, name, legs): #pylint:disable=unused-argument
@@ -307,5 +308,5 @@ class TripPlanner():
         self.db_session.query(TripLeg).filter(TripLeg.trip_id == trip_id).delete()
         self.db_session.query(Trip).filter(Trip.id == trip_id).delete()
         self.db_session.commit()
-        self.db_session.execute("VACUUM")
+        self.db_session.execute(text("VACUUM"))
         return True
