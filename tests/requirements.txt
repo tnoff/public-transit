@@ -4,4 +4,4 @@ pytest-mock==3.14.1
 requests-mock==1.12.1
 pytest-cov==6.2.1
 tox==4.28.4
-pylint==3.3.7
+pylint==3.3.8
