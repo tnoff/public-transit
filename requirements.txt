@@ -5,4 +5,4 @@ prettytable==3.16.0
 pytz==2025.2
 SQLAlchemy==2.0.43
 requests==2.32.5
-xmltodict==0.15.0
+xmltodict==1.0.2
