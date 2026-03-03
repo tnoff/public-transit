@@ -2,7 +2,7 @@ beautifulsoup4==4.14.3
 click==8.3.1
 jsonschema==4.26.0
 prettytable==3.17.0
-pytz==2025.2
+pytz==2026.1.post1
 SQLAlchemy==2.0.48
 requests==2.32.5
 xmltodict==1.0.4
