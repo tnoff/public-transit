@@ -55,12 +55,19 @@ class TripPlanner():
         Trip planner client
         database_path   :   Path to sqlite database
         '''
-        database_engine = create_engine(f'sqlite:///{database_path}')
-        Base.metadata.create_all(database_engine)
-        self.db_session = sessionmaker(bind=database_engine)()
+        self.db_engine = create_engine(f'sqlite:///{database_path}')
+        Base.metadata.create_all(self.db_engine)
+        self.db_session = sessionmaker(bind=self.db_engine)()
 
         self.bart_api_key = bart_api_key
         self.actransit_api_key = actransit_api_key
+
+    def close(self):
+        '''
+        Close database session and engine
+        '''
+        self.db_session.close()
+        self.db_engine.dispose()
 
     def leg_create(self, agency_tag, stop_id, destinations=None):
         '''
