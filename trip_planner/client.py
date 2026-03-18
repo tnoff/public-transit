@@ -2,7 +2,6 @@ from datetime import datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import UnmappedInstanceError
 from sqlalchemy.sql import text
 
 from transit.modules.actransit import client as actransit
@@ -56,13 +55,19 @@ class TripPlanner():
         Trip planner client
         database_path   :   Path to sqlite database
         '''
-        database_engine = create_engine(f'sqlite:///{database_path}')
-        Base.metadata.create_all(database_engine)
-        Base.metadata.bind = database_engine
-        self.db_session = sessionmaker(bind=database_engine)()
+        self.db_engine = create_engine(f'sqlite:///{database_path}')
+        Base.metadata.create_all(self.db_engine)
+        self.db_session = sessionmaker(bind=self.db_engine)()
 
         self.bart_api_key = bart_api_key
         self.actransit_api_key = actransit_api_key
+
+    def close(self):
+        '''
+        Close database session and engine
+        '''
+        self.db_session.close()
+        self.db_engine.dispose()
 
     def leg_create(self, agency_tag, stop_id, destinations=None):
         '''
@@ -127,7 +132,7 @@ class TripPlanner():
         Get predictions for leg with given id
         leg_id              :   Leg integer id
         '''
-        leg = self.db_session.query(Leg).get(leg_id)
+        leg = self.db_session.get(Leg, leg_id)
         if not leg:
             raise TripPlannerException(f'No Leg with this ID: {leg_id}')
         leg_query = self.db_session.query(Leg, LegDestination).\
@@ -186,7 +191,7 @@ class TripPlanner():
         self.db_session.commit()
 
         for leg_id in legs:
-            leg = self.db_session.query(Leg).get(leg_id)
+            leg = self.db_session.get(Leg, leg_id)
             if not leg:
                 raise TripPlannerException(f'Leg does not exist {leg_id}')
             new_leg = TripLeg(trip_id=new_trip.id, leg_id=leg.id)
@@ -224,10 +229,8 @@ class TripPlanner():
         Show all legs for a trip with given id
         trip_id             :   Trip id
         '''
-        try:
-            self.db_session.query(Trip).get(trip_id)
-        except UnmappedInstanceError as e:
-            raise TripPlannerException(f'No Trip with ID: {trip_id}') from e
+        if not self.db_session.get(Trip, trip_id):
+            raise TripPlannerException(f'No Trip with ID: {trip_id}')
 
         trip_query = self.db_session.query(TripLeg, Leg).\
             filter(TripLeg.trip_id == trip_id).\
