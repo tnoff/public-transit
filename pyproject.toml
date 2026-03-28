@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "public-transit"
+description = "Public Transit CLI"
+authors = [
+    {name = "Tyler D. North", email = "me@tyler-north.com"}
+]
+requires-python = ">=3.11"
+dynamic = ["version", "dependencies"]
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
+dependencies = {file = "requirements.txt"}
+
+[tool.setuptools.packages.find]
+exclude = ["*tests"]
+
+[project.scripts]
+bart = "transit.cli.bart:main"
+nextbus = "transit.cli.nextbus:main"
+actransit = "transit.cli.actransit:main"
+trip-planner = "trip_planner.cli.planner_script:main"
