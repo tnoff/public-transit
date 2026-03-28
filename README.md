@@ -13,6 +13,30 @@ git clone https://github.com/tnoff/public-transit.git
 pip install public-transit/
 ```
 
+## Docker
+
+If you'd rather not set up a local Python environment, you can build and run with Docker:
+
+```bash
+git clone https://github.com/tnoff/public-transit.git
+cd public-transit
+docker build -t public-transit .
+```
+
+Then run any of the CLI commands:
+
+```bash
+docker run --rm public-transit bart --help
+docker run --rm public-transit actransit --help
+docker run --rm public-transit nextbus agency-list
+```
+
+For `trip-planner`, mount a local directory so the SQLite database persists between runs:
+
+```bash
+docker run --rm -v "$HOME/.trip_planner:/root/.trip_planner" public-transit trip-planner leg-list
+```
+
 ## CLI Scripts
 
 Installing the package provides four commands:

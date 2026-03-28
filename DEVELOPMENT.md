@@ -16,7 +16,7 @@ Run the full suite with lint and coverage:
 
 ```bash
 pylint transit/ trip_planner/
-pytest --cov=transit/ --cov=trip_planner/ --cov-fail-under=60 tests/
+pytest --cov=transit/ --cov=trip_planner/ --cov-fail-under=100 tests/
 ```
 
 Run a single test file:
