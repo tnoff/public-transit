@@ -1,18 +1,17 @@
-from collections import OrderedDict
 import requests
 import xmltodict
 
 from transit.exceptions import TransitException
 from transit.modules.nextbus import urls
 
-def post_process(_path, key, value):
-    if isinstance(value, OrderedDict):
+def post_process(_path: str, key: str, value: object) -> tuple[str, object]:
+    if isinstance(value, dict):
         value = dict(value)
     if key[0] == '@':
         key = key[1:]
     return key, value
 
-def _make_request(url):
+def _make_request(url: str) -> dict:
     headers = {'accept-encoding' : 'gzip, deflate'}
     r = requests.get(url, timeout=120, headers=headers)
     if r.status_code != 200:
@@ -20,14 +19,14 @@ def _make_request(url):
 
     return dict(xmltodict.parse(r.text, postprocessor=post_process))
 
-def agency_list():
+def agency_list() -> dict:
     '''
     List all nextbus agencies
     '''
     url = urls.agency_list()
     return _make_request(url)['body']
 
-def route_list(agency_tag):
+def route_list(agency_tag: str) -> dict:
     '''
     Get list of agency routes
     agency_tag      :   agency tag
@@ -35,7 +34,7 @@ def route_list(agency_tag):
     url = urls.route_list(agency_tag)
     return _make_request(url)['body']
 
-def route_show(agency_tag, route_tag):
+def route_show(agency_tag: str, route_tag: str) -> dict:
     '''
     Get information about route
     agency_tag      :   agency tag
@@ -44,7 +43,7 @@ def route_show(agency_tag, route_tag):
     url = urls.route_show(agency_tag, route_tag)
     return _make_request(url)['body']
 
-def route_messages(agency_tag, route_tags):
+def route_messages(agency_tag: str, route_tags: list[str]) -> dict:
     '''
     Get alert messages for routes
     agency_tag      :   agency tag
@@ -53,7 +52,7 @@ def route_messages(agency_tag, route_tags):
     url = urls.message_get(agency_tag, route_tags)
     return _make_request(url)['body']
 
-def stop_prediction(agency_tag, stop_id, route_tags=None):
+def stop_prediction(agency_tag: str, stop_id: str | int, route_tags: list[str] | str | None = None) -> dict:
     '''
     Get arrival predictions for stops
     agency_tag      :   agency tag
@@ -63,7 +62,7 @@ def stop_prediction(agency_tag, stop_id, route_tags=None):
     url = urls.stop_prediction(agency_tag, stop_id, route_tags=route_tags)
     return  _make_request(url)['body']
 
-def stop_multiple_predictions(agency_tag, prediction_data):
+def stop_multiple_predictions(agency_tag: str, prediction_data: dict[str, list[str]]) -> dict:
     '''
     Get predictions for multiple stops
     agency_tag      :   agency tag
@@ -74,5 +73,4 @@ def stop_multiple_predictions(agency_tag, prediction_data):
     }
     '''
     url = urls.multiple_stop_prediction(agency_tag, prediction_data)
-    print(f'Url {url}')
     return _make_request(url)['body']

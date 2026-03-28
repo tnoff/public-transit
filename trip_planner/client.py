@@ -12,7 +12,7 @@ from transit.exceptions import TransitException
 from trip_planner.tables import Base, Leg, LegDestination, Trip, TripLeg
 from trip_planner.exceptions import TripPlannerException
 
-def validate_bart_station(station_name, bart_api_key):
+def validate_bart_station(station_name: str, bart_api_key: str) -> tuple[str, str]:
     '''
     Validate bart station with destinations
     '''
@@ -23,7 +23,7 @@ def validate_bart_station(station_name, bart_api_key):
             return station_name.lower(), station['name']
     raise TripPlannerException(f'Bart station not valid: {station_name}')
 
-def validate_nextbus_stop(agency_tag, stop_id):
+def validate_nextbus_stop(agency_tag: str, stop_id: str | int) -> tuple[str | None, str | None, list[str]]:
     '''
     Validate nextbus stop with route tags (destinations)
     '''
@@ -39,10 +39,10 @@ def validate_nextbus_stop(agency_tag, stop_id):
         possible_routes.append(stop_pred['routeTag'])
         if not stop_tag:
             stop_tag = stop_pred['stopTag']
-            stop_pred = stop_pred['stopTitle']
+            stop_title = stop_pred['stopTitle']
     return stop_tag, stop_title, possible_routes
 
-def validate_actransit_stop(stop_id, actransit_api_key):
+def validate_actransit_stop(stop_id: str, actransit_api_key: str) -> str:
     '''
     Validate actransit stop with route tags
     '''
@@ -220,7 +220,8 @@ class TripPlanner():
                 trip_data['legs'] = []
                 last_trip_id = trip.id
             trip_data['legs'].append(leg.id)
-        all_trips.append(trip_data)
+        if trip_data is not None:
+            all_trips.append(trip_data)
         return all_trips
 
 
@@ -295,7 +296,6 @@ class TripPlanner():
             for agency, data in nextbus_data.items():
                 trip_data.setdefault(agency, {})
                 for pred in nextbus.stop_multiple_predictions(agency, data)['predictions']:
-                    print(pred)
                     trip_data[agency].setdefault(pred['stopTitle'], {})
                     trip_data[agency][pred['stopTitle']].setdefault(pred['direction']['title'], [])
                     est_datetime = datetime.fromtimestamp(int(pred['direction']['prediction']['epochTime']) / 1000)
