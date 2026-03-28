@@ -1,6 +1,6 @@
 from click.testing import CliRunner
 
-from transit.cli.nextbus import cli
+from transit.cli.nextbus import cli, main
 
 
 def test_agency_list(mocker):
@@ -31,3 +31,8 @@ def test_stop_prediction(mocker):
     mocker.patch('transit.cli.nextbus.client.stop_prediction', return_value={'predictions': []})
     result = CliRunner().invoke(cli, ['stop-prediction', 'sf-muni', '15684'])
     assert result.exit_code == 0
+
+def test_main(mocker):
+    mock_cli = mocker.patch('transit.cli.nextbus.cli')
+    main()
+    mock_cli.assert_called_once_with()

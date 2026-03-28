@@ -1,5 +1,8 @@
+import pytest
+
 from transit.modules.bart import client
 from transit.modules.bart import urls
+from transit.exceptions import TransitException
 
 from tests.data.bart.service_advisory import DATA as service_advisory
 from tests.data.bart.train_count import DATA as train_count
@@ -45,3 +48,14 @@ def test_station_departures(requests_mock):
     assert resp['station'][0]['etd'][0]['destination'] == 'Berryessa'
     assert len(resp['station'][0]['etd'][0]['estimate']) > 0
     assert resp['station'][0]['etd'][0]['estimate'][0]['minutes'] == '5'
+
+def test_station_departures_with_platform_and_direction(requests_mock):
+    requests_mock.get(urls.station_departures(FAKE_KEY, 'lake', platform='1', direction='n'),
+                      json=station_departures)
+    resp = client.station_departures(FAKE_KEY, 'lake', platform='1', direction='n')
+    assert len(resp['station']) > 0
+
+def test_request_error(requests_mock):
+    requests_mock.get(urls.service_advisory(FAKE_KEY), status_code=500, text='error')
+    with pytest.raises(TransitException):
+        client.service_advisory(FAKE_KEY)

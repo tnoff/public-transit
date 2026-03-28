@@ -1,6 +1,6 @@
 from click.testing import CliRunner
 
-from transit.cli.bart import cli
+from transit.cli.bart import cli, main
 
 FAKE_KEY = 'testkey'
 
@@ -41,3 +41,8 @@ def test_station_departures_with_options(mocker):
         cli, ['-k', FAKE_KEY, 'station-departures', '-p', '1', '-d', 'n', '12th'], obj={}
     )
     assert result.exit_code == 0
+
+def test_main(mocker):
+    mock_cli = mocker.patch('transit.cli.bart.cli')
+    main()
+    mock_cli.assert_called_once_with(obj={})

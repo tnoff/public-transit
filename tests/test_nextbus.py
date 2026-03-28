@@ -1,3 +1,5 @@
+import pytest
+
 from transit.modules.nextbus import client
 from transit.exceptions import TransitException
 from transit.modules.nextbus import urls
@@ -65,9 +67,23 @@ def test_message(requests_mock):
 
 def test_multiple_prediction(requests_mock):
     agency_tag = 'sf-muni'
-    data = {'13568' : ['38',], '13567' : ['38']}    
+    data = {'13568' : ['38',], '13567' : ['38']}
     requests_mock.get(urls.multiple_stop_prediction(agency_tag, data), text=multi_two)
     preds = client.stop_multiple_predictions(agency_tag, data)
     for pred in preds['predictions']:
         assert pred['routeTag'] != None
         assert pred['direction']['prediction'][0]['seconds'] != None
+
+def test_stop_prediction_with_single_route_tag(requests_mock):
+    agency_tag = 'actransit'
+    stop_id = '51303'
+    route_tag = '22'
+    requests_mock.get(urls.stop_prediction(agency_tag, stop_id, route_tags=route_tag),
+                      text=stop_predictions)
+    predictions = client.stop_prediction(agency_tag, stop_id, route_tags=route_tag)
+    assert 'predictions' in predictions
+
+def test_request_error(requests_mock):
+    requests_mock.get(urls.agency_list(), status_code=500, text='<error>bad</error>')
+    with pytest.raises(TransitException):
+        client.agency_list()

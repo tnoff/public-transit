@@ -1,6 +1,6 @@
 from click.testing import CliRunner
 
-from transit.cli.actransit import cli
+from transit.cli.actransit import cli, main
 
 FAKE_KEY = 'testkey'
 
@@ -44,3 +44,8 @@ def test_stop_predictions(mocker):
     )
     result = CliRunner().invoke(cli, ['-k', FAKE_KEY, 'stop-predictions', '55511'], obj={})
     assert result.exit_code == 0
+
+def test_main(mocker):
+    mock_cli = mocker.patch('transit.cli.actransit.cli')
+    main()
+    mock_cli.assert_called_once_with(obj={})
