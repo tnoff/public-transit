@@ -6,6 +6,15 @@ on:
 jobs:
   check-pins:
     uses: tnoff/github-workflows/.github/workflows/check-action-pins.yml@a67b99238aa5f23f5015cab31d81da16101f42f1
+  coverage:
+    uses: tnoff/github-workflows/.github/workflows/coverage-check.yml@ace23270fbc86eea0152c1cd2b186a03d9839072
+    permissions:
+      contents: read
+      actions: read
+    with:
+      coverage_source: transit trip_planner
+      install_command: pip install -r requirements.txt -r tests/requirements.txt
+      python_version: 3.14
   build:
     name: Tox
     runs-on: ubuntu-24.04
@@ -17,7 +26,7 @@ jobs:
     steps:
     - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies

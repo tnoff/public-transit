@@ -7,7 +7,7 @@ on:
 jobs:
   # test requirements: any update type, filtered by path
   auto-approve-test-reqs:
-    uses: tnoff/github-workflows/.github/workflows/dependabot-auto-approve.yml@c4ed1a1868ec99e638528422174dacf1bd9b0afb
+    uses: tnoff/github-workflows/.github/workflows/dependabot-auto-approve.yml@ace23270fbc86eea0152c1cd2b186a03d9839072
     with:
       file_pattern: 'tests/**'
       allowed_update_types: 'major,minor,patch'
