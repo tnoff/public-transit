@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 from click.testing import CliRunner
 
-from trip_planner.cli.planner_script import cli
+from trip_planner.cli.planner_script import cli, main
 
 FAKE_LEG = {
     'agency': 'bart',
@@ -84,3 +84,8 @@ def test_trip_show_with_data(planner_client):
 def test_trip_delete(planner_client):
     result = CliRunner().invoke(cli, ['trip-delete', '1'], obj={})
     assert result.exit_code == 0
+
+def test_main(mocker):
+    mock_cli = mocker.patch('trip_planner.cli.planner_script.cli')
+    main()
+    mock_cli.assert_called_once_with(obj={})

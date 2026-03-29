@@ -12,7 +12,7 @@ from transit.exceptions import TransitException
 from trip_planner.tables import Base, Leg, LegDestination, Trip, TripLeg
 from trip_planner.exceptions import TripPlannerException
 
-def validate_bart_station(station_name, bart_api_key):
+def validate_bart_station(station_name: str, bart_api_key: str) -> tuple[str, str]:
     '''
     Validate bart station with destinations
     '''
@@ -23,7 +23,7 @@ def validate_bart_station(station_name, bart_api_key):
             return station_name.lower(), station['name']
     raise TripPlannerException(f'Bart station not valid: {station_name}')
 
-def validate_nextbus_stop(agency_tag, stop_id):
+def validate_nextbus_stop(agency_tag: str, stop_id: str | int) -> tuple[str | None, str | None, list[str]]:
     '''
     Validate nextbus stop with route tags (destinations)
     '''
@@ -39,10 +39,10 @@ def validate_nextbus_stop(agency_tag, stop_id):
         possible_routes.append(stop_pred['routeTag'])
         if not stop_tag:
             stop_tag = stop_pred['stopTag']
-            stop_pred = stop_pred['stopTitle']
+            stop_title = stop_pred['stopTitle']
     return stop_tag, stop_title, possible_routes
 
-def validate_actransit_stop(stop_id, actransit_api_key):
+def validate_actransit_stop(stop_id: str, actransit_api_key: str) -> str:
     '''
     Validate actransit stop with route tags
     '''
@@ -50,26 +50,27 @@ def validate_actransit_stop(stop_id, actransit_api_key):
     return stop_preds['bustime-response']['prd'][0]['stpnm']
 
 class TripPlanner():
-    def __init__(self, database_path, bart_api_key=None, actransit_api_key=None):
+    def __init__(self, database_path: str, bart_api_key: str | None = None,
+                 actransit_api_key: str | None = None) -> None:
         '''
         Trip planner client
         database_path   :   Path to sqlite database
         '''
         self.db_engine = create_engine(f'sqlite:///{database_path}')
         Base.metadata.create_all(self.db_engine)
-        self.db_session = sessionmaker(bind=self.db_engine)()
+        self.db_session = sessionmaker(self.db_engine)()
 
         self.bart_api_key = bart_api_key
         self.actransit_api_key = actransit_api_key
 
-    def close(self):
+    def close(self) -> None:
         '''
         Close database session and engine
         '''
         self.db_session.close()
         self.db_engine.dispose()
 
-    def leg_create(self, agency_tag, stop_id, destinations=None):
+    def leg_create(self, agency_tag: str, stop_id: str, destinations: list[str] | None = None) -> dict:
         '''
         Create a new leg with a given stop id and routes/destinations
         agency_tag          :   Agency tag
@@ -113,7 +114,7 @@ class TripPlanner():
         leg_data['includes'] = sorted(destinations)
         return leg_data
 
-    def leg_list(self):
+    def leg_list(self) -> list[dict]:
         '''
         List all legs, along with their given routes/destinations
         '''
@@ -127,7 +128,7 @@ class TripPlanner():
             all_legs.append(leg_data)
         return all_legs
 
-    def leg_show(self, leg_id):
+    def leg_show(self, leg_id: int) -> tuple[str, list]:
         '''
         Get predictions for leg with given id
         leg_id              :   Leg integer id
@@ -166,7 +167,7 @@ class TripPlanner():
                                                    leg.stop_id,
                                                    route_tags=includes)['predictions']
 
-    def leg_delete(self, leg_id):
+    def leg_delete(self, leg_id: int) -> bool:
         '''
         Delete leg with given id
         leg_id      :   leg integer id
@@ -180,7 +181,7 @@ class TripPlanner():
         self.db_session.execute(text("VACUUM"))
         return True
 
-    def trip_create(self, name, legs): #pylint:disable=unused-argument
+    def trip_create(self, name: str, legs: list[int]) -> dict:
         '''
         Create a new trip with one or more legs
         name        :   name of new trip
@@ -204,7 +205,7 @@ class TripPlanner():
         }
         return new_trip
 
-    def trip_list(self, **kwargs): #pylint:disable=unused-argument
+    def trip_list(self) -> list[dict]:
         '''
         List all trips
         '''
@@ -220,11 +221,12 @@ class TripPlanner():
                 trip_data['legs'] = []
                 last_trip_id = trip.id
             trip_data['legs'].append(leg.id)
-        all_trips.append(trip_data)
+        if trip_data is not None:
+            all_trips.append(trip_data)
         return all_trips
 
 
-    def trip_show(self, trip_id): #pylint:disable=too-many-locals,too-many-branches
+    def trip_show(self, trip_id: int) -> dict: #pylint:disable=too-many-locals,too-many-branches
         '''
         Show all legs for a trip with given id
         trip_id             :   Trip id
@@ -247,12 +249,12 @@ class TripPlanner():
 
         for _, leg in trip_query:
             if leg.agency == 'bart':
-                bart_station_data.setdefault(leg.stop_id, set([]))
+                bart_station_data.setdefault(leg.stop_id, set())
             elif leg.agency == 'actransit':
-                actransit_data.setdefault(leg.stop_id, set([]))
+                actransit_data.setdefault(leg.stop_id, set())
             else:
                 nextbus_data.setdefault(leg.agency, {})
-                nextbus_data[leg.agency].setdefault(leg.stop_tag, set([]))
+                nextbus_data[leg.agency].setdefault(leg.stop_tag, set())
 
             for destination in self.db_session.query(LegDestination).\
                 filter(LegDestination.leg_id == leg.id):
@@ -295,7 +297,6 @@ class TripPlanner():
             for agency, data in nextbus_data.items():
                 trip_data.setdefault(agency, {})
                 for pred in nextbus.stop_multiple_predictions(agency, data)['predictions']:
-                    print(pred)
                     trip_data[agency].setdefault(pred['stopTitle'], {})
                     trip_data[agency][pred['stopTitle']].setdefault(pred['direction']['title'], [])
                     est_datetime = datetime.fromtimestamp(int(pred['direction']['prediction']['epochTime']) / 1000)
@@ -303,7 +304,7 @@ class TripPlanner():
                     trip_data[agency][pred['stopTitle']][pred['direction']['title']].append(est_seconds)
         return trip_data
 
-    def trip_delete(self, trip_id):
+    def trip_delete(self, trip_id: int) -> bool:
         '''
         Delete trip with given id
         trip_id      :   trip integer id

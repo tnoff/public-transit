@@ -3,13 +3,13 @@ import requests
 from transit.exceptions import TransitException
 from transit.modules.actransit import urls
 
-def _make_request(url):
+def _make_request(url: str) -> dict:
     req = requests.get(url, timeout=120)
     if req.status_code != 200:
         raise TransitException(f'Non 200 status code {req.status_code} returned, "{req.text}"')
     return req.json()
 
-def route_list(actransit_api_key):
+def route_list(actransit_api_key: str) -> list:
     '''
     List actransit routes
 
@@ -18,7 +18,7 @@ def route_list(actransit_api_key):
     url = urls.route_list(actransit_api_key)
     return _make_request(url)
 
-def route_directions(actransit_api_key, route_name):
+def route_directions(actransit_api_key: str, route_name: str) -> list:
     '''
     List route directions
 
@@ -28,8 +28,8 @@ def route_directions(actransit_api_key, route_name):
     url = urls.route_directions(actransit_api_key, route_name)
     return _make_request(url)
 
-def route_trips(actransit_api_key, route_name, direction,
-                schedule_type='weekday'):
+def route_trips(actransit_api_key: str, route_name: str, direction: str,
+                schedule_type: str = 'weekday') -> list:
     '''
     List route trips
 
@@ -52,7 +52,7 @@ def route_trips(actransit_api_key, route_name, direction,
                            schedule_type_mapping[schedule_type])
     return _make_request(url)
 
-def route_stops(actransit_api_key, route_name, trip_id):
+def route_stops(actransit_api_key: str, route_name: str, trip_id: str) -> list:
     '''
     List route stops
 
@@ -63,7 +63,8 @@ def route_stops(actransit_api_key, route_name, trip_id):
     url = urls.route_stops(actransit_api_key, route_name, trip_id)
     return _make_request(url)
 
-def stop_predictions(actransit_api_key, stop_ids, route_names=None):
+def stop_predictions(actransit_api_key: str, stop_ids: list[str] | str,
+                     route_names: list[str] | None = None) -> dict:
     '''
     Get stop predictions
 
@@ -75,7 +76,7 @@ def stop_predictions(actransit_api_key, stop_ids, route_names=None):
     return _make_request(url)
 
 
-def service_notices(actransit_api_key):
+def service_notices(actransit_api_key: str) -> list:
     '''
     Service Notices
 

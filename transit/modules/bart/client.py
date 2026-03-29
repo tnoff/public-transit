@@ -3,7 +3,7 @@ import requests
 from transit.exceptions import TransitException
 from transit.modules.bart import urls
 
-def _make_request(url):
+def _make_request(url: str) -> dict:
     headers = {'accept-encoding' : 'gzip, deflate'}
     r = requests.get(url, timeout=120, headers=headers)
 
@@ -11,7 +11,7 @@ def _make_request(url):
         raise TransitException(f'URL: "{url}" does not return 200')
     return r.json()
 
-def service_advisory(bart_api_key):
+def service_advisory(bart_api_key: str) -> dict:
     '''
     System wide service advisory
 
@@ -20,7 +20,7 @@ def service_advisory(bart_api_key):
     url = urls.service_advisory(bart_api_key)
     return _make_request(url)['root']
 
-def train_count(bart_api_key):
+def train_count(bart_api_key: str) -> dict:
     '''
     System wide train count
 
@@ -29,7 +29,7 @@ def train_count(bart_api_key):
     url = urls.train_count(bart_api_key)
     return _make_request(url)['root']
 
-def elevator_status(bart_api_key):
+def elevator_status(bart_api_key: str) -> dict:
     '''
     System wide elevator status
 
@@ -38,7 +38,7 @@ def elevator_status(bart_api_key):
     url = urls.elevator_status(bart_api_key)
     return _make_request(url)['root']
 
-def station_list(bart_api_key):
+def station_list(bart_api_key: str) -> dict:
     '''
     List of all service stations
 
@@ -47,7 +47,8 @@ def station_list(bart_api_key):
     url = urls.station_list(bart_api_key)
     return _make_request(url)['root']
 
-def station_departures(bart_api_key, origin, platform=None, direction=None):
+def station_departures(bart_api_key: str, origin: str, platform: str | None = None,
+                       direction: str | None = None) -> dict:
     '''
     Estimated departures for station
 

@@ -63,6 +63,18 @@ def test_stop_predictions(requests_mock):
         pred['rtdir'] != None
         pred['prdtm'] != None
 
+def test_stop_predictions_with_routes(requests_mock):
+    route_names = ['51A', '51B']
+    requests_mock.get(urls.stop_predictions(FAKE_TOKEN, ['55511'], route_names),
+                      json=stop_predictions)
+    predictions = client.stop_predictions(FAKE_TOKEN, '55511', route_names=route_names)
+    assert 'bustime-response' in predictions
+
+def test_request_error(requests_mock):
+    requests_mock.get(urls.route_list(FAKE_TOKEN), status_code=500, text='error')
+    with pytest.raises(TransitException):
+        client.route_list(FAKE_TOKEN)
+
 def test_service_notices(requests_mock):
     requests_mock.get(urls.service_notices(FAKE_TOKEN),
                       json=notices)
