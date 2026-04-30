@@ -5,9 +5,7 @@
 ```bash
 git clone https://github.com/tnoff/public-transit.git
 cd public-transit
-pip install -e .
-pip install -r requirements.txt
-pip install -r tests/requirements.txt
+pip install -e ".[dev]"
 ```
 
 ## Running Tests

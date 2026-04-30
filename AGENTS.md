@@ -6,9 +6,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 Install the package and dependencies:
 ```bash
-pip install -e .
-pip install -r requirements.txt
-pip install -r tests/requirements.txt
+pip install -e ".[dev]"
 ```
 
 Run lint and all tests (as tox does):
