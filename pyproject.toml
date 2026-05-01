@@ -29,6 +29,7 @@ dev = [
     "requests-mock==1.12.1",
     "tox==4.53.0",
     "pylint==4.0.5",
+    "bandit==1.9.4",
 ]
 
 [tool.setuptools.dynamic]
