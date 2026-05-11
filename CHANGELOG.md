@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.3] - 2026-05-10
+
+### Added
+- GitLab Release is now published automatically on each new tag, with release notes pulled from the matching CHANGELOG section
+- Renovate MRs now bump CHANGELOG.md alongside VERSION via the shared bump-version template's BUMP_CHANGELOG option
+
+### Changed
+- Source tarballs attached to GitLab Releases now contain only the runnable packages plus install metadata (`LICENSE.rst`, `pyproject.toml`, `VERSION`); tests, CI configs, Dockerfile, and top-level docs are excluded via `.gitattributes`
+
 ## [1.4.2] - 2026-03-28
 
 ### Changed
