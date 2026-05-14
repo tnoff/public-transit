@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.5] - 2026-05-14
+
+### Changed
+
+- Bumped requests to v2.34.1
+
 ## [1.4.4] - 2026-05-12
 
 ### Changed
