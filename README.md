@@ -9,7 +9,7 @@ Python library and CLI tools for three Bay Area transit APIs:
 ## Install
 
 ```bash
-git clone https://github.com/tnoff/public-transit.git
+git clone https://gitlab.com/tnoff-projects/public-transit.git
 pip install public-transit/
 ```
 
@@ -18,7 +18,7 @@ pip install public-transit/
 If you'd rather not set up a local Python environment, you can build and run with Docker:
 
 ```bash
-git clone https://github.com/tnoff/public-transit.git
+git clone https://gitlab.com/tnoff-projects/public-transit.git
 cd public-transit
 docker build -t public-transit .
 ```

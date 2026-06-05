@@ -1,54 +1,72 @@
 # Development
 
+Setup, tests, and linting for working in this repo. User-facing CLI
+and API usage live in [README.md](README.md). For architecture and
+non-obvious internals see [AGENTS.md](AGENTS.md).
+
 ## Setup
 
 ```bash
-git clone https://github.com/tnoff/public-transit.git
+git clone https://gitlab.com/tnoff-projects/public-transit.git
 cd public-transit
 pip install -e ".[dev]"
 ```
 
-## Running Tests
+## Tests
 
-Run the full suite with lint and coverage:
-
-```bash
-pylint transit/ trip_planner/
-pytest --cov=transit/ --cov=trip_planner/ --cov-fail-under=100 tests/
-```
-
-Run a single test file:
-
-```bash
-pytest tests/test_bart.py
-```
-
-Run a single test:
-
-```bash
-pytest tests/test_bart.py::test_station_list
-```
-
-## Tox
-
-Tox runs lint and the full test suite across Python 3.11–3.14:
+Full suite (pylint + bandit + pytest with 100% coverage gate) across
+py311–py314:
 
 ```bash
 tox
 ```
 
-## Architecture
+Single Python version:
 
-Two top-level packages:
+```bash
+tox -e py312
+```
 
-**`transit/`** — thin API client wrappers for each transit system. Each module under `transit/modules/` follows the same pattern: `urls.py` builds URL strings, `client.py` makes HTTP requests via `requests` and returns parsed dicts. CLIs live in `transit/cli/`.
+Tests only:
 
-- `transit/modules/bart/` — BART API (JSON). Requires a BART API key per call.
-- `transit/modules/actransit/` — AC Transit API (XML parsed via `xmltodict`). Requires an AC Transit API key.
-- `transit/modules/nextbus/` — NextBus XML feed. No API key required.
+```bash
+pytest tests/
+```
 
-**`trip_planner/`** — higher-level tool built on top of `transit/`. Persists user-defined *Legs* (a stop + filtered destinations) and *Trips* (ordered collections of Legs) in a local SQLite database via SQLAlchemy. The `TripPlanner` class in `trip_planner/client.py` is the main interface; `trip_planner/tables.py` defines the ORM models (`Leg`, `LegDestination`, `Trip`, `TripLeg`). CLI entry point is `trip_planner/cli/planner_script.py`.
+One test file or test:
 
-## Tests
+```bash
+pytest tests/test_bart.py
+pytest tests/test_bart.py::test_station_list
+```
 
-Tests use `requests_mock` to intercept HTTP calls without hitting live APIs. Fixture data lives in `tests/data/` as Python modules exporting a `DATA` constant. The `pytest` configuration (inside `tox.ini`) treats all warnings as errors.
+Coverage HTML report:
+
+```bash
+pytest --cov=transit/ --cov=trip_planner/ --cov-report=html --cov-fail-under=100 tests/
+# open htmlcov/index.html
+```
+
+## Linting and security
+
+```bash
+pylint transit/ trip_planner/
+bandit -r transit/ trip_planner/
+```
+
+Both run inside `tox` and must pass for release. `pytest`'s
+`filterwarnings = error` (in `tox.ini`) treats every warning as a
+test failure.
+
+## Test fixtures
+
+HTTP is intercepted by `requests_mock`. Fixture payloads live under
+`tests/data/` as Python modules exporting a `DATA` constant. To add a
+new endpoint test, drop a new module there and import it from the
+test file — no live API calls.
+
+## Releasing
+
+`VERSION` at the repo root is the source of truth. Bump it and push to
+`main` — CI tags the commit and runs the release pipeline via the
+shared `tnoff-projects/github-workflows` templates.

@@ -1,46 +1,96 @@
 # AGENTS.md
 
-This file provides guidance to AI agents when working with code in this repository.
-
-## Commands
-
-Install the package and dependencies:
-```bash
-pip install -e ".[dev]"
-```
-
-Run lint and all tests (as tox does):
-```bash
-pylint transit/ trip_planner/
-pytest --cov=transit/ --cov=trip_planner/ --cov-fail-under=60 tests/
-```
-
-Run a single test file:
-```bash
-pytest tests/test_bart.py
-```
-
-Run a single test:
-```bash
-pytest tests/test_bart.py::test_station_list
-```
-
-Run via tox (tests Python 3.11–3.14):
-```bash
-tox
-```
+Guidance for AI coding agents working in this repository. For end-user
+CLI and Python API see [README.md](README.md); for setup, tests, and
+linting see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Architecture
 
-This repo contains two top-level Python packages:
+Two top-level Python packages:
 
-**`transit/`** — thin API client wrappers for three transit systems:
-- `transit/modules/bart/` — BART API (JSON). Requires a BART API key passed per-call.
-- `transit/modules/actransit/` — AC Transit API (XML via `xmltodict`/`beautifulsoup4`). Requires an AC Transit API key.
-- `transit/modules/nextbus/` — NextBus XML feed. No API key required.
+### `transit/` — thin API wrappers
 
-Each module follows the same pattern: `urls.py` builds URL strings, `client.py` calls those URLs via `requests` and returns parsed dicts. CLIs live in `transit/cli/`.
+Three transit-system modules under `transit/modules/`, each following
+the same shape:
 
-**`trip_planner/`** — a higher-level tool built on top of `transit/`. It persists user-defined *Legs* (a stop + filtered destinations) and *Trips* (ordered collections of Legs) in a local SQLite database via SQLAlchemy. The `TripPlanner` class in `trip_planner/client.py` is the main interface; `trip_planner/tables.py` defines the ORM models (`Leg`, `LegDestination`, `Trip`, `TripLeg`). The CLI entry point is `trip_planner/cli/planner_script.py`.
+| Module | Wire format | API key |
+|---|---|---|
+| `transit/modules/bart/` | JSON | required per call |
+| `transit/modules/actransit/` | XML (`xmltodict`) | required per call |
+| `transit/modules/nextbus/` | XML | not required |
 
-**Tests** use `requests_mock` to intercept HTTP calls. Fixture data lives in `tests/data/` as Python modules exporting a `DATA` dict. `pytest.ini` options (inside `tox.ini`) treat warnings as errors.
+Each module has `urls.py` (URL builders) and `client.py` (HTTP via
+`requests`, returns parsed dicts). CLIs live in `transit/cli/` and
+register the per-system `bart`, `actransit`, `nextbus` entry points.
+
+### `trip_planner/`
+
+Higher-level tool built on top of `transit/`. Persists user-defined
+**Legs** (a stop + filtered destinations) and **Trips** (ordered
+collections of Legs) in a SQLite DB via SQLAlchemy.
+
+- `trip_planner/client.py` — `TripPlanner` class, the main interface
+- `trip_planner/tables.py` — ORM models (`Leg`, `LegDestination`,
+  `Trip`, `TripLeg`)
+- `trip_planner/cli/planner_script.py` — `trip-planner` entry point
+
+## Non-obvious internals
+
+### API keys are passed per call, not held in state
+
+Every BART / AC Transit client function takes `api_key` as its first
+argument. There is no module-level config or `Client` object that
+holds it. This is deliberate — it makes the wrappers trivial to use
+from notebooks, lets callers rotate keys without re-initialising, and
+keeps the test suite stateless. Don't introduce a session-style
+client that holds the key.
+
+### XML parsing differs between AC Transit and NextBus
+
+AC Transit uses `xmltodict` to round-trip the entire XML response to
+a dict. NextBus uses `beautifulsoup4` because its XML is sloppier and
+`xmltodict` chokes on the inconsistent attribute styles. If you add a
+new XML-format source, check the upstream payload before picking the
+parser — `xmltodict` is preferable when it works.
+
+### `pytest filterwarnings = error`
+
+`tox.ini` sets `filterwarnings = error` under `[pytest]`. Any
+`DeprecationWarning` from a dependency surfaces as a test failure.
+When bumping a dep that emits new deprecations, either silence the
+specific warning in `filterwarnings` with a `ignore::Warning:<module>`
+entry (preferred — keeps the gate on for everything else) or fix the
+usage.
+
+### `requests_mock` everywhere — no live API hits in tests
+
+All HTTP is intercepted by `requests_mock`. Fixture payloads live under
+`tests/data/` as Python modules that export a `DATA` constant
+(matching the upstream API's shape exactly). The test suite never
+hits the live APIs, both for repeatability and because some are
+rate-limited.
+
+### Trip Planner `destinations` filter is agency-specific
+
+The `destinations` field on a Leg means different things per agency:
+
+- BART — terminal-station abbreviations (`DUBL`, `FRMT`)
+- NextBus — route tags (`38` for sf-muni 38-Geary)
+
+There is no unified taxonomy. If you add another agency, document
+what `destinations` means for it in the CLI help and in
+[README.md](README.md#trip-planner).
+
+### Coverage gate is **100%**
+
+`tox.ini` runs `pytest --cov-fail-under=100`. The old AGENTS doc
+claimed 60% — that's stale. New code paths need exhaustive tests.
+
+## Conventions
+
+- New transit module under `transit/modules/<name>/` follows the
+  `urls.py` + `client.py` pair. CLI entry in `transit/cli/<name>.py`,
+  registered in `pyproject.toml [project.scripts]`.
+- API keys flow per-call as the first argument.
+- New `trip_planner` features go through `TripPlanner` in `client.py`,
+  not directly via the ORM models.
