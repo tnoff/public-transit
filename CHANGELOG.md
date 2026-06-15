@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.10] - 2026-06-14
+
+### Changed
+
+- Bumped beautifulsoup4 to v4.15.0
+
 ## [1.4.9] - 2026-05-25
 
 ### Changed
