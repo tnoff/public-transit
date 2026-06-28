@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.11] - 2026-06-28
+
+### Changed
+
+- Bumped click to v8.4.2
+
 ## [1.4.10] - 2026-06-14
 
 ### Changed
