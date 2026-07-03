@@ -7,6 +7,7 @@ from sqlalchemy.sql import text
 from transit.modules.actransit import client as actransit
 from transit.modules.bart import client as bart
 from transit.modules.nextbus import client as nextbus
+from transit.modules.five11 import client as five11
 from transit.exceptions import TransitException
 
 from trip_planner.tables import Base, Leg, LegDestination, Trip, TripLeg
@@ -49,9 +50,33 @@ def validate_actransit_stop(stop_id: str, actransit_api_key: str) -> str:
     stop_preds = actransit.stop_predictions(actransit_api_key, stop_id)
     return stop_preds['bustime-response']['prd'][0]['stpnm']
 
+def five11_operator(agency_tag: str) -> str:
+    '''
+    Extract the 511 operator id from a '511:<operator>' agency tag
+    '''
+    return agency_tag.split(':', 1)[1]
+
+def nextbus_agency(agency_tag: str) -> str:
+    '''
+    Extract the NextBus agency from a 'nextbus:<agency>' tag (tolerates a
+    bare legacy tag with no prefix)
+    '''
+    return agency_tag.split(':', 1)[-1]
+
+def validate_five11_stop(agency_tag: str, stop_id: str, five11_api_key: str) -> str:
+    '''
+    Validate a 511 stop code, returning its title
+    '''
+    operator = five11_operator(agency_tag)
+    visits = five11.stop_visits(five11.stop_monitoring(five11_api_key, operator, stop_id))
+    if not visits:
+        raise TripPlannerException(f'Could not identify 511 stop: {stop_id}')
+    return visits[0]['stop_title']
+
 class TripPlanner():
     def __init__(self, database_path: str, bart_api_key: str | None = None,
-                 actransit_api_key: str | None = None) -> None:
+                 actransit_api_key: str | None = None,
+                 five11_api_key: str | None = None) -> None:
         '''
         Trip planner client
         database_path   :   Path to sqlite database
@@ -62,6 +87,7 @@ class TripPlanner():
 
         self.bart_api_key = bart_api_key
         self.actransit_api_key = actransit_api_key
+        self.five11_api_key = five11_api_key
 
     def close(self) -> None:
         '''
@@ -86,8 +112,16 @@ class TripPlanner():
         elif agency_tag == 'actransit':
             stop_title = validate_actransit_stop(stop_id,
                                                  self.actransit_api_key)
+        elif agency_tag.startswith('511:'):
+            stop_title = validate_five11_stop(agency_tag, stop_id, self.five11_api_key)
+        elif agency_tag.startswith('nextbus:'):
+            stop_tag, stop_title, possible_routes = validate_nextbus_stop(
+                nextbus_agency(agency_tag), stop_id)
         else:
-            stop_tag, stop_title, possible_routes = validate_nextbus_stop(agency_tag, stop_id)
+            raise TripPlannerException(
+                f"Unknown agency '{agency_tag}'. Prefix NextBus agencies with "
+                f"'nextbus:' (e.g. 'nextbus:{agency_tag}'), or use 'bart', "
+                f"'actransit', or '511:<operator>'.")
 
         # Add new leg object
         leg_data = {
@@ -102,7 +136,8 @@ class TripPlanner():
 
         # Add all routes in leg includes
         destinations = destinations or []
-        if agency_tag not in ['bart', 'actransit'] and not destinations:
+        if agency_tag not in ['bart', 'actransit'] and not agency_tag.startswith('511:') \
+                and not destinations:
             destinations = possible_routes
         for tag in destinations:
             leg_include = LegDestination(leg_id=new_leg.id, tag=tag)
@@ -128,7 +163,7 @@ class TripPlanner():
             all_legs.append(leg_data)
         return all_legs
 
-    def leg_show(self, leg_id: int) -> tuple[str, list]:
+    def leg_show(self, leg_id: int) -> tuple[str, list]: #pylint:disable=too-many-branches
         '''
         Get predictions for leg with given id
         leg_id              :   Leg integer id
@@ -163,7 +198,15 @@ class TripPlanner():
                 if departure['rt'].lower() in includes:
                     relevant_departures.append(departure)
             return 'actransit', relevant_departures
-        return leg.agency, nextbus.stop_prediction(leg.agency,
+
+        if leg.agency.lower().startswith('511:'):
+            operator = five11_operator(leg.agency)
+            all_departures = five11.stop_visits(
+                five11.stop_monitoring(self.five11_api_key, operator, leg.stop_id))
+            if includes:
+                all_departures = [d for d in all_departures if d['line'].lower() in includes]
+            return leg.agency, all_departures
+        return leg.agency, nextbus.stop_prediction(nextbus_agency(leg.agency),
                                                    leg.stop_id,
                                                    route_tags=includes)['predictions']
 
@@ -226,7 +269,7 @@ class TripPlanner():
         return all_trips
 
 
-    def trip_show(self, trip_id: int) -> dict: #pylint:disable=too-many-locals,too-many-branches
+    def trip_show(self, trip_id: int) -> dict: #pylint:disable=too-many-locals,too-many-branches,too-many-statements
         '''
         Show all legs for a trip with given id
         trip_id             :   Trip id
@@ -244,6 +287,8 @@ class TripPlanner():
         actransit_data = {}
         # {stop_tag: [destination1, destination2]}
         nextbus_data = {}
+        # {'511:<operator>': {stop_code: [destination1, destination2]}}
+        five11_data = {}
 
         now = datetime.now()
 
@@ -252,6 +297,9 @@ class TripPlanner():
                 bart_station_data.setdefault(leg.stop_id, set())
             elif leg.agency == 'actransit':
                 actransit_data.setdefault(leg.stop_id, set())
+            elif leg.agency.startswith('511:'):
+                five11_data.setdefault(leg.agency, {})
+                five11_data[leg.agency].setdefault(leg.stop_id, set())
             else:
                 nextbus_data.setdefault(leg.agency, {})
                 nextbus_data[leg.agency].setdefault(leg.stop_tag, set())
@@ -263,6 +311,9 @@ class TripPlanner():
                     continue
                 if leg.agency == 'actransit':
                     actransit_data[leg.stop_id].add(destination.tag)
+                    continue
+                if leg.agency.startswith('511:'):
+                    five11_data[leg.agency][leg.stop_id].add(destination.tag)
                     continue
                 nextbus_data[leg.agency][leg.stop_tag].add(destination.tag)
 
@@ -296,12 +347,30 @@ class TripPlanner():
         if nextbus_data:
             for agency, data in nextbus_data.items():
                 trip_data.setdefault(agency, {})
-                for pred in nextbus.stop_multiple_predictions(agency, data)['predictions']:
+                for pred in nextbus.stop_multiple_predictions(nextbus_agency(agency), data)['predictions']:
                     trip_data[agency].setdefault(pred['stopTitle'], {})
                     trip_data[agency][pred['stopTitle']].setdefault(pred['direction']['title'], [])
                     est_datetime = datetime.fromtimestamp(int(pred['direction']['prediction']['epochTime']) / 1000)
                     est_seconds = (est_datetime - now).seconds
                     trip_data[agency][pred['stopTitle']][pred['direction']['title']].append(est_seconds)
+        if five11_data:
+            for agency, stops in five11_data.items():
+                trip_data.setdefault(agency, {})
+                # one agency-wide call per operator, filtered by stop client-side
+                for visit in five11.stop_visits(
+                        five11.stop_monitoring(self.five11_api_key, five11_operator(agency))):
+                    if visit['stop_code'] not in stops:
+                        continue
+                    # case-insensitive line match, same as leg_show
+                    destinations = {tag.lower() for tag in stops[visit['stop_code']]}
+                    if destinations and visit['line'].lower() not in destinations:
+                        continue
+                    trip_data[agency].setdefault(visit['stop_title'], {})
+                    trip_data[agency][visit['stop_title']].setdefault(visit['destination'], [])
+                    est_datetime = datetime.fromisoformat(
+                        visit['expected_arrival']).astimezone().replace(tzinfo=None)
+                    est_seconds = (est_datetime - now).seconds
+                    trip_data[agency][visit['stop_title']][visit['destination']].append(est_seconds)
         return trip_data
 
     def trip_delete(self, trip_id: int) -> bool:

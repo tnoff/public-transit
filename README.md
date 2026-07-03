@@ -1,10 +1,13 @@
 # Public Transit API
 
-Python library and CLI tools for three Bay Area transit APIs:
+Python library and CLI tools for Bay Area transit APIs:
 
 - [BART API](http://api.bart.gov/docs/overview/index.aspx)
 - [AC Transit API](https://www.actransit.org/data-api-resource-center)
 - [NextBus XML Feed](http://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf)
+- [511.org Open Data API](https://511.org/open-data/transit) — real-time
+  departures for ~30 Bay Area operators (VTA, SF Muni, Caltrain, SamTrans,
+  Golden Gate, …) through one SIRI feed
 
 ## Install
 
@@ -39,13 +42,14 @@ docker run --rm -v "$HOME/.trip_planner:/root/.trip_planner" public-transit trip
 
 ## CLI Scripts
 
-Installing the package provides four commands:
+Installing the package provides five commands:
 
 | Command | Description |
 |---|---|
 | `bart` | BART station departures, advisories, and train info |
 | `actransit` | AC Transit routes, trips, and stop predictions |
 | `nextbus` | NextBus agency, route, and stop predictions |
+| `five11` | 511.org operators, lines, stops, and real-time departures (VTA, Muni, Caltrain, …) |
 | `trip-planner` | Save and query common routes across all agencies |
 
 Run any command with `--help` for full usage details, e.g. `bart --help`.
@@ -77,6 +81,18 @@ agencies = nextbus.agency_list()
 predictions = nextbus.stop_prediction('sf-muni', '15684')
 ```
 
+```python
+from transit.modules.five11 import client as five11
+
+# Requires a 511.org API key; operator id 'SC' is Santa Clara VTA
+operators = five11.operators(api_key)          # discover operator ids
+lines = five11.lines(api_key, 'SC')            # discover line ids (routes)
+stops = five11.stops(api_key, 'SC')            # all stops for the operator
+line_22_stops = five11.stops(api_key, 'SC', line_id='22')  # stops on one line
+response = five11.stop_monitoring(api_key, 'SC', '70021')
+departures = five11.stop_visits(response)  # flat list of stop/line/destination/arrival
+```
+
 ## Trip Planner
 
 Trip planner lets you save frequently used stops and destinations to a local SQLite database, then query them all at once.
@@ -97,16 +113,35 @@ $ trip-planner leg-create bart mont --destinations frmt
 }
 
 # Show live departure times for all legs in a saved trip
+# (times render as H:MM:SS / M:SS / seconds)
 $ trip-planner trip-show 2
 Agency bart
-Stop                     | Destination              | Times (Seconds)
---------------------------------------------------------------------------------
-Concord                  | SF Airport               | 2640
-================================================================================
+Stop                    || Destination                       || Times (H:MM:SS)
+-------------------------------------------------------------------------------
+Concord                 || SF Airport                        || 44:00
+```
+
+Multi-agency providers use a `provider:agency` tag; single-agency
+modules (`bart`, `actransit`) are bare:
+
+- **511** (VTA, Muni, Caltrain, …) → `511:<OPERATOR>`, where the operator
+  id comes from `five11 operators` (e.g. `SC` for Santa Clara VTA)
+- **NextBus** → `nextbus:<AGENCY>` (e.g. `nextbus:sf-muni`)
+
+An unknown or unprefixed tag is rejected with a hint, so a typo can't
+silently be treated as a NextBus agency.
+
+```bash
+# Create a leg: VTA (operator SC) stop 70021, filtering to the 22 line
+$ trip-planner leg-create 511:SC 70021 --destinations 22
+
+# NextBus: the sf-muni 38-Geary stop
+$ trip-planner leg-create nextbus:sf-muni 5684 --destinations 38
 ```
 
 The `destinations` filter corresponds to:
 - The terminal station abbreviation for BART routes (e.g. `DUBL`, `FRMT`)
 - The route tag for NextBus stops (e.g. `38` for the 38-Geary on sf-muni)
+- The line ref for 511 operators (e.g. `22` or `522` for VTA)
 
 Run `trip-planner --help` for the full list of commands.

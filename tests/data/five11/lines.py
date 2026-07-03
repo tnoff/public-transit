@@ -1,0 +1,36 @@
+# Shape mirrors the live 511 /transit/lines?operator_id=SC response
+DATA = [
+    {
+        "Id": "22",
+        "Name": "Palo Alto - Eastridge",
+        "FromDate": "2026-04-27T00:00:00-07:00",
+        "ToDate": "2026-08-07T23:59:00-07:00",
+        "TransportMode": "bus",
+        "PublicCode": "22",
+        "SiriLineRef": "22",
+        "Monitored": True,
+        "OperatorRef": "SC",
+    },
+    {
+        "Id": "522",
+        "Name": "Palo Alto - Eastridge (Rapid)",
+        "FromDate": "2026-04-27T00:00:00-07:00",
+        "ToDate": "2026-08-07T23:59:00-07:00",
+        "TransportMode": "bus",
+        "PublicCode": "522",
+        "SiriLineRef": "522",
+        "Monitored": True,
+        "OperatorRef": "SC",
+    },
+    {
+        "Id": "900",
+        "Name": "Mountain View - Winchester",
+        "FromDate": "2026-04-27T00:00:00-07:00",
+        "ToDate": "2026-08-07T23:59:00-07:00",
+        "TransportMode": "tram",
+        "PublicCode": "Orange",
+        "SiriLineRef": "900",
+        "Monitored": True,
+        "OperatorRef": "SC",
+    },
+]

@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock
 from click.testing import CliRunner
 
-from trip_planner.cli.planner_script import cli, main
+from trip_planner.cli.planner_script import cli, main, format_seconds
 
 FAKE_LEG = {
     'agency': 'bart',
@@ -73,12 +73,20 @@ def test_trip_show_empty(planner_client):
 
 def test_trip_show_with_data(planner_client):
     planner_client.trip_show.return_value = {
-        'bart': {'West Oakland': {'Antioch': [420, 1320]}},
+        'bart': {'West Oakland': {'Antioch': [45, 420, 5450]}},
         'actransit': {},
     }
     result = CliRunner().invoke(cli, ['trip-show', '1'], obj={})
     assert result.exit_code == 0
     assert 'West Oakland' in result.output
+    assert '45, 7:00, 1:30:50' in result.output
+
+
+def test_format_seconds():
+    assert format_seconds(45) == '45'          # under a minute
+    assert format_seconds(420) == '7:00'       # minutes:seconds
+    assert format_seconds(650) == '10:50'
+    assert format_seconds(5450) == '1:30:50'   # hours:minutes:seconds
 
 
 def test_trip_delete(planner_client):

@@ -10,18 +10,28 @@ Two top-level Python packages:
 
 ### `transit/` — thin API wrappers
 
-Three transit-system modules under `transit/modules/`, each following
-the same shape:
+Transit-system modules under `transit/modules/`, each following the
+same shape:
 
 | Module | Wire format | API key |
 |---|---|---|
 | `transit/modules/bart/` | JSON | required per call |
-| `transit/modules/actransit/` | XML (`xmltodict`) | required per call |
-| `transit/modules/nextbus/` | XML | not required |
+| `transit/modules/actransit/` | JSON (`.json()`) | required per call |
+| `transit/modules/nextbus/` | XML (`xmltodict`) | not required |
+| `transit/modules/five11/` | JSON (SIRI) | required per call |
 
 Each module has `urls.py` (URL builders) and `client.py` (HTTP via
 `requests`, returns parsed dicts). CLIs live in `transit/cli/` and
-register the per-system `bart`, `actransit`, `nextbus` entry points.
+register the per-system `bart`, `actransit`, `nextbus`, `five11` entry
+points.
+
+`five11` is generic over the 511.org operator id (`SC`=VTA, `SF`=Muni,
+`CT`=Caltrain, …), the same way `nextbus` is generic over its agency
+tag. In the trip planner these multi-agency providers use a
+`provider:agency` tag — `511:<operator>` and `nextbus:<agency>` — while
+the single-agency modules (`bart`, `actransit`) are bare. An unknown or
+unprefixed tag is rejected at `leg_create` (no silent NextBus
+fall-through).
 
 ### `trip_planner/`
 
@@ -45,13 +55,15 @@ from notebooks, lets callers rotate keys without re-initialising, and
 keeps the test suite stateless. Don't introduce a session-style
 client that holds the key.
 
-### XML parsing differs between AC Transit and NextBus
+### Wire formats differ between modules
 
-AC Transit uses `xmltodict` to round-trip the entire XML response to
-a dict. NextBus uses `beautifulsoup4` because its XML is sloppier and
-`xmltodict` chokes on the inconsistent attribute styles. If you add a
-new XML-format source, check the upstream payload before picking the
-parser — `xmltodict` is preferable when it works.
+BART, AC Transit, and 511 all return JSON (parsed with `requests`'
+`.json()`). Only NextBus returns XML, parsed with `xmltodict`
+(`postprocessor` strips the leading `@` off attribute keys). If you add
+a new XML-format source, check the upstream payload before picking the
+parser — `xmltodict` is preferable when it works. Note: 511 prefixes
+its JSON with a UTF-8 BOM, so `five11.client` sets
+`req.encoding = 'utf-8-sig'` before `.json()`.
 
 ### `pytest filterwarnings = error`
 
@@ -75,7 +87,8 @@ rate-limited.
 The `destinations` field on a Leg means different things per agency:
 
 - BART — terminal-station abbreviations (`DUBL`, `FRMT`)
-- NextBus — route tags (`38` for sf-muni 38-Geary)
+- NextBus (`nextbus:<agency>`) — route tags (`38` for sf-muni 38-Geary)
+- 511 (`511:<operator>`) — line refs (`22`, `522` for VTA)
 
 There is no unified taxonomy. If you add another agency, document
 what `destinations` means for it in the CLI help and in

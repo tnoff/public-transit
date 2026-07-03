@@ -13,8 +13,8 @@ dynamic = ["version"]
 dependencies = [
     "beautifulsoup4==4.15.0",
     "click==8.4.2",
+    "dappertable @ https://gitlab.com/tnoff-projects/dappertable/-/archive/v1.1.4/dappertable.tar.gz",
     "jsonschema==4.26.0",
-    "prettytable==3.17.0",
     "pytz==2026.2",
     "SQLAlchemy==2.0.50",
     "requests==2.34.2",
@@ -42,4 +42,5 @@ exclude = ["*tests"]
 bart = "transit.cli.bart:main"
 nextbus = "transit.cli.nextbus:main"
 actransit = "transit.cli.actransit:main"
+five11 = "transit.cli.five11:main"
 trip-planner = "trip_planner.cli.planner_script:main"

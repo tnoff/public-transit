@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import click
+from dappertable import DapperTable, Column, Columns
 
 from trip_planner.client import TripPlanner
 
@@ -11,17 +12,32 @@ DEFAULT_DB_PATH = DEFAULT_PATH / 'db.sql'
 
 DEFAULT_PATH.mkdir(exist_ok=True)
 
+def format_seconds(seconds: int) -> str:
+    '''
+    Format an arrival estimate as H:MM:SS, M:SS, or bare seconds
+    '''
+    hours, remainder = divmod(seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    if hours:
+        return f'{hours}:{minutes:02d}:{secs:02d}'
+    if minutes:
+        return f'{minutes}:{secs:02d}'
+    return str(secs)
+
 @click.group()
 @click.option('--bart-api-key', '-bk', default='MW9S-E7SL-26DU-VV8V')
 @click.option('--actransit-api-key', '-ak')
+@click.option('--five11-api-key', '-fk')
 @click.option('--database-file', '-db', default=str(DEFAULT_DB_PATH))
 @click.pass_context
-def cli(ctx, bart_api_key, actransit_api_key, database_file):
+def cli(ctx, bart_api_key, actransit_api_key, five11_api_key, database_file):
     ctx.obj['actransit_api_key'] = actransit_api_key or os.getenv('ACTRANSIT_API_KEY', None)
     ctx.obj['bart_api_key'] = bart_api_key
+    ctx.obj['five11_api_key'] = five11_api_key or os.getenv('FIVE11_API_KEY', None)
     ctx.obj['client'] = TripPlanner(database_file,
                                     actransit_api_key=ctx.obj['actransit_api_key'],
-                                    bart_api_key=ctx.obj['bart_api_key'])
+                                    bart_api_key=ctx.obj['bart_api_key'],
+                                    five11_api_key=ctx.obj['five11_api_key'])
 
 @cli.command()
 @click.pass_context
@@ -76,12 +92,17 @@ def trip_show(ctx, trip_id):
         if not agency_data:
             continue
         print(f'Agency {agency}')
+        table = DapperTable(columns=Columns([
+            Column('Stop', 24),
+            Column('Destination', 34),
+            Column('Times (H:MM:SS)', 46),
+        ]))
         for stop, estimate_data in agency_data.items():
-            print(f'{"Stop":24} | {"Destination":24} | {"Times (Seconds)":24}')
-            print('-' * 80)
             for dest_name, est_times in estimate_data.items():
-                print(f'{stop:24} | {dest_name:24} | {", ".join(str(e) for e in est_times):24}')
-        print('=' * 80)
+                times = ", ".join(format_seconds(e) for e in est_times)
+                table.add_row([stop, dest_name, times])
+        print(table.render())
+        print()
 
 @cli.command()
 @click.argument('trip_id')

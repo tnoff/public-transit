@@ -4,5 +4,16 @@
     "gitlab>tnoff-projects/github-workflows//renovate/default",
     "gitlab>tnoff-projects/github-workflows//renovate/python"
   ],
-  "enabledManagers": ["gitlabci", "gitlabci-include", "pep621", "dockerfile", "custom.regex"]
+  "enabledManagers": ["gitlabci", "gitlabci-include", "pep621", "dockerfile", "custom.regex"],
+  "customManagers": [
+    {
+      "description": "Track the dappertable tarball pin (pep621 can't version a plain archive URL)",
+      "customType": "regex",
+      "fileMatch": ["(^|/)pyproject\\.toml$"],
+      "matchStrings": [
+        "https://gitlab\\.com/(?<depName>tnoff-projects/dappertable)/-/archive/(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)/"
+      ],
+      "datasourceTemplate": "gitlab-tags"
+    }
+  ]
 }

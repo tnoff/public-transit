@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.5.0] - 2026-07-03
+
+### Added
+
+- 511.org (`five11`) provider covering VTA and all Bay Area operators:
+  `operators`, `lines`, `stops` (with a `--line` filter), and real-time
+  `stop-monitoring`
+- Trip planner support for 511 operators via the `511:<operator>` tag
+  (e.g. `511:SC` for VTA) and explicit NextBus agencies via
+  `nextbus:<agency>`
+- `trip-show` arrival times formatted as H:MM:SS / M:SS / seconds and
+  rendered with DapperTable
+
+### Changed
+
+- Trip planner NextBus legs now require the `nextbus:<agency>` tag;
+  unknown or unprefixed agency tags are rejected with a hint
+- Replaced prettytable with dappertable for table rendering
+
 ## [1.4.11] - 2026-06-28
 
 ### Changed

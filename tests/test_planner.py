@@ -4,6 +4,8 @@ from transit.exceptions import TransitException
 from trip_planner.client import TripPlanner
 from trip_planner.exceptions import TripPlannerException
 
+from tests.data.five11.stop_monitoring import DATA as MOCK_FIVE11_STOP_MONITORING
+
 MOCK_BART_STATION_LIST = {
     'stations': {
         'station': [
@@ -207,32 +209,53 @@ def test_leg_actransit(mocker, planner):
 
 def test_leg_nextbus(mocker, planner):
     mocker.patch('trip_planner.client.nextbus.stop_prediction', return_value=MOCK_NEXTBUS_STOP_PREDICTION)
-    planner.leg_create('sf-muni', '15684')
+    planner.leg_create('nextbus:sf-muni', '15684')
     leg_list = planner.leg_list()
     assert len(leg_list) == 1
     assert leg_list[0]['stop_id'] == '15684'
     agency, departures = planner.leg_show(1)
-    assert agency == 'sf-muni'
+    assert agency == 'nextbus:sf-muni'
     assert len(departures) > 0
+
+def test_leg_create_unknown_agency(planner):
+    # bare / unprefixed tags are rejected with a helpful message
+    with pytest.raises(TripPlannerException) as e:
+        planner.leg_create('sf-muni', '15684')
+    assert 'nextbus:sf-muni' in str(e.value)
+
+def test_leg_five11(mocker, planner):
+    mocker.patch('trip_planner.client.five11.stop_monitoring', return_value=MOCK_FIVE11_STOP_MONITORING)
+    planner.leg_create('511:SC', '70021')
+    leg_list = planner.leg_list()
+    assert len(leg_list) == 1
+    assert leg_list[0]['stop_id'] == '70021'
+    assert leg_list[0]['stop_title'] == 'El Camino Real & Palo Alto Ave'
+    agency, departures = planner.leg_show(1)
+    assert agency == '511:SC'
+    assert len(departures) == 2
+
 
 def test_trip(mocker, planner):
     mocker.patch('trip_planner.client.bart.station_list', return_value=MOCK_BART_STATION_LIST)
     mocker.patch('trip_planner.client.bart.station_departures', return_value=MOCK_BART_STATION_DEPARTURES)
     mocker.patch('trip_planner.client.actransit.stop_predictions', return_value=MOCK_ACTRANSIT_STOP_DEPARTURES)
     mocker.patch('trip_planner.client.nextbus.stop_prediction', return_value=MOCK_NEXTBUS_STOP_PREDICTION)
+    mocker.patch('trip_planner.client.five11.stop_monitoring', return_value=MOCK_FIVE11_STOP_MONITORING)
     planner.leg_create('bart', 'woak')
     planner.leg_create('actransit', '51303')
-    planner.leg_create('sf-muni', '15684')
+    planner.leg_create('nextbus:sf-muni', '15684')
+    planner.leg_create('511:SC', '70021')
 
-    planner.trip_create('testing', [1, 2, 3])
+    planner.trip_create('testing', [1, 2, 3, 4])
 
     trip_list = planner.trip_list()
     assert len(trip_list) == 1
-    assert len(trip_list[0]['legs']) == 3
+    assert len(trip_list[0]['legs']) == 4
 
     mocker.patch('trip_planner.client.bart.station_departures', return_value=MOCK_BART_ALL_DEPARTURES)
     mocker.patch('trip_planner.client.nextbus.stop_multiple_predictions', return_value=MOCK_NEXTBUS_STOP_PREDICTION)
-    planner.trip_show(1)
+    result = planner.trip_show(1)
+    assert result['511:SC']['El Camino Real & Palo Alto Ave']['Palo Alto Transit Center']
     planner.trip_delete(trip_list[0]['id'])
 
 
@@ -250,7 +273,7 @@ def test_leg_create_nextbus_transit_error(mocker, planner):
         side_effect=TransitException('bad stop'),
     )
     with pytest.raises(TripPlannerException):
-        planner.leg_create('sf-muni', '99999')
+        planner.leg_create('nextbus:sf-muni', '99999')
 
 
 def test_leg_show_not_found(planner):
@@ -273,6 +296,83 @@ def test_leg_show_actransit_with_destinations(mocker, planner):
     agency, departures = planner.leg_show(1)
     assert agency == 'actransit'
     assert len(departures) == 1
+
+
+def test_leg_show_five11_with_destinations(mocker, planner):
+    mocker.patch('trip_planner.client.five11.stop_monitoring', return_value=MOCK_FIVE11_STOP_MONITORING)
+    planner.leg_create('511:SC', '70021', destinations=['22'])
+    agency, departures = planner.leg_show(1)
+    assert agency == '511:SC'
+    assert len(departures) == 1
+    assert departures[0]['line'] == '22'
+
+
+def test_leg_create_invalid_five11_stop(mocker, planner):
+    empty = {'ServiceDelivery': {'StopMonitoringDelivery': {'MonitoredStopVisit': []}}}
+    mocker.patch('trip_planner.client.five11.stop_monitoring', return_value=empty)
+    with pytest.raises(TripPlannerException):
+        planner.leg_create('511:SC', '99999')
+
+
+def test_trip_show_five11_skips_other_stops(mocker, planner):
+    # agency-wide response also carries a visit at a stop not in this trip;
+    # trip_show must filter it out (covers the stop-code mismatch continue)
+    with_foreign_stop = {
+        'ServiceDelivery': {
+            'StopMonitoringDelivery': {
+                'MonitoredStopVisit': [
+                    MOCK_FIVE11_STOP_MONITORING['ServiceDelivery']
+                    ['StopMonitoringDelivery']['MonitoredStopVisit'][0],
+                    {
+                        'MonitoringRef': '88888',
+                        'MonitoredVehicleJourney': {
+                            'LineRef': '60',
+                            'DestinationName': 'Milpitas',
+                            'MonitoredCall': {
+                                'StopPointName': 'Some Other Stop',
+                                'ExpectedArrivalTime': '2099-01-01T00:05:00Z',
+                            },
+                        },
+                    },
+                ]
+            }
+        }
+    }
+    mocker.patch('trip_planner.client.five11.stop_monitoring', return_value=with_foreign_stop)
+    planner.leg_create('511:SC', '70021')
+    planner.trip_create('test', [1])
+    result = planner.trip_show(1)
+    assert 'El Camino Real & Palo Alto Ave' in result['511:SC']
+    assert 'Some Other Stop' not in result['511:SC']
+
+
+def test_trip_show_five11_destination_case_insensitive(mocker, planner):
+    # stored destination 'GREEN-N' must match a live line 'Green-N'
+    # (regression: trip_show used to filter case-sensitively)
+    resp = {
+        'ServiceDelivery': {
+            'StopMonitoringDelivery': {
+                'MonitoredStopVisit': [
+                    {
+                        'MonitoringRef': '902501',
+                        'MonitoredVehicleJourney': {
+                            'LineRef': 'Green-N',
+                            'DestinationName': 'Berryessa / North San Jose',
+                            'MonitoredCall': {
+                                'StopPointName': 'Bay Fair',
+                                'ExpectedArrivalTime': '2099-01-01T00:05:00Z',
+                            },
+                        },
+                    },
+                ]
+            }
+        }
+    }
+    mocker.patch('trip_planner.client.five11.stop_monitoring', return_value=resp)
+    planner.leg_create('511:BA', '902501', destinations=['GREEN-N'])
+    planner.trip_create('commute', [1])
+    result = planner.trip_show(1)
+    assert result['511:BA']['Bay Fair']['Berryessa / North San Jose']
 
 
 def test_leg_delete_in_use(mocker, planner):
@@ -309,9 +409,14 @@ def test_trip_show_with_destinations(mocker, planner):
     mocker.patch('trip_planner.client.bart.station_departures', return_value=MOCK_BART_ALL_DEPARTURES)
     # actransit leg with destination '99' (covers actransit destination collection loop)
     mocker.patch('trip_planner.client.actransit.stop_predictions', return_value=MOCK_ACTRANSIT_STOP_DEPARTURES)
+    # 511 leg with destination '22' — filters out the '522' departure and any
+    # visit at a different stop code (covers the line/stop filter continues)
+    mocker.patch('trip_planner.client.five11.stop_monitoring', return_value=MOCK_FIVE11_STOP_MONITORING)
     planner.leg_create('bart', 'woak', destinations=['daly'])
     planner.leg_create('actransit', '51303', destinations=['99'])
-    planner.trip_create('test', [1, 2])
+    planner.leg_create('511:SC', '70021', destinations=['22'])
+    planner.trip_create('test', [1, 2, 3])
     result = planner.trip_show(1)
     assert 'bart' in result
     assert 'actransit' in result
+    assert list(result['511:SC']['El Camino Real & Palo Alto Ave'].keys()) == ['Palo Alto Transit Center']
