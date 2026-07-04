@@ -13,7 +13,7 @@ dynamic = ["version"]
 dependencies = [
     "beautifulsoup4==4.15.0",
     "click==8.4.2",
-    "dappertable @ https://gitlab.com/tnoff-projects/dappertable/-/archive/v1.1.4/dappertable.tar.gz",
+    "dappertable @ https://gitlab.com/tnoff-projects/dappertable/-/archive/v1.1.5/dappertable.tar.gz",
     "jsonschema==4.26.0",
     "pytz==2026.2",
     "SQLAlchemy==2.0.51",
