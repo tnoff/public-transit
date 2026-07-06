@@ -5,7 +5,7 @@ import click
 from transit.modules.bart import client
 
 @click.group()
-@click.option('--bart-api-key', '-k', default='MW9S-E7SL-26DU-VV8V')
+@click.option('--bart-api-key', '-k', default='MW9S-E7SL-26DU-VV8V', envvar='BART_API_KEY')
 @click.pass_context
 def cli(ctx, bart_api_key):
     ctx.obj['bart_api_key'] = bart_api_key

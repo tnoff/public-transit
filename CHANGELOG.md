@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.2] - 2026-07-06
+
+### Added
+
+- `BART_API_KEY` environment variable support for the `bart` CLI and trip
+  planner, matching the existing `ACTRANSIT_API_KEY` and `FIVE11_API_KEY`
+  fallbacks
+
+### Changed
+
+- API keys now resolve consistently across all CLIs and the trip planner via
+  Click's native `envvar=` (CLI flag > environment variable > default),
+  replacing the duplicated `os.getenv()` fallbacks
+
 ## [1.5.1] - 2026-07-04
 
 ### Changed

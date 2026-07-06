@@ -1,14 +1,13 @@
 import json
-import os
 import click
 
 from transit.modules.actransit import client
 
 @click.group()
-@click.option('--actransit-api-key', '-k')
+@click.option('--actransit-api-key', '-k', envvar='ACTRANSIT_API_KEY')
 @click.pass_context
 def cli(ctx, actransit_api_key):
-    ctx.obj['actransit_api_key'] = actransit_api_key or os.getenv('ACTRANSIT_API_KEY', None)
+    ctx.obj['actransit_api_key'] = actransit_api_key
 
 @cli.command()
 @click.pass_context

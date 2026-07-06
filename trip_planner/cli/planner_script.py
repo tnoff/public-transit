@@ -25,15 +25,15 @@ def format_seconds(seconds: int) -> str:
     return str(secs)
 
 @click.group()
-@click.option('--bart-api-key', '-bk', default='MW9S-E7SL-26DU-VV8V')
-@click.option('--actransit-api-key', '-ak')
-@click.option('--five11-api-key', '-fk')
+@click.option('--bart-api-key', '-bk', default='MW9S-E7SL-26DU-VV8V', envvar='BART_API_KEY')
+@click.option('--actransit-api-key', '-ak', envvar='ACTRANSIT_API_KEY')
+@click.option('--five11-api-key', '-fk', envvar='FIVE11_API_KEY')
 @click.option('--database-file', '-db', default=str(DEFAULT_DB_PATH))
 @click.pass_context
 def cli(ctx, bart_api_key, actransit_api_key, five11_api_key, database_file):
-    ctx.obj['actransit_api_key'] = actransit_api_key or os.getenv('ACTRANSIT_API_KEY', None)
+    ctx.obj['actransit_api_key'] = actransit_api_key
     ctx.obj['bart_api_key'] = bart_api_key
-    ctx.obj['five11_api_key'] = five11_api_key or os.getenv('FIVE11_API_KEY', None)
+    ctx.obj['five11_api_key'] = five11_api_key
     ctx.obj['client'] = TripPlanner(database_file,
                                     actransit_api_key=ctx.obj['actransit_api_key'],
                                     bart_api_key=ctx.obj['bart_api_key'],

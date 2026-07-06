@@ -1,14 +1,13 @@
 import json
-import os
 import click
 
 from transit.modules.five11 import client
 
 @click.group()
-@click.option('--five11-api-key', '-k')
+@click.option('--five11-api-key', '-k', envvar='FIVE11_API_KEY')
 @click.pass_context
 def cli(ctx, five11_api_key):
-    ctx.obj['five11_api_key'] = five11_api_key or os.getenv('FIVE11_API_KEY', None)
+    ctx.obj['five11_api_key'] = five11_api_key
 
 @cli.command()
 @click.pass_context

@@ -6,3 +6,4 @@ cover/
 *egg-info*
 .tox/
 coverage.xml
+build/
