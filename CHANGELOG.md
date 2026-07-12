@@ -126,4 +126,10 @@
 
 ## [1.2.2] - 2020-01-04
 
+## [1.2.1] - 2019-07-02
+
+### Added
+
+- AC Transit support in the trip planner client
+
 ## [1.2.0] - 2019-05-10
