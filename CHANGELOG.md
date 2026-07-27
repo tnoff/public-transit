@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.3] - 2026-07-27
+
+### Changed
+
+- Bumped pytz to v2026.3.post1
+
 ## [1.5.2] - 2026-07-06
 
 ### Added
