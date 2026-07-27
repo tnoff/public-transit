@@ -15,7 +15,7 @@ dependencies = [
     "click==8.4.2",
     "dappertable @ https://gitlab.com/tnoff-projects/dappertable/-/archive/v1.1.5/dappertable.tar.gz",
     "jsonschema==4.26.0",
-    "pytz==2026.2",
+    "pytz==2026.3.post1",
     "SQLAlchemy==2.0.51",
     "requests==2.34.2",
     "xmltodict==1.0.4",
