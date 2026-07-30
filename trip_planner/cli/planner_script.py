@@ -97,8 +97,8 @@ def trip_show(ctx, trip_id):
             Column('Destination', 34),
             Column('Times (H:MM:SS)', 46),
         ]))
-        for stop, estimate_data in agency_data.items():
-            for dest_name, est_times in estimate_data.items():
+        for stop, estimate_data in sorted(agency_data.items()):
+            for dest_name, est_times in sorted(estimate_data.items()):
                 times = ", ".join(format_seconds(e) for e in est_times)
                 table.add_row([stop, dest_name, times])
         print(table.render())

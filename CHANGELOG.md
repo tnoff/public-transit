@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.4] - 2026-07-30
+
+### Fixed
+
+- `trip-show` now lists stops and destinations alphabetically within each
+  agency, so rows no longer shift between runs based on transit API response
+  ordering
+
 ## [1.5.3] - 2026-07-27
 
 ### Changed
