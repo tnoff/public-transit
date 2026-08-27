@@ -11,9 +11,9 @@
       "customType": "regex",
       "fileMatch": ["(^|/)pyproject\\.toml$"],
       "matchStrings": [
-        "https://gitlab\\.com/(?<depName>tnoff-projects/dappertable)/-/archive/(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)/"
+        "https://github\\.com/(?<depName>tnoff/dappertable)/archive/refs/tags/(?<currentValue>v[0-9]+\\.[0-9]+\\.[0-9]+)\\.tar\\.gz"
       ],
-      "datasourceTemplate": "gitlab-tags"
+      "datasourceTemplate": "github-tags"
     }
   ]
 }
