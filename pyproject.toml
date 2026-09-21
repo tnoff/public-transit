@@ -19,7 +19,7 @@ dependencies = [
     "dappertable @ https://github.com/tnoff/dappertable/archive/refs/tags/v1.1.7.tar.gz",
     "jsonschema==4.26.0",
     "pytz==2026.3.post1",
-    "SQLAlchemy==2.0.52",
+    "SQLAlchemy==2.0.54",
     "requests==2.34.2",
     "xmltodict==1.0.4",
 ]
