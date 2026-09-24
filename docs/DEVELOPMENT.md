@@ -1,13 +1,13 @@
 # Development
 
 Setup, tests, and linting for working in this repo. User-facing CLI
-and API usage live in [README.md](README.md). For architecture and
+and API usage live in [README.md](../README.md). For architecture and
 non-obvious internals see [AGENTS.md](AGENTS.md).
 
 ## Setup
 
 ```bash
-git clone https://gitlab.com/tnoff-projects/public-transit.git
+git clone https://github.com/tnoff/public-transit.git
 cd public-transit
 pip install -e ".[dev]"
 ```
@@ -51,7 +51,8 @@ pytest --cov=transit/ --cov=trip_planner/ --cov-report=html --cov-fail-under=100
 
 ```bash
 pylint transit/ trip_planner/
-bandit -r transit/ trip_planner/
+bandit -r transit/
+bandit -r trip_planner/
 ```
 
 Both run inside `tox` and must pass for release. `pytest`'s
@@ -69,4 +70,4 @@ test file — no live API calls.
 
 `VERSION` at the repo root is the source of truth. Bump it and push to
 `main` — CI tags the commit and runs the release pipeline via the
-shared `tnoff-projects/github-workflows` templates.
+shared `tnoff/github-workflows` templates.
