@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Guidance for AI coding agents working in this repository. For end-user
-CLI and Python API see [README.md](README.md); for setup, tests, and
+CLI and Python API see [README.md](../README.md); for setup, tests, and
 linting see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Architecture
@@ -92,7 +92,7 @@ The `destinations` field on a Leg means different things per agency:
 
 There is no unified taxonomy. If you add another agency, document
 what `destinations` means for it in the CLI help and in
-[README.md](README.md#trip-planner).
+[README.md](../README.md#trip-planner).
 
 ### Coverage gate is **100%**
 

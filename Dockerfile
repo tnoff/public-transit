@@ -9,6 +9,6 @@ WORKDIR /app
 COPY . .
 RUN pip install --no-cache-dir .
 
-# Default to a shell so users can run any of the four CLI commands:
-# bart, actransit, nextbus, trip-planner
+# Default to a shell so users can run any of the five CLI commands:
+# bart, actransit, nextbus, five11, trip-planner
 CMD ["/bin/bash"]

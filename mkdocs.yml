@@ -1,0 +1,11 @@
+site_name: 'public-transit'
+site_description: 'Python library and CLI wrapping Bay Area transit APIs (BART, AC Transit, 511, NextBus) plus a trip planner'
+
+nav:
+  - Home: README.md
+  - Development: DEVELOPMENT.md
+  - Agents/Conventions: AGENTS.md
+  - Contributing: CONTRIBUTING.md
+
+plugins:
+  - techdocs-core
