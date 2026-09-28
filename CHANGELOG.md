@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.8] - 2026-09-28
+
+### Changed
+
+- Bumped pytz to v2026.4
+
 ## [1.5.7] - 2026-09-28
 
 ### Changed
