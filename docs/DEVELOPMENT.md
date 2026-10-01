@@ -1,7 +1,7 @@
 # Development
 
 Setup, tests, and linting for working in this repo. User-facing CLI
-and API usage live in [README.md](../README.md). For architecture and
+and API usage live in [README.md](README.md). For architecture and
 non-obvious internals see [AGENTS.md](AGENTS.md).
 
 ## Setup
@@ -66,8 +66,18 @@ HTTP is intercepted by `requests_mock`. Fixture payloads live under
 new endpoint test, drop a new module there and import it from the
 test file — no live API calls.
 
+## Docker build
+
+```bash
+docker build -t public-transit .
+```
+
+Built and scanned (not published) in CI via the shared
+`tnoff/github-workflows` `docker-build-check.yml`.
+
 ## Releasing
 
-`VERSION` at the repo root is the source of truth. Bump it and push to
-`main` — CI tags the commit and runs the release pipeline via the
-shared `tnoff/github-workflows` templates.
+`VERSION` at the repo root is the source of truth. Merging a bump to
+`main` runs `.github/workflows/release.yml`, which assembles the
+changelog, tags, and creates the GitHub release (shared workflows from
+`tnoff/github-workflows`). No image or package is published.
