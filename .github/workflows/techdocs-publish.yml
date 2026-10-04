@@ -33,7 +33,7 @@ permissions:
 jobs:
   publish:
     name: Generate and publish
-    uses: tnoff/github-workflows/.github/workflows/techdocs-publish.yml@dddd091a6a69e8bf070f63863d59c04bb4a5db63
+    uses: tnoff/github-workflows/.github/workflows/techdocs-publish.yml@adea087c43d56fd13d5b1abf2d5f2ba3e695784d  # techdocs-publish-v1.0.0
     with:
       entity_ref: default/Component/public-transit
     secrets:
