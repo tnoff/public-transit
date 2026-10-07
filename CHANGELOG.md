@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.12] - 2026-10-07
+
+### Changed
+
+- Clear error message when the five11 or actransit CLI is run without an API key
+
 ## [1.5.11] - 2026-10-04
 
 ### Changed
