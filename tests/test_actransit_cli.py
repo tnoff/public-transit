@@ -49,3 +49,10 @@ def test_main(mocker):
     mock_cli = mocker.patch('transit.cli.actransit.cli')
     main()
     mock_cli.assert_called_once_with(obj={})
+
+
+def test_missing_api_key(monkeypatch):
+    monkeypatch.delenv('ACTRANSIT_API_KEY', raising=False)
+    result = CliRunner().invoke(cli, ['service-notices'], obj={})
+    assert result.exit_code == 2
+    assert 'ACTRANSIT_API_KEY' in result.output

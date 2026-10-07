@@ -7,6 +7,8 @@ from transit.modules.actransit import client
 @click.option('--actransit-api-key', '-k', envvar='ACTRANSIT_API_KEY')
 @click.pass_context
 def cli(ctx, actransit_api_key):
+    if not actransit_api_key:
+        raise click.UsageError('Missing API key: set ACTRANSIT_API_KEY or pass --actransit-api-key / -k')
     ctx.obj['actransit_api_key'] = actransit_api_key
 
 @cli.command()

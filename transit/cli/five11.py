@@ -7,6 +7,8 @@ from transit.modules.five11 import client
 @click.option('--five11-api-key', '-k', envvar='FIVE11_API_KEY')
 @click.pass_context
 def cli(ctx, five11_api_key):
+    if not five11_api_key:
+        raise click.UsageError('Missing API key: set FIVE11_API_KEY or pass --five11-api-key / -k')
     ctx.obj['five11_api_key'] = five11_api_key
 
 @cli.command()

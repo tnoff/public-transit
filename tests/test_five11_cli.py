@@ -49,3 +49,10 @@ def test_main(mocker):
     mock_cli = mocker.patch('transit.cli.five11.cli')
     main()
     mock_cli.assert_called_once_with(obj={})
+
+
+def test_missing_api_key(monkeypatch):
+    monkeypatch.delenv('FIVE11_API_KEY', raising=False)
+    result = CliRunner().invoke(cli, ['operators'], obj={})
+    assert result.exit_code == 2
+    assert 'FIVE11_API_KEY' in result.output
