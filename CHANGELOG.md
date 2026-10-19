@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.15] - 2026-10-19
+
+### Changed
+
+- chore(deps): update python docker tag to v3.15
+
 ## [1.5.14] - 2026-10-12
 
 ### Changed
