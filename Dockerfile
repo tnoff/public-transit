@@ -2,7 +2,7 @@
 # (pr-check:build -> pr-check:trufflehog-image). The build emits a docker-save
 # tarball that the scan job reads; as of github-workflows 0.0.54 that tarball
 # transits an OCI Object Storage bucket instead of a GitLab job artifact.
-FROM python:3.14-slim
+FROM python:3.15-slim
 
 WORKDIR /app
 
