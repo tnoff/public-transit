@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.0] - 2026-10-20
+
+### Changed
+
+- Changed the supported Python floor to 3.13 (3.11 and 3.12 dropped): tox now runs py313-py315 with pylint and bandit on 3.15, and requires-python is >=3.13; the image already ran 3.15
+
 ## [1.5.16] - 2026-10-19
 
 ### Changed
