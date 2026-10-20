@@ -15,7 +15,7 @@ pip install -e ".[dev]"
 ## Tests
 
 Full suite (pylint + bandit + pytest with 100% coverage gate) across
-py311–py314:
+py312–py315:
 
 ```bash
 tox
