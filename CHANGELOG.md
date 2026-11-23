@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.7] - 2026-11-23
+
+### Changed
+
+- Bumped sqlalchemy to v2.1.9
+
 ## [1.6.6] - 2026-11-10
 
 ### Changed
